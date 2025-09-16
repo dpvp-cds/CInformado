@@ -269,7 +269,7 @@
                         <p class="mb-4 text-gray-600 text-sm">Al firmar digitalmente y presionar el botón de "Enviar", confirmo que he leído, entendido y aceptado todos los términos del presente consentimiento informado.</p>
 
                         <div class="mb-6 flex justify-center">
-                            <canvas id="signature-pad" width="400" height="200" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
+                            <canvas id="signature-pad" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
                         </div>
                         <div class="flex justify-center mb-6">
                             <button type="button" id="clearSignature" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
@@ -300,11 +300,14 @@
     <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
         <div class="container mx-auto text-center">
             <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+            <div class="mt-4">
+                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
+            </div>
         </div>
     </footer>
 
     <script type="module">
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('consentimientoForm');
             const demographicsContainer = document.getElementById('demographicsContainer');
@@ -326,39 +329,88 @@
             const confidencialidadTexto = document.getElementById('confidencialidad-texto');
             const evaluacionTexto = document.getElementById('evaluacion-texto');
             const costosTexto = document.getElementById('costos-texto');
-
+            
             // Variables para la firma
             const canvas = document.getElementById('signature-pad');
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
             let signatureDataUrl = null;
+            let lastPosition = {x: 0, y: 0};
 
-            // Configuración de la firma en canvas
-            const PIXEL_RATIO = window.devicePixelRatio || 1;
-            canvas.width = 400 * PIXEL_RATIO;
-            canvas.height = 200 * PIXEL_RATIO;
-            ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#003366';
+            // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
+            const resizeCanvas = () => {
+                const parent = canvas.parentElement;
+                const PIXEL_RATIO = window.devicePixelRatio || 1;
+                canvas.width = parent.offsetWidth * PIXEL_RATIO;
+                canvas.height = (parent.offsetWidth / 2) * PIXEL_RATIO; // Proporción 2:1
+                ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#003366';
+            };
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
 
+            const getMousePos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            };
+            
+            const getTouchPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            };
+
+            const drawLine = (x1, y1, x2, y2) => {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            };
+
+            // Eventos de ratón
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
-                ctx.beginPath();
-                const rect = canvas.getBoundingClientRect();
-                ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+                lastPosition = getMousePos(e);
             });
-
             canvas.addEventListener('mousemove', (e) => {
                 if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-                ctx.stroke();
+                const currentPosition = getMousePos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
                 signatureDataUrl = canvas.toDataURL('image/png');
             });
-
             canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+            canvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+            });
+
+            // Eventos táctiles
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                isDrawing = true;
+                lastPosition = getTouchPos(e);
+            }, { passive: false }); 
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const currentPosition = getTouchPos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
+                signatureDataUrl = canvas.toDataURL('image/png');
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => {
                 isDrawing = false;
             });
 
@@ -409,7 +461,7 @@
             const departamentoSelect = document.getElementById('departamento');
             const municipioSelect = document.getElementById('municipio');
             let colombiaData = [];
-
+            
             const paises = [
                 { name: 'Selecciona un país', value: '' }, { name: 'Colombia', value: 'Colombia' },
                 { name: 'Estados Unidos', value: 'Estados Unidos' }, { name: 'Canadá', value: 'Canadá' },
@@ -443,7 +495,7 @@
                     { name: 'Documento de Identidad', value: 'otro' }
                 ]
             };
-
+            
             function loadDocumentTypes(pais) {
                  const selectedDocs = docTypes[pais] || docTypes['default'];
                  tipoIdentificacionSelect.innerHTML = '';
@@ -454,7 +506,7 @@
                      tipoIdentificacionSelect.appendChild(option);
                  });
             }
-
+            
             async function cargarDatosColombia() {
                 try {
                     const response = await fetch('https://raw.githubusercontent.com/marcovega/colombia-json/master/colombia.json');
@@ -492,7 +544,7 @@
                 ciudadContainer.classList.add('hidden');
                 departamentoContainer.classList.add('hidden');
                 municipioContainer.classList.add('hidden');
-
+                
                 // Si la edad es menor a 18, no se actualiza el tipo de documento.
                 if (parseInt(edadInput.value) < 18) {
                     // No hacer nada, la lógica del campo de nacimiento ya lo manejó.
@@ -537,10 +589,10 @@
                     demographicsContainer.classList.remove('visible');
                     demographicsContainer.style.maxHeight = '0';
                     demographicsContainer.style.opacity = '0';
-
+                    
                     consentimientoYFirmaContainer.classList.add('visible');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-
+                    
                     // Lógica para mostrar nombre del paciente o del acudiente
                     const nombrePaciente = document.getElementById('nombrePaciente').value;
                     const numeroIdentificacionPaciente = document.getElementById('numeroIdentificacion').value;
@@ -565,6 +617,24 @@
                         confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
                     }
                     confidencialidadTexto.textContent = confidencialidadText;
+                    
+                    // Lógica para el texto de evaluación
+                    let evaluacionText = '';
+                    if (edad < 18) {
+                        evaluacionText = `autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.`;
+                    } else {
+                        evaluacionText = `autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.`;
+                    }
+                    evaluacionTexto.textContent = evaluacionText;
+                    
+                    // Lógica para el texto de costos
+                    let costosText = '';
+                    if (edad < 18) {
+                        costosText = `Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
+                    } else {
+                        costosText = `me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
+                    }
+                    costosTexto.textContent = costosText;
 
 
                 } else {
@@ -572,7 +642,7 @@
                      serverErrorDiv.classList.remove('hidden');
                 }
             });
-
+            
             // Habilitar/deshabilitar botón de envío
             const acceptTermsCheckbox = document.getElementById('aceptoTerminos');
             acceptTermsCheckbox.addEventListener('change', () => {
@@ -581,14 +651,14 @@
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-
+                
                 if (!signatureDataUrl) {
                     serverErrorDiv.textContent = 'Por favor, firma en el recuadro para continuar.';
                     serverErrorDiv.classList.remove('hidden');
                     return;
                 }
                 serverErrorDiv.classList.add('hidden');
-
+                
                 submitButton.disabled = true;
                 submitButton.textContent = 'Enviando...';
 
@@ -602,8 +672,8 @@
                             telefono: document.getElementById('telefono').value,
                             email: document.getElementById('email').value,
                             paisResidencia: document.getElementById('paisResidencia').value,
-                            ciudad: document.getElementById('paisResidencia').value === 'Colombia' ?
-                                    `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` :
+                            ciudad: document.getElementById('paisResidencia').value === 'Colombia' ? 
+                                    `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` : 
                                     document.getElementById('ciudadResidencia').value,
                             tipoIdentificacion: document.getElementById('tipoIdentificacion').value,
                             numeroIdentificacion: document.getElementById('numeroIdentificacion').value,
@@ -620,12 +690,12 @@
                         },
                         consentimiento: {
                             fecha: new Date().toISOString(),
-                            ip: "No disponible en el cliente",
+                            ip: "No disponible en el cliente", 
                             userAgent: navigator.userAgent
                         },
                         firmaDigital: signatureDataUrl
                     };
-
+                    
                     const response = await fetch('/api/save-consent', {
                         method: 'POST',
                         body: JSON.stringify(finalData),
@@ -649,7 +719,7 @@
                     submitButton.textContent = 'Firmar y Enviar Consentimiento';
                 }
             });
-
+            
             closeModalButton.addEventListener('click', () => {
                 successModal.classList.add('hidden');
             });
