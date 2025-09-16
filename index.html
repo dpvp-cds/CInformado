@@ -512,7 +512,21 @@
                     
                     consentimientoYFirmaContainer.classList.add('visible');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                    nombrePacienteDisplay.textContent = nombreInput.value;
+                    
+                    // Lógica para mostrar nombre del paciente o del acudiente
+                    const nombrePaciente = document.getElementById('nombrePaciente').value;
+                    const nombreAdulto = document.getElementById('nombreAdulto').value;
+                    const documentoAdulto = document.getElementById('documentoAdulto').value;
+                    const edad = parseInt(document.getElementById('edad').value);
+
+                    let displayText = '';
+                    if (edad < 18) {
+                        displayText = `${nombreAdulto}, actuando como acudiente de ${nombrePaciente}, con documento de identidad No. ${documentoAdulto}`;
+                    } else {
+                        displayText = `${nombrePaciente}, mayor de edad y con plenas facultades mentales`;
+                    }
+                    document.getElementById('nombrePacienteDisplay').textContent = displayText;
+
                 } else {
                      serverErrorDiv.textContent = 'Por favor, completa todos los campos demográficos obligatorios.';
                      serverErrorDiv.classList.remove('hidden');
