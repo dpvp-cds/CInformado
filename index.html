@@ -361,19 +361,31 @@
                 };
             };
             
+            let lastX = 0;
+            let lastY = 0;
+
             // Eventos de ratón
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
-                ctx.beginPath();
                 const rect = canvas.getBoundingClientRect();
-                ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+                lastX = e.clientX - rect.left;
+                lastY = e.clientY - rect.top;
             });
 
             canvas.addEventListener('mousemove', (e) => {
                 if (!isDrawing) return;
                 const rect = canvas.getBoundingClientRect();
-                ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
                 ctx.stroke();
+                
+                lastX = currentX;
+                lastY = currentY;
+
                 signatureDataUrl = canvas.toDataURL('image/png');
             });
             
@@ -385,17 +397,26 @@
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 isDrawing = true;
-                ctx.beginPath();
                 const pos = getTouchPos(e);
-                ctx.moveTo(pos.x, pos.y);
+                lastX = pos.x;
+                lastY = pos.y;
             }, { passive: false }); 
 
             canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 if (!isDrawing) return;
                 const pos = getTouchPos(e);
-                ctx.lineTo(pos.x, pos.y);
+                const currentX = pos.x;
+                const currentY = pos.y;
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
                 ctx.stroke();
+
+                lastX = currentX;
+                lastY = currentY;
+
                 signatureDataUrl = canvas.toDataURL('image/png');
             }, { passive: false });
 
