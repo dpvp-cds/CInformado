@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Reporte - Escala DSME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
+        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; color: #1a1a1a; font-weight: 700; }
+        .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .detail-item { border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+        .detail-item:last-child { border-bottom: none; }
+        .reversed-question { background-color: #fffbe6; padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="portal-empresa.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                Volver al Portal
+            </a>
+            <button id="logoutButton" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <div id="loading" class="text-center py-20">
+            <h1 class="text-3xl">Cargando reporte detallado...</h1>
+        </div>
+
+        <div id="reportContent" class="hidden space-y-8">
+            <!-- Título y Fecha -->
+            <div>
+                <h1 id="reportTitle" class="text-4xl font-bold text-center">Reporte de</h1>
+                <p id="reportDate" class="text-center text-gray-500 mt-2">Completado el</p>
+            </div>
+
+            <!-- Datos, ISME y Gráfico -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 card">
+                    <h2 class="text-2xl font-bold mb-4">Información</h2>
+                    <div id="demographicsContent"></div>
+                </div>
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card md:col-span-2 lg:col-span-1 flex flex-col justify-center text-center">
+                        <h2 class="text-2xl mb-4">ISME</h2>
+                        <div id="ismeScore" class="text-7xl font-bold text-[#003366]"></div>
+                        <p class="text-xl text-gray-500 mb-4">/ 100</p>
+                        <p id="ismeInterpretation" class="text-base"></p>
+                    </div>
+                    <div class="card md:col-span-2 lg:col-span-1 flex items-center justify-center">
+                         <div class="w-full h-80">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis de Pilares -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-6 text-center">Análisis Detallado por Pilar</h2>
+                <div id="pilarDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+            
+            <!-- Plan de Acción -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Plan de Acción y Recomendaciones</h2>
+                <div id="actionPlanContent" class="space-y-4 text-base"></div>
+            </div>
+
+            <!-- Respuestas Individuales -->
+            <div class="card">
+                <h2 class="text-2xl font-bold mb-4">Respuestas del Cuestionario</h2>
+                <div id="answersContent" class="space-y-3 text-sm"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('consultorAuth') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                sessionStorage.removeItem('consultorAuth');
+                window.location.href = 'login.html';
+            });
+            
+            fetchReport();
+        });
+
+        async function fetchReport() {
+            const loadingDiv = document.getElementById('loading');
+            const reportContentDiv = document.getElementById('reportContent');
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            if (!id) {
+                loadingDiv.innerHTML = '<h1 class="text-3xl text-red-600">ID de reporte no proporcionado.</h1>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/get-reporte-individual?id=${id}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'No se pudo cargar el reporte.');
+                }
+                const reporte = await response.json();
+                
+                displayReport(reporte);
+
+                loadingDiv.classList.add('hidden');
+                reportContentDiv.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error al cargar el reporte individual:", error);
+                loadingDiv.innerHTML = `<h1 class="text-3xl text-red-600">Error: ${error.message}</h1>`;
+            }
+        }
+
+        function getIsmeInterpretation(score) {
+            if (score >= 91) return { text: 'Óptimo / Antifrágil', color: 'text-green-600', description: 'Salud mental excepcionalmente robusta. El emprendedor no solo resiste el estrés, sino que lo utiliza para crecer. Posee herramientas y sistemas de apoyo de alto nivel.' };
+            if (score >= 71) return { text: 'Sostenible / Próspero', color: 'text-blue-600', description: 'Buen equilibrio entre los desafíos del emprendimiento y el bienestar personal. El emprendedor está prosperando, no solo sobreviviendo. Hay una base sólida con áreas de mejora.' };
+            if (score >= 41) return { text: 'Vulnerable / Supervivencia', color: 'text-yellow-600', description: 'El emprendedor se mantiene a flote, pero con un alto costo personal y energético. Hay un desequilibrio notable en varios pilares. Existe riesgo de pasar a un estado crítico.' };
+            return { text: 'Crítico / En Riesgo', color: 'text-red-600', description: 'Alto nivel de malestar y probabilidad elevada de burnout. La situación actual es insostenible y afecta la calidad de vida y el liderazgo. Se recomienda buscar apoyo profesional.' };
+        }
+
+        function getPilarInterpretation(score) {
+            if (score >= 26) return { text: '✅ Zona de Fortaleza', color: 'bg-green-100 text-green-800', description: 'Este pilar es un recurso clave. El emprendedor muestra hábitos y mentalidades muy saludables en esta área, que le sirven de apoyo para afrontar otros desafíos.' };
+            if (score >= 16) return { text: '⚠️ Zona de Atención', color: 'bg-yellow-100 text-yellow-800', description: 'Este pilar presenta desafíos. No es una crisis, pero hay vulnerabilidades que, si no se atienden, pueden drenar energía y convertirse en un problema mayor. Requiere trabajo proactivo.' };
+            return { text: '🆘 Zona de Alerta', color: 'bg-red-100 text-red-800', description: 'Este pilar es un área de vulnerabilidad crítica. Indica un malestar significativo y un riesgo elevado. Es un foco rojo que requiere atención e intervención prioritaria.' };
+        }
+
+        function displayReport(reporte) {
+            const { demograficos, empresa, pilarScores, ismeScore, respuestas, fecha } = reporte;
+
+            document.getElementById('reportTitle').textContent += ` ${demograficos.nombre}`;
+            const fechaFormateada = new Date(fecha).toLocaleString('es-CO', { dateStyle: 'full', timeStyle: 'short' });
+            document.getElementById('reportDate').textContent += ` ${fechaFormateada}`;
+
+            // ISME Score
+            const ismeInterpretationData = getIsmeInterpretation(ismeScore);
+            document.getElementById('ismeScore').textContent = ismeScore.toFixed(1);
+            document.getElementById('ismeScore').classList.add(ismeInterpretationData.color);
+            document.getElementById('ismeInterpretation').innerHTML = `<span class="font-bold ${ismeInterpretationData.color}">${ismeInterpretationData.text}:</span> ${ismeInterpretationData.description}`;
+
+            // Demographics
+            const demoDiv = document.getElementById('demographicsContent');
+            demoDiv.innerHTML = `
+                <div class="detail-item"><strong>Email:</strong> ${demograficos.email}</div>
+                <div class="detail-item"><strong>Edad:</strong> ${demograficos.edad}</div>
+                <div class="detail-item"><strong>País:</strong> ${demograficos.pais}</div>
+                <div class="detail-item"><strong>Ciudad:</strong> ${demograficos.ciudad}</div>
+                <h3 class="font-bold mt-6 mb-2">Empresa</h3>
+                <div class="detail-item"><strong>Nombre:</strong> ${empresa.nombre}</div>
+                <div class="detail-item"><strong>Cargo:</strong> ${empresa.cargo}</div>
+                <div class="detail-item"><strong>Sector:</strong> ${empresa.sector}</div>
+            `;
+
+            // Pillar Analysis
+            const pilarDetailsContainer = document.getElementById('pilarDetails');
+            const pilarNames = ["", "Resiliencia", "Vínculo Identitario", "Sostenibilidad", "Capital Social", "Psicología Financiera"];
+            for (let i = 1; i <= 5; i++) {
+                const score = pilarScores[i];
+                const interpretation = getPilarInterpretation(score);
+                pilarDetailsContainer.innerHTML += `
+                    <div class="p-4 rounded-lg ${interpretation.color.replace('bg-', 'bg-opacity-20 border border-').replace('-100', '-200')}">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="font-bold">${pilarNames[i]}</h4>
+                            <span class="font-bold text-xl">${score}/35</span>
+                        </div>
+                        <div class="text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${interpretation.color}">${interpretation.text}</div>
+                        <p class="mt-2 text-sm">${interpretation.description}</p>
+                    </div>
+                `;
+            }
+
+            // Action Plan
+            document.getElementById('actionPlanContent').innerHTML = generateActionPlan(pilarScores);
+
+            // Individual Answers
+            const answersDiv = document.getElementById('answersContent');
+            const likertMap = { 1: "Totalmente en desacuerdo", 2: "En desacuerdo", 3: "Neutral", 4: "De acuerdo", 5: "Totalmente de acuerdo" };
+            const questions = [
+                { text: "1. Considero que los contratiempos y \"fracasos\" son oportunidades valiosas de aprendizaje.", reverse: false }, { text: "2. Cuando me enfrento a un problema complejo, confío en mi capacidad para encontrar una solución.", reverse: false },
+                { text: "3. La incertidumbre sobre el futuro me paraliza o me genera una ansiedad abrumadora.", reverse: true }, { text: "4. Me adapto con relativa facilidad a los cambios inesperados del mercado o de mi negocio.", reverse: false },
+                { text: "5. Un revés importante en mi proyecto me hace dudar de todas mis capacidades.", reverse: true }, { text: "6. Mantengo una visión optimista y proactiva, incluso en momentos de crisis.", reverse: false },
+                { text: "7. Me cuesta mucho recuperarme emocionalmente después de una crítica dura o un rechazo.", reverse: true }, { text: "8. Mi sentido de valía personal es independiente del éxito o fracaso de mi empresa.", reverse: false },
+                { text: "9. Si mi empresa fracasara, sentiría que he fracasado como persona.", reverse: true }, { text: "10. Tengo pasiones e intereses significativos que cultivo activamente fuera de mi rol como emprendedor.", reverse: false },
+                { text: "11. Puedo celebrar los logros de mi empresa sin que estos definan completamente quién soy.", reverse: false }, { text: "12. Me siento culpable o improductivo/a cuando dedico tiempo a actividades que no están relacionadas con mi negocio.", reverse: true },
+                { text: "13. Concibo mi empresa como un proyecto importante en mi vida, pero no como mi vida entera.", reverse: false }, { text: "14. Las métricas de mi negocio (ingresos, crecimiento, etc.) impactan directamente en mi estado de ánimo y autoestima diarios.", reverse: true },
+                { text: "15. Priorizo mis horas de sueño, entendiendo que son cruciales para mi rendimiento.", reverse: false }, { text: "16. A menudo sacrifico mi alimentación o el ejercicio por atender urgencias del trabajo.", reverse: true },
+                { text: "17. Establezco y respeto límites claros para desconectar mentalmente del trabajo al final del día.", reverse: false }, { text: "18. Siento un agotamiento constante que no se alivia ni siquiera después de un fin de semana.", reverse: true },
+                { text: "19. Dedico tiempo de forma regular a actividades que me \"recargan las baterías\" y no tienen que ver con el trabajo.", reverse: false }, { text: "20. Soy capaz de delegar tareas eficazmente para proteger mi energía y enfocarme en lo estratégico.", reverse: false },
+                { text: "21. La idea de tomar unas vacaciones reales, completamente desconectado/a, me genera más estrés que alivio.", reverse: true }, { text: "22. Tengo un círculo de confianza (amigos, familia, pareja) con el que puedo hablar abiertamente de mis miedos.", reverse: false },
+                { text: "23. Siento que la mayor parte del tiempo estoy solo/a en la toma de las decisiones más difíciles.", reverse: true }, { text: "24. Busco activamente el consejo de mentores u otros emprendedores que han pasado por desafíos similares.", reverse: false },
+                { text: "25. Evito compartir mis problemas para mantener una imagen de fortaleza y control frente a los demás.", reverse: true }, { text: "26. Invierto tiempo de calidad en mis relaciones personales, incluso en las épocas de más trabajo.", reverse: false },
+                { text: "27. Siento que mi equipo y socios me apoyan no solo como profesional, sino también como persona.", reverse: false }, { text: "28. Me he distanciado de personas importantes en mi vida a causa de la dedicación a mi empresa.", reverse: true },
+                { text: "29. Tomo decisiones financieras desde la estrategia y el análisis, no desde el pánico o la euforia.", reverse: false }, { text: "30. La situación del flujo de caja de la empresa me quita el sueño de forma recurrente.", reverse: true },
+                { text: "31. Confío en mi habilidad para generar recursos, incluso si enfrento una crisis económica.", reverse: false }, { text: "32. Mi relación con el dinero es de herramienta y oportunidad, no de miedo y escasez.", reverse: false },
+                { text: "33. Siento una fuerte ansiedad al revisar las finanzas de la empresa, independientemente de los resultados.", reverse: true }, { text: "34. Soy capaz de asumir riesgos financieros calculados sin que esto afecte gravemente mi paz mental.", reverse: false },
+                { text: "35. Comparo constantemente mi situación financiera con la de otros emprendedores, lo que me genera frustración.", reverse: true }
+            ];
+            let answersHtml = '<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">';
+            questions.forEach((q, i) => {
+                const answerValue = respuestas['q'+i];
+                const answerText = likertMap[answerValue];
+                const questionClass = q.reverse ? 'reversed-question font-semibold' : '';
+                answersHtml += `<div class="${questionClass}"><strong>${q.text}</strong>: ${answerText} (${answerValue})</div>`;
+            });
+            answersHtml += '</div>';
+            answersDiv.innerHTML = answersHtml;
+
+            // Chart
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: pilarNames.slice(1),
+                    datasets: [{
+                        label: 'Puntuación', data: Object.values(pilarScores),
+                        backgroundColor: 'rgba(0, 51, 102, 0.2)', borderColor: 'rgba(0, 51, 102, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { r: { suggestedMin: 0, suggestedMax: 35, ticks: { stepSize: 7 } } }
+                }
+            });
+        }
+        
+        function generateActionPlan(pilarScores) {
+            const recommendations = {
+                1: '<h4>Resiliencia y Gestión de la Incertidumbre</h4><ul class="list-disc pl-5 space-y-1"><li><strong>Reencuadre de "Fracasos":</strong> Implementar una rutina semanal para revisar los contratiempos, identificando 1-2 aprendizajes clave de cada uno. Esto transforma la percepción de pérdida en una de inversión en conocimiento.</li><li><strong>Práctica de Mindfulness:</strong> Dedicar 5-10 minutos diarios a la meditación o ejercicios de respiración para entrenar la mente a mantenerse en calma frente a la volatilidad, reduciendo la ansiedad reactiva.</li></ul>',
+                2: '<h4>Vínculo Identitario</h4><ul class="list-disc pl-5 space-y-1"><li><strong>Diversificación de la Identidad:</strong> Agendar deliberadamente una actividad semanal que no tenga ninguna relación con el negocio (un hobby, deporte, voluntariado). El objetivo es cultivar facetas personales más allá del rol de "fundador".</li><li><strong>Métricas de Éxito Personal:</strong> Definir 3 KPIs personales no relacionados con la empresa (ej: calidad de tiempo en familia, libros leídos, km corridos) y hacerles seguimiento.</li></ul>',
+                3: '<h4>Sostenibilidad y Energía Personal</h4><ul class="list-disc pl-5 space-y-1"><li><strong>Principio "Primero Yo":</strong> Bloquear en el calendario, como si fueran reuniones inamovibles, los tiempos para descanso, ejercicio y comidas. Proteger estos espacios es una estrategia de negocio, no un lujo.</li><li><strong>Auditoría de Delegación:</strong> Listar 10 tareas operativas que actualmente realiza el fundador y crear un plan para delegar al menos 3 en las próximas 2 semanas.</li></ul>',
+                4: '<h4>Capital Social y Red de Apoyo</h4><ul class="list-disc pl-5 space-y-1"><li><strong>Cultivo de la Red de Apoyo:</strong> Identificar a 2-3 personas de confianza (mentores, pares, amigos) y agendar una conversación proactiva con cada uno al mes para compartir desafíos de forma vulnerable.</li><li><strong>Desconexión Programada:</strong> Establecer "zonas libres de trabajo" (ej: nada de email después de las 8 pm, domingos sin laptop) para estar mentalmente presente en las relaciones personales.</li></ul>',
+                5: '<h4>Psicología Financiera</h4><ul class="list-disc pl-5 space-y-1"><li><strong>Educación Financiera Continua:</strong> Dedicar 1-2 horas semanales a leer sobre finanzas para emprendedores (ej: libros de Morgan Housel, blogs de finanzas). El conocimiento reduce la ansiedad.</li><li><strong>Separación de Finanzas:</strong> Asegurar una separación estricta entre las finanzas personales y las del negocio. Asignarse un salario fijo, aunque sea pequeño, ayuda a crear una barrera mental y reduce el estrés por el flujo de caja.</li></ul>'
+            };
+
+            // Find the 2 lowest scoring pillars
+            const sortedScores = Object.entries(pilarScores).sort(([,a],[,b]) => a-b);
+            const lowestPillars = sortedScores.slice(0, 2);
+
+            let planHtml = '<p>Basado en los resultados, se sugiere enfocar los esfuerzos iniciales en las siguientes áreas prioritarias:</p>';
+            lowestPillars.forEach(([pilarId, score]) => {
+                planHtml += `<div class="mt-4">${recommendations[pilarId]}</div>`;
+            });
+
+            return planHtml;
+        }
+    </script>
+</body>
+</html>

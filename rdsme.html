@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados DSME - Diagnóstico de Salud Mental del Emprendedor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F8F7F2;
+            color: #4A4A4A;
+        }
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        .btn-brand {
+            background-color: #003366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-brand:hover {
+            background-color: #002244;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        /* Estilo para el texto desenfocado */
+        .blur-text {
+            filter: blur(4px);
+            -webkit-filter: blur(4px);
+            user-select: none;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="https://www.caminosdelser.co" target="_blank">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
+            </a>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="https://www.caminosdelser.co" target="_blank" class="text-gray-600 hover:text-[#003366] font-medium transition-colors">Inicio</a>
+                <a href="BaseTeorica_PI.pdf" target="_blank" class="text-gray-600 hover:text-[#003366] font-medium transition-colors">Base Teórica</a>
+                <a href="https://wa.me/573233796547?text=Hola%20Jorge,%20quiero%20saber%20m%C3%A1s%20sobre%20mi%20Salud%20Mental%20y%20en%20torno%20a%20mi%20empresa" target="_blank" class="text-gray-600 hover:text-[#003366] font-medium transition-colors">Contacto</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <div id="loading" class="text-center py-20">
+            <h1 class="text-3xl">Cargando tus resultados...</h1>
+        </div>
+
+        <div id="resultsContent" class="hidden">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2">Tus Resultados Preliminares</h1>
+                <p class="text-lg text-gray-600">Hola <span id="userName" class="font-semibold text-[#003366]"></span>, este es un primer vistazo a tu bienestar como emprendedor.</p>
+            </div>
+
+            <!-- Global Score and Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
+                <div class="card text-center">
+                    <h2 class="text-2xl mb-4">Índice de Salud Mental del Emprendedor (ISME)</h2>
+                    <div id="ismeScore" class="text-7xl font-bold text-[#003366]"></div>
+                    <p class="text-xl text-gray-500 mb-4">/ 100</p>
+                    <p id="ismeInterpretation" class="text-lg"></p>
+                </div>
+                <div class="card h-full flex items-center justify-center">
+                    <div class="w-full h-80 md:h-96">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pillar Details -->
+            <div>
+                <h2 class="text-3xl font-bold text-center mb-8">Análisis por Pilar</h2>
+                <div id="pilarDetails" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Pillar cards will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+             <!-- Disclaimer and Next Steps -->
+             <div class="card mt-12 text-center bg-[#003366] text-white">
+                <h2 class="text-3xl mb-4">¿Cuáles son los siguientes pasos?</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-100">
+                    Recuerda, este es un diagnóstico preliminar diseñado para abrir una conversación, no para emitir un juicio. El verdadero valor reside en explorar estos resultados con un profesional. Si deseas una interpretación más profunda y crear un plan de acción, no dudes en contactarme.
+                </p>
+                <div class="mt-8">
+                    <a href="https://wa.me/573233796547?text=Hola%20Jorge,%20acabo%20de%20completar%20la%20Escala%20DSME%20y%20me%20gustar%C3%ADa%20profundizar%20en%20mis%20resultados." target="_blank" class="btn-brand bg-white text-[#003366] hover:bg-gray-200">Agendar una Cita</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
+        <div class="container mx-auto text-center">
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingDiv = document.getElementById('loading');
+            const resultsContent = document.getElementById('resultsContent');
+            const sessionData = sessionStorage.getItem('dsmeResults');
+
+            if (!sessionData) {
+                loadingDiv.innerHTML = '<h1 class="text-3xl text-center text-red-600">No se encontraron resultados. Por favor, completa primero el cuestionario.</h1>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(sessionData);
+                displayResults(data);
+                loadingDiv.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+            } catch (e) {
+                console.error("Error al procesar los datos de la sesión:", e);
+                loadingDiv.innerHTML = '<h1 class="text-3xl text-center text-red-600">Hubo un error al cargar tus resultados.</h1>';
+            }
+        });
+
+        function getIsmeInterpretation(score) {
+            if (score >= 91) return { text: 'Óptimo / Antifrágil', color: 'text-green-600', description: 'Tu salud mental es excepcionalmente robusta. No solo resistes el estrés, sino que lo utilizas para crecer.' };
+            if (score >= 71) return { text: 'Sostenible / Próspero', color: 'text-blue-600', description: 'Tienes un muy buen equilibrio entre los desafíos del emprendimiento y tu bienestar. Estás prosperando.' };
+            if (score >= 41) return { text: 'Vulnerable / Supervivencia', color: 'text-yellow-600', description: 'Te mantienes a flote, pero probablemente con un alto costo personal. Existe riesgo de pasar a un estado crítico si la presión aumenta.' };
+            return { text: 'Crítico / En Riesgo', color: 'text-red-600', description: 'Tu situación actual es insostenible y afecta tu calidad de vida. Se recomienda buscar apoyo profesional de forma prioritaria.' };
+        }
+
+        function getPilarInterpretation(score) {
+            if (score >= 26) return { text: '✅ Zona de Fortaleza', color: 'bg-green-100 text-green-800', description: 'Este pilar es un recurso clave que te sirve de apoyo para afrontar otros desafíos.' };
+            if (score >= 16) return { text: '⚠️ Zona de Atención', color: 'bg-yellow-100 text-yellow-800', description: 'Este pilar presenta vulnerabilidades que, si no se atienden, pueden drenar tu energía.' };
+            return { text: '🆘 Zona de Alerta', color: 'bg-red-100 text-red-800', description: 'Este pilar es un área de vulnerabilidad crítica que requiere atención prioritaria.' };
+        }
+
+        function displayResults(data) {
+            const { demograficos, pilarScores, ismeScore } = data;
+
+            // Display global score
+            document.getElementById('userName').textContent = demograficos.nombre.split(' ')[0];
+            const ismeInterpretationData = getIsmeInterpretation(ismeScore);
+            document.getElementById('ismeScore').textContent = ismeScore.toFixed(1);
+            document.getElementById('ismeScore').classList.add(ismeInterpretationData.color);
+            
+            // Split and blur the ISME description
+            const descriptionParts = ismeInterpretationData.description.split(' ');
+            const visibleText = descriptionParts.slice(0, 4).join(' ');
+            const blurredText = descriptionParts.slice(4).join(' ');
+            document.getElementById('ismeInterpretation').innerHTML = `<span class="font-bold ${ismeInterpretationData.color}">${ismeInterpretationData.text}:</span> ${visibleText}... <span class="blur-text">${blurredText}</span>`;
+
+            // Display pillar details
+            const pilarDetailsContainer = document.getElementById('pilarDetails');
+            const pilarNames = ["", "Resiliencia y Gestión de la Incertidumbre", "Vínculo Identitario", "Sostenibilidad y Energía Personal", "Capital Social y Red de Apoyo", "Psicología Financiera"];
+            
+            for (let i = 1; i <= 5; i++) {
+                const score = pilarScores[i];
+                const interpretation = getPilarInterpretation(score);
+                const cardHtml = `
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold">${pilarNames[i]}</h3>
+                            <span class="text-2xl font-bold text-[#003366]">${score}<span class="text-lg text-gray-400">/35</span></span>
+                        </div>
+                        <div class="text-sm font-semibold px-2 py-1 rounded-full inline-block ${interpretation.color}">${interpretation.text}</div>
+                        <p class="mt-4 text-gray-600 blur-text">${interpretation.description}</p>
+                    </div>
+                `;
+                pilarDetailsContainer.innerHTML += cardHtml;
+            }
+            
+            // Logic to hide specific scores in the chart
+            const scoresArray = Object.entries(pilarScores).map(([pilar, score]) => ({ pilar: parseInt(pilar), score }));
+            scoresArray.sort((a, b) => b.score - a.score);
+            
+            const hiddenPilarIndexes = new Set();
+            if (scoresArray.length >= 5) {
+                hiddenPilarIndexes.add(scoresArray[0].pilar); // Highest
+                hiddenPilarIndexes.add(scoresArray[2].pilar); // 3rd highest
+                hiddenPilarIndexes.add(scoresArray[scoresArray.length - 1].pilar); // Lowest
+            }
+            
+            const chartData = [];
+            for (let i = 1; i <= 5; i++) {
+                chartData.push(hiddenPilarIndexes.has(i) ? null : pilarScores[i]);
+            }
+
+            // Create Radar Chart
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: pilarNames.slice(1),
+                    datasets: [{
+                        label: 'Tu Puntuación',
+                        data: chartData, // Use modified data
+                        backgroundColor: 'rgba(0, 51, 102, 0.2)',
+                        borderColor: 'rgba(0, 51, 102, 1)',
+                        pointBackgroundColor: 'rgba(0, 51, 102, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(0, 51, 102, 1)',
+                        borderWidth: 2,
+                        spanGaps: true // Connects lines over null data points
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { 
+                                font: { size: 12, weight: 'bold' }, 
+                                color: '#4A4A4A'
+                            },
+                            ticks: { display: false, stepSize: 7 },
+                            suggestedMin: 0,
+                            suggestedMax: 35
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    // Show tooltip only for valid data points
+                                    if (context.raw !== null) {
+                                        return `Puntuación: ${context.raw}`;
+                                    }
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
