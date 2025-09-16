@@ -59,13 +59,14 @@
             box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
         }
         .section-container {
-            transition: opacity 0.7s ease-in-out;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out, opacity 0.7s ease-in-out;
+            max-height: 0;
             opacity: 0;
-            display: none;
         }
         .section-container.visible {
+            max-height: 2000px; 
             opacity: 1;
-            display: block;
         }
         .modal-overlay {
             position: fixed;
@@ -185,12 +186,12 @@
                                 <label for="tipoAcudiente" class="block mb-2 font-medium">Tipo de Acudiente</label>
                                 <select id="tipoAcudiente" name="tipoAcudiente" class="select-styled" required>
                                     <option value="" disabled selected>Selecciona una opción</option>
-                                    <option value="Papá">Papá</option>
-                                    <option value="Mamá">Mamá</option>
+                                    <option value="Papa">Papá</option>
+                                    <option value="Mama">Mamá</option>
                                     <option value="Abuelo">Abuelo</option>
                                     <option value="Abuela">Abuela</option>
-                                    <option value="Tío">Tío</option>
-                                    <option value="Tía">Tía</option>
+                                    <option value="Tio">Tío</option>
+                                    <option value="Tia">Tía</option>
                                     <option value="Primo">Primo</option>
                                     <option value="Prima">Prima</option>
                                     <option value="Hermano">Hermano</option>
@@ -240,25 +241,16 @@
                             
                             <h4 class="font-bold mt-4 mb-2">2.3. Naturaleza del Proceso y Tareas</h4>
                             <p class="mb-4">Soy consciente de que la terapia es un **proyecto** con un inicio y un fin, y que su éxito depende de mi compromiso y participación activa. Acepto la asignación de tareas inter-sesiones y entiendo que la falta de cumplimiento en repetidas ocasiones podría ser motivo para revisar el proceso, tal como se me ha explicado.</p>
-                            
-                            <!-- Nuevo Contenido 2.4 -->
-                            <h4 class="font-bold mt-4 mb-2">2.4. Proceso de evaluación</h4>
-                            <p id="evaluacion-texto" class="mb-4"></p>
-                            
-                            <!-- Nuevo Contenido 2.5 -->
-                            <h4 class="font-bold mt-4 mb-2">2.5. Costos económicos asociados al proceso terapéutico</h4>
-                            <p id="costos-texto" class="mb-4"></p>
 
-                            <!-- El resto del contenido ha sido reordenado y renumerado -->
-                            <h4 class="font-bold mt-4 mb-2">2.6. Tratamiento de Datos</h4>
+                            <h4 class="font-bold mt-4 mb-2">2.4. Tratamiento de Datos</h4>
                             <p class="mb-4">Autorizo el tratamiento de mis datos personales y sensibles (incluida mi información de salud mental) de acuerdo con la Ley 1581 de 2012 y el Decreto 1377 de 2013, así como con la Política de Protección de Datos de Jorge Arango Castaño - Caminos del Ser. Estos datos serán utilizados exclusivamente para fines terapéuticos, de seguimiento y estadísticos anonimizados. En ningún caso se compartirán con fines comerciales.</p>
                             
                             <p class="mb-4">Entiendo que puedo ejercer mis derechos de acceso, corrección, supresión y revocación de mi autorización en cualquier momento, de acuerdo con la legislación vigente.</p>
                         </div>
                         
-                        <div class="flex items-center relative z-10">
-                            <input type="checkbox" id="aceptoTerminos" name="aceptoTerminos" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366] cursor-pointer" required>
-                            <label for="aceptoTerminos" class="ml-2 block text-base text-gray-900 cursor-pointer">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="aceptoTerminos" name="aceptoTerminos" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]" required>
+                            <label for="aceptoTerminos" class="ml-2 block text-base text-gray-900">
                                 He leído y acepto los términos y condiciones de este consentimiento informado.
                             </label>
                         </div>
@@ -270,7 +262,7 @@
                         <p class="mb-4 text-gray-600 text-sm">Al firmar digitalmente y presionar el botón de "Enviar", confirmo que he leído, entendido y aceptado todos los términos del presente consentimiento informado.</p>
                         
                         <div class="mb-6 flex justify-center">
-                            <canvas id="signature-pad" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
+                            <canvas id="signature-pad" width="400" height="200" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
                         </div>
                         <div class="flex justify-center mb-6">
                             <button type="button" id="clearSignature" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
@@ -301,9 +293,6 @@
     <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
         <div class="container mx-auto text-center">
             <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
-            <div class="mt-4">
-                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
-            </div>
         </div>
     </footer>
 
@@ -328,93 +317,42 @@
             const serverErrorDiv = document.getElementById('server-error-message');
             const tipoIdentificacionSelect = document.getElementById('tipoIdentificacion');
             const confidencialidadTexto = document.getElementById('confidencialidad-texto');
-            const evaluacionTexto = document.getElementById('evaluacion-texto');
-            const costosTexto = document.getElementById('costos-texto');
             
             // Variables para la firma
             const canvas = document.getElementById('signature-pad');
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
             let signatureDataUrl = null;
-            let lastPosition = {x: 0, y: 0};
 
-            // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
-            const resizeCanvas = () => {
-                const parent = canvas.parentElement;
-                const PIXEL_RATIO = window.devicePixelRatio || 1;
-                canvas.width = parent.offsetWidth * PIXEL_RATIO;
-                canvas.height = (parent.offsetWidth / 2) * PIXEL_RATIO; // Proporción 2:1
-                ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-                ctx.lineWidth = 2;
-                ctx.lineJoin = 'round';
-                ctx.lineCap = 'round';
-                ctx.strokeStyle = '#003366';
-            };
-            
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
+            // Configuración de la firma en canvas
+            const PIXEL_RATIO = window.devicePixelRatio || 1;
+            canvas.width = 400 * PIXEL_RATIO;
+            canvas.height = 200 * PIXEL_RATIO;
+            ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#003366';
 
-            const getPos = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                return {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                };
-            };
-            
-            const getTouchPos = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
-            };
-
-            const drawLine = (x1, y1, x2, y2) => {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-            };
-
-            // Eventos de ratón
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
-                lastPosition = getPos(e);
+                ctx.beginPath();
+                const rect = canvas.getBoundingClientRect();
+                ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
             });
+
             canvas.addEventListener('mousemove', (e) => {
                 if (!isDrawing) return;
-                const currentPosition = getPos(e);
-                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-                lastPosition = currentPosition;
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                ctx.stroke();
                 signatureDataUrl = canvas.toDataURL('image/png');
             });
+
             canvas.addEventListener('mouseup', () => {
                 isDrawing = false;
             });
-            canvas.addEventListener('mouseleave', () => {
-                isDrawing = false;
-            });
 
-            // Eventos táctiles
-            canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault(); 
-                isDrawing = true;
-                lastPosition = getTouchPos(e);
-            }, { passive: false }); 
-
-            canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                if (!isDrawing) return;
-                const currentPosition = getTouchPos(e);
-                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-                lastPosition = currentPosition;
-                signatureDataUrl = canvas.toDataURL('image/png');
-            }, { passive: false });
-            canvas.addEventListener('touchend', () => {
-                isDrawing = false;
-            });
-            
             document.getElementById('clearSignature').addEventListener('click', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 signatureDataUrl = null;
@@ -618,24 +556,6 @@
                         confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
                     }
                     confidencialidadTexto.textContent = confidencialidadText;
-                    
-                    // Lógica para el texto de evaluación
-                    let evaluacionText = '';
-                    if (edad < 18) {
-                        evaluacionText = `autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.`;
-                    } else {
-                        evaluacionText = `autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.`;
-                    }
-                    evaluacionTexto.textContent = evaluacionText;
-                    
-                    // Lógica para el texto de costos
-                    let costosText = '';
-                    if (edad < 18) {
-                        costosText = `Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
-                    } else {
-                        costosText = `me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
-                    }
-                    costosTexto.textContent = costosText;
 
 
                 } else {
