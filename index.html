@@ -347,6 +347,15 @@
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#003366';
 
+            const getTouchPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            };
+            
+            // Eventos de ratón
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
                 ctx.beginPath();
@@ -361,11 +370,33 @@
                 ctx.stroke();
                 signatureDataUrl = canvas.toDataURL('image/png');
             });
-
+            
             canvas.addEventListener('mouseup', () => {
                 isDrawing = false;
             });
+            
+            // Eventos táctiles
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                isDrawing = true;
+                ctx.beginPath();
+                const pos = getTouchPos(e);
+                ctx.moveTo(pos.x, pos.y);
+            }, { passive: false }); 
 
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const pos = getTouchPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                signatureDataUrl = canvas.toDataURL('image/png');
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                isDrawing = false;
+            });
+            
             document.getElementById('clearSignature').addEventListener('click', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 signatureDataUrl = null;
