@@ -182,6 +182,24 @@
                                 <label for="documentoAdulto" class="block mb-2 font-medium">Documento de Identidad del Adulto</label>
                                 <input type="text" id="documentoAdulto" name="documentoAdulto" class="input-styled">
                             </div>
+                            <div>
+                                <label for="tipoAcudiente" class="block mb-2 font-medium">Tipo de Acudiente</label>
+                                <select id="tipoAcudiente" name="tipoAcudiente" class="select-styled" required>
+                                    <option value="" disabled selected>Selecciona una opción</option>
+                                    <option value="Papa">Papá</option>
+                                    <option value="Mama">Mamá</option>
+                                    <option value="Abuelo">Abuelo</option>
+                                    <option value="Abuela">Abuela</option>
+                                    <option value="Tio">Tío</option>
+                                    <option value="Tia">Tía</option>
+                                    <option value="Primo">Primo</option>
+                                    <option value="Prima">Prima</option>
+                                    <option value="Hermano">Hermano</option>
+                                    <option value="Hermana">Hermana</option>
+                                    <option value="Representante Legal">Representante Legal</option>
+                                    <option value="Tutor Legal">Tutor Legal</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -292,6 +310,7 @@
             const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
             const nombreAdultoInput = document.getElementById('nombreAdulto');
             const documentoAdultoInput = document.getElementById('documentoAdulto');
+            const tipoAcudienteSelect = document.getElementById('tipoAcudiente');
             const submitButton = document.getElementById('submitButton');
             const successModal = document.getElementById('successModal');
             const closeModalButton = document.getElementById('closeModalButton');
@@ -362,11 +381,13 @@
                     adultoResponsableContainer.classList.remove('hidden');
                     nombreAdultoInput.required = true;
                     documentoAdultoInput.required = true;
+                    tipoAcudienteSelect.required = true;
                     tipoIdentificacionSelect.innerHTML = '<option value="ti">Tarjeta de Identidad</option>';
                 } else {
                     adultoResponsableContainer.classList.add('hidden');
                     nombreAdultoInput.required = false;
                     documentoAdultoInput.required = false;
+                    tipoAcudienteSelect.required = false;
                     loadDocumentTypes(paisResidenciaSelect.value);
                 }
             });
@@ -516,11 +537,12 @@
                     const numeroIdentificacionPaciente = document.getElementById('numeroIdentificacion').value;
                     const nombreAdulto = document.getElementById('nombreAdulto').value;
                     const documentoAdulto = document.getElementById('documentoAdulto').value;
+                    const tipoAcudiente = document.getElementById('tipoAcudiente').value;
                     const edad = parseInt(document.getElementById('edad').value);
 
                     let displayText = '';
                     if (edad < 18) {
-                        displayText = `${nombreAdulto}, con documento de identidad ${documentoAdulto}, actuando como acudiente de ${nombrePaciente}, con documento de identidad ${numeroIdentificacionPaciente}`;
+                        displayText = `${nombreAdulto}, con documento de identidad ${documentoAdulto}, actuando como acudiente en calidad de ${tipoAcudiente}, de ${nombrePaciente}, menor de edad, con documento de identidad ${numeroIdentificacionPaciente}`;
                     } else {
                         displayText = `${nombrePaciente}, mayor de edad y con plenas facultades mentales`;
                     }
@@ -581,6 +603,7 @@
                         adultoResponsable: {
                              nombre: document.getElementById('nombreAdulto').value || null,
                              documento: document.getElementById('documentoAdulto').value || null,
+                             tipo: document.getElementById('tipoAcudiente').value || null,
                         },
                         contactoEmergencia: {
                             nombre: document.getElementById('nombreEmergencia').value,
