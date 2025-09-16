@@ -98,7 +98,7 @@
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-4 flex justify-center items-center">
             <a href="https://www.caminosdelser.co" target="_blank">
-                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo">
             </a>
         </div>
     </header>
@@ -280,9 +280,6 @@
     </footer>
 
     <script type="module">
-        // Este módulo ya no necesita la conexión directa a Firebase,
-        // ya que la solicitud se enviará al backend.
-        // Las importaciones de Firebase ya no son necesarias en el cliente.
         
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('consentimientoForm');
@@ -466,7 +463,13 @@
                 ciudadContainer.classList.add('hidden');
                 departamentoContainer.classList.add('hidden');
                 municipioContainer.classList.add('hidden');
-                loadDocumentTypes(selectedPais);
+                
+                // Si la edad es menor a 18, no se actualiza el tipo de documento.
+                if (parseInt(edadInput.value) < 18) {
+                    // No hacer nada, la lógica del campo de nacimiento ya lo manejó.
+                } else {
+                    loadDocumentTypes(selectedPais);
+                }
 
                 if (selectedPais === 'Colombia') {
                     if (colombiaData.length === 0) {
