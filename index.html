@@ -336,6 +336,7 @@
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
             let signatureDataUrl = null;
+            let lastPosition = {x: 0, y: 0};
 
             // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
             const resizeCanvas = () => {
@@ -353,6 +354,14 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
 
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            };
+            
             const getTouchPos = (e) => {
                 const rect = canvas.getBoundingClientRect();
                 return {
@@ -360,66 +369,48 @@
                     y: e.touches[0].clientY - rect.top
                 };
             };
-            
-            let lastX = 0;
-            let lastY = 0;
+
+            const drawLine = (x1, y1, x2, y2) => {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            };
 
             // Eventos de ratón
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
-                const rect = canvas.getBoundingClientRect();
-                lastX = e.clientX - rect.left;
-                lastY = e.clientY - rect.top;
+                lastPosition = getPos(e);
             });
-
             canvas.addEventListener('mousemove', (e) => {
                 if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                const currentX = e.clientX - rect.left;
-                const currentY = e.clientY - rect.top;
-
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
-                
-                lastX = currentX;
-                lastY = currentY;
-
+                const currentPosition = getPos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
                 signatureDataUrl = canvas.toDataURL('image/png');
             });
-            
             canvas.addEventListener('mouseup', () => {
                 isDrawing = false;
             });
-            
+            canvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+            });
+
             // Eventos táctiles
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 isDrawing = true;
-                const pos = getTouchPos(e);
-                lastX = pos.x;
-                lastY = pos.y;
+                lastPosition = getTouchPos(e);
             }, { passive: false }); 
 
             canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 if (!isDrawing) return;
-                const pos = getTouchPos(e);
-                const currentX = pos.x;
-                const currentY = pos.y;
-                
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
-
-                lastX = currentX;
-                lastY = currentY;
-
+                const currentPosition = getTouchPos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
                 signatureDataUrl = canvas.toDataURL('image/png');
             }, { passive: false });
-
             canvas.addEventListener('touchend', () => {
                 isDrawing = false;
             });
