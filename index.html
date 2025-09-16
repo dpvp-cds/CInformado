@@ -340,8 +340,13 @@
             });
 
             // Lógica de fechas y edad
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fechaDiligenciamiento').value = today;
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            document.getElementById('fechaDiligenciamiento').value = formattedDate;
+
 
             fechaNacimientoInput.addEventListener('change', () => {
                 const birthDate = new Date(fechaNacimientoInput.value);
