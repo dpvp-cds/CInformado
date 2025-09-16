@@ -127,6 +127,10 @@
                             <input type="date" id="fechaNacimiento" name="fechaNacimiento" class="input-styled" required>
                         </div>
                         <div>
+                            <label for="edad" class="block mb-2 font-medium">Edad</label>
+                            <input type="number" id="edad" name="edad" class="input-styled" required readonly>
+                        </div>
+                        <div>
                             <label for="telefono" class="block mb-2 font-medium">Teléfono de Contacto</label>
                             <input type="tel" id="telefono" name="telefono" class="input-styled" required>
                         </div>
@@ -290,6 +294,7 @@
         const continueButton = document.getElementById('continueButton');
         const nombreInput = document.getElementById('nombrePaciente');
         const fechaNacimientoInput = document.getElementById('fechaNacimiento');
+        const edadInput = document.getElementById('edad');
         const nombrePacienteDisplay = document.getElementById('nombrePacienteDisplay');
         const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
         const nombreAdultoInput = document.getElementById('nombreAdulto');
@@ -341,11 +346,10 @@
             signatureDataUrl = null;
         });
 
-        // Lógica de fechas
+        // Lógica de fechas y edad
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('fechaDiligenciamiento').value = today;
 
-        // Lógica para mostrar/ocultar campos de adulto responsable
         fechaNacimientoInput.addEventListener('change', () => {
             const birthDate = new Date(fechaNacimientoInput.value);
             const todayDate = new Date();
@@ -354,6 +358,7 @@
             if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
                 age--;
             }
+            edadInput.value = age;
 
             if (age < 18) {
                 adultoResponsableContainer.classList.remove('hidden');
@@ -545,6 +550,7 @@
                         fechaDiligenciamiento: data.fechaDiligenciamiento,
                         nombreCompleto: data.nombrePaciente,
                         fechaNacimiento: data.fechaNacimiento,
+                        edad: data.edad,
                         paisResidencia: data.paisResidencia,
                         ciudad: data.paisResidencia === 'Colombia' ? `${data.municipio}, ${data.departamento}` : data.ciudadResidencia,
                         tipoIdentificacion: data.tipoIdentificacion,
