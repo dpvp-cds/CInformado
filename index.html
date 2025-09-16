@@ -211,17 +211,15 @@
                     <div class="card">
                         <h2 class="text-2xl font-bold mb-4">2. Aceptación de Términos</h2>
                         <div class="p-6 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-6 text-sm leading-relaxed">
-                             <p class="mb-4 font-semibold">Yo, <span id="nombrePacienteDisplay"></span> manifiesto mi consentimiento libre, voluntario y consciente para recibir servicios de psicología por parte de Jorge Arango Castaño, de acuerdo con los siguientes términos:</p>
-                        
-                            <h4 class="font-bold mt-4 mb-2">2.1. Propósito de la Intervención</h4>
+                            <p class="mb-4 font-semibold">Yo, <span id="nombrePacienteDisplay"></span> manifiesto mi consentimiento libre, voluntario y consciente para recibir servicios de psicología por parte de Jorge Arango Castaño, de acuerdo con los siguientes términos:</p>
+
+                            <!-- Nuevo Contenido 2.1 -->
+                            <h4 class="font-bold mt-4 mb-2">2.1. Confidencialidad y Secreto Profesional</h4>
+                            <p id="confidencialidad-texto" class="mb-4"></p>
+
+                            <!-- El resto del contenido ha sido reordenado y renumerado -->
+                            <h4 class="font-bold mt-4 mb-2">2.2. Propósito de la Intervención</h4>
                             <p class="mb-4">El objetivo de este proceso es la exploración y orientación en mi propósito y proyecto de vida, abordando las diversas áreas de mi existencia que puedan estar afectando mi bienestar psicológico y emocional. Se utilizarán técnicas de la psicología humanista-existencial y Programación Neurolingüística (PNL) para facilitar mi autodescubrimiento y crecimiento personal.</p>
-                            
-                            <h4 class="font-bold mt-4 mb-2">2.2. Confidencialidad y Secreto Profesional</h4>
-                            <p class="mb-4">Entiendo y acepto que toda la información que comparta durante las sesiones es estrictamente confidencial y está amparada por el secreto profesional, según lo establecido en el Artículo 2 de la Ley 1090 de 2006. Dicha información no será divulgada a terceros sin mi autorización expresa, excepto en los siguientes casos establecidos por la ley:</p>
-                            <ul class="list-disc list-inside pl-4">
-                                <li>Cuando exista un grave riesgo inminente para mi vida o la de un tercero.</li>
-                                <li>Cuando sea requerido por una orden judicial.</li>
-                            </ul>
                             
                             <h4 class="font-bold mt-4 mb-2">2.3. Naturaleza del Proceso y Tareas</h4>
                             <p class="mb-4">Soy consciente de que la terapia es un **proyecto** con un inicio y un fin, y que su éxito depende de mi compromiso y participación activa. Acepto la asignación de tareas inter-sesiones y entiendo que la falta de cumplimiento en repetidas ocasiones podría ser motivo para revisar el proceso, tal como se me ha explicado.</p>
@@ -298,8 +296,8 @@
             const successModal = document.getElementById('successModal');
             const closeModalButton = document.getElementById('closeModalButton');
             const serverErrorDiv = document.getElementById('server-error-message');
-            const docIdContainer = document.getElementById('docIdContainer');
             const tipoIdentificacionSelect = document.getElementById('tipoIdentificacion');
+            const confidencialidadTexto = document.getElementById('confidencialidad-texto');
             
             // Variables para la firma
             const canvas = document.getElementById('signature-pad');
@@ -373,7 +371,7 @@
                 }
             });
 
-            // Lógica de ubicación, adaptada de index.html
+            // Lógica de ubicación
             const paisResidenciaSelect = document.getElementById('paisResidencia');
             const ciudadContainer = document.getElementById('ciudadContainer');
             const departamentoContainer = document.getElementById('departamentoContainer');
@@ -528,6 +526,16 @@
                     }
                     document.getElementById('nombrePacienteDisplay').textContent = displayText;
 
+                    // Lógica para el texto de confidencialidad
+                    let confidencialidadText = '';
+                    if (edad < 18) {
+                        confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente menor de edad, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
+                    } else {
+                        confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
+                    }
+                    confidencialidadTexto.textContent = confidencialidadText;
+
+
                 } else {
                      serverErrorDiv.textContent = 'Por favor, completa todos los campos demográficos obligatorios.';
                      serverErrorDiv.classList.remove('hidden');
@@ -554,7 +562,6 @@
                 submitButton.textContent = 'Enviando...';
 
                 try {
-                    // Autenticar al usuario de forma anónima
                     const finalData = {
                         demograficos: {
                             fechaDiligenciamiento: document.getElementById('fechaDiligenciamiento').value,
@@ -587,7 +594,6 @@
                         firmaDigital: signatureDataUrl
                     };
                     
-                    // Enviar los datos al backend
                     const response = await fetch('/api/save-consent', {
                         method: 'POST',
                         body: JSON.stringify(finalData),
