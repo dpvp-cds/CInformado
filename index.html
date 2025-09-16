@@ -211,7 +211,7 @@
                     <div class="card">
                         <h2 class="text-2xl font-bold mb-4">2. Aceptación de Términos</h2>
                         <div class="p-6 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-6 text-sm leading-relaxed">
-                             <p class="mb-4 font-semibold">Yo, <span id="nombrePacienteDisplay"></span>, mayor de edad y con plenas facultades mentales, manifiesto mi consentimiento libre, voluntario y consciente para recibir servicios de psicología por parte de Jorge Arango Castaño (DPvP), de acuerdo con los siguientes términos:</p>
+                             <p class="mb-4 font-semibold">Yo, <span id="nombrePacienteDisplay"></span> manifiesto mi consentimiento libre, voluntario y consciente para recibir servicios de psicología por parte de Jorge Arango Castaño, de acuerdo con los siguientes términos:</p>
                         
                             <h4 class="font-bold mt-4 mb-2">2.1. Propósito de la Intervención</h4>
                             <p class="mb-4">El objetivo de este proceso es la exploración y orientación en mi propósito y proyecto de vida, abordando las diversas áreas de mi existencia que puedan estar afectando mi bienestar psicológico y emocional. Se utilizarán técnicas de la psicología humanista-existencial y Programación Neurolingüística (PNL) para facilitar mi autodescubrimiento y crecimiento personal.</p>
@@ -515,13 +515,14 @@
                     
                     // Lógica para mostrar nombre del paciente o del acudiente
                     const nombrePaciente = document.getElementById('nombrePaciente').value;
+                    const numeroIdentificacionPaciente = document.getElementById('numeroIdentificacion').value;
                     const nombreAdulto = document.getElementById('nombreAdulto').value;
                     const documentoAdulto = document.getElementById('documentoAdulto').value;
                     const edad = parseInt(document.getElementById('edad').value);
 
                     let displayText = '';
                     if (edad < 18) {
-                        displayText = `${nombreAdulto}, actuando como acudiente de ${nombrePaciente}, con documento de identidad No. ${documentoAdulto}`;
+                        displayText = `${nombreAdulto}, con documento de identidad ${documentoAdulto}, actuando como acudiente de ${nombrePaciente}, con documento de identidad ${numeroIdentificacionPaciente}`;
                     } else {
                         displayText = `${nombrePaciente}, mayor de edad y con plenas facultades mentales`;
                     }
