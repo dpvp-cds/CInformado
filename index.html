@@ -270,7 +270,7 @@
                         <p class="mb-4 text-gray-600 text-sm">Al firmar digitalmente y presionar el botón de "Enviar", confirmo que he leído, entendido y aceptado todos los términos del presente consentimiento informado.</p>
                         
                         <div class="mb-6 flex justify-center">
-                            <canvas id="signature-pad" width="400" height="200" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
+                            <canvas id="signature-pad" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
                         </div>
                         <div class="flex justify-center mb-6">
                             <button type="button" id="clearSignature" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
@@ -337,15 +337,21 @@
             let isDrawing = false;
             let signatureDataUrl = null;
 
-            // Configuración de la firma en canvas
-            const PIXEL_RATIO = window.devicePixelRatio || 1;
-            canvas.width = 400 * PIXEL_RATIO;
-            canvas.height = 200 * PIXEL_RATIO;
-            ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#003366';
+            // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
+            const resizeCanvas = () => {
+                const parent = canvas.parentElement;
+                const PIXEL_RATIO = window.devicePixelRatio || 1;
+                canvas.width = parent.offsetWidth * PIXEL_RATIO;
+                canvas.height = (parent.offsetWidth / 2) * PIXEL_RATIO; // Proporción 2:1
+                ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#003366';
+            };
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
 
             const getTouchPos = (e) => {
                 const rect = canvas.getBoundingClientRect();
