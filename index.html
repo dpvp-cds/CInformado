@@ -136,6 +136,10 @@
                             <input type="tel" id="telefono" name="telefono" class="input-styled" required>
                         </div>
                         <div>
+                            <label for="email" class="block mb-2 font-medium">Correo Electrónico</label>
+                            <input type="email" id="email" name="email" class="input-styled" required>
+                        </div>
+                        <div>
                             <label for="paisResidencia" class="block mb-2 font-medium">País de Residencia</label>
                             <select id="paisResidencia" name="paisResidencia" class="select-styled" required></select>
                         </div>
@@ -538,13 +542,14 @@
                             nombreCompleto: document.getElementById('nombrePaciente').value,
                             fechaNacimiento: document.getElementById('fechaNacimiento').value,
                             edad: parseInt(document.getElementById('edad').value),
+                            telefono: document.getElementById('telefono').value,
+                            email: document.getElementById('email').value,
                             paisResidencia: document.getElementById('paisResidencia').value,
                             ciudad: document.getElementById('paisResidencia').value === 'Colombia' ? 
                                     `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` : 
                                     document.getElementById('ciudadResidencia').value,
                             tipoIdentificacion: document.getElementById('tipoIdentificacion').value,
                             numeroIdentificacion: document.getElementById('numeroIdentificacion').value,
-                            telefono: document.getElementById('telefono').value,
                             direccion: document.getElementById('direccion').value,
                         },
                         adultoResponsable: {
