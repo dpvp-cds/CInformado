@@ -1,214 +1,335 @@
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Consentimiento Informado Digital - Caminos del Ser</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #F8F7F2;
-      color: #4A4A4A;
-    }
-    h1, h2, h3 {
-      font-family: 'Poppins', sans-serif;
-      color: #1a1a1a;
-      font-weight: 700;
-    }
-    .btn-brand {
-      background-color: #003366;
-      color: white;
-      padding: 12px 30px;
-      border-radius: 9999px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .btn-brand:hover {
-      background-color: #002244;
-      transform: translateY(-2px);
-      box-shadow: 0 7px 14px rgba(0,0,0,0.1);
-    }
-    .btn-brand:disabled {
-      background-color: #99aabb;
-      cursor: not-allowed;
-      transform: translateY(0);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .card {
-      background-color: white;
-      border-radius: 1rem;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 3px 20px 0 rgba(0,0,0,0.10);
-    }
-    @media (max-width: 600px) {
-      .card {
-        padding: 1rem;
-      }
-    }
-    /* Firma canvas container */
-    .firma-container {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto 1rem auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 1rem .5rem;
-      box-shadow: 0 3px 16px rgba(0,0,0,0.08);
-      text-align: center;
-    }
-    #firma-canvas {
-      border: 2px solid #003366;
-      background-color: #fafbfc;
-      border-radius: 8px;
-      display: block;
-      margin: 0 auto .5rem auto;
-      touch-action: none;
-    }
-    .firma-btns {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firma Digital - Caminos del Ser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F8F7F2;
+            color: #4A4A4A;
+        }
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        .btn-brand {
+            background-color: #003366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-brand:hover {
+            background-color: #002244;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+        }
+        .btn-brand:disabled {
+            background-color: #99aabb;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        /* Estilos del Canvas, ajustados para ser responsivos */
+        #firma-canvas {
+            border: 2px solid #003366;
+            background-color: #fafbfc;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            touch-action: none;
+            width: 100%; /* Asegura que ocupe todo el ancho del contenedor */
+            height: 150px; /* Altura de referencia */
+        }
+    </style>
 </head>
-<body>
-  <div class="container mx-auto max-w-screen-md px-4 py-6">
-    <div class="card">
-      <h1 class="text-2xl mb-4">Consentimiento Informado</h1>
-      <p>Con tu firma, notificas que entiendes el proceso psicológico ofrecido y aceptas nuestros términos de Politica de Privacidad y Tratamiento de datos personales.</p>
-      <br>
-      <form id="consentimiento-form">
-        <div class="mb-4">
-          <h2 class="mb-1 text-lg font-bold">Firma digital</h2>
-          <div class="firma-container">
-              <canvas id="firma-canvas" width="480" height="240"></canvas>
-              <div class="firma-btns mt-2">
-                 <button id="limpiar-firma" type="button" class="btn-brand" tabindex="-1">Limpiar</button>
-              </div>
-          </div>
-          <input type="hidden" name="firma" id="firma-data" required />
+<body class="antialiased">
+
+    <!-- Header (CORREGIDO: Incluye Logo Y Botón de Volver) -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-2 flex justify-between items-center">
+            <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10">
+            </a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                Volver al Consentimiento
+            </a>
         </div>
-        <button type="submit" class="btn-brand w-full">Enviar</button>
-      </form>
-      <div id="mensaje-exito" class="hidden mt-6 bg-green-100 text-green-700 p-4 rounded text-center">
-        Tu consentimiento ha sido registrado exitosamente. Te esperamos en tu sesión.
-      </div>
-    </div>
-  </div>
-  <script>
-  // Sección de firma digital canvas - adaptada responsive y móvil
-  const canvas = document.getElementById('firma-canvas');
-  const ctx = canvas.getContext('2d');
-  let isDrawing = false;
-  let lastPosition = {x:0, y:0};
-  let signatureDataUrl = '';
-  
-  function resizeCanvas() {
-    const parent = canvas.parentElement;
-    const PIXEL_RATIO = window.devicePixelRatio || 1;
-    // Ancho del parent 100% y alto 50% proporción aprox (ajusta según lo que prefieras)
-    canvas.width = parent.offsetWidth * PIXEL_RATIO;
-    canvas.height = (parent.offsetWidth * 0.5) * PIXEL_RATIO;
-    canvas.style.width = parent.offsetWidth + 'px';
-    canvas.style.height = (parent.offsetWidth * 0.5) + 'px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#003366';
-  }
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', resizeCanvas);
-  resizeCanvas();
+    </header>
 
-  // Funciones para obtener posición
-  function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-  function getTouchPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.touches[0].clientX - rect.left,
-      y: e.touches[0].clientY - rect.top
-    };
-  }
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <div class="max-w-xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Paso Final: Firma Digital</h1>
+            <p class="text-base md:text-lg text-gray-600 text-center mb-8">Por favor, firma en el recuadro para completar tu consentimiento.</p>
 
-  // Eventos de mouse
-  canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    lastPosition = getMousePos(e);
-  });
-  canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    const currentPosition = getMousePos(e);
-    drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-    lastPosition = currentPosition;
-    signatureDataUrl = canvas.toDataURL('image/png');
-  });
-  canvas.addEventListener('mouseup', () => isDrawing = false);
-  canvas.addEventListener('mouseleave', () => isDrawing = false);
+            <form id="firmaForm">
+                <!-- Contenedor de la firma -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">Tu Firma Manuscrita</h2>
+                    <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos en la página anterior.</p>
 
-  // Eventos touch
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    isDrawing = true;
-    lastPosition = getTouchPos(e);
-  }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const currentPosition = getTouchPos(e);
-    drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-    lastPosition = currentPosition;
-    signatureDataUrl = canvas.toDataURL('image/png');
-  }, { passive: false });
-  canvas.addEventListener('touchend', () => isDrawing = false, { passive: false });
+                    <div class="mb-6 flex justify-center w-full">
+                        <!-- Canvas con dimensiones de referencia, ajustadas por JS/CSS -->
+                        <canvas id="firma-canvas" width="350" height="150" class="cursor-crosshair"></canvas>
+                    </div>
+                    
+                    <div class="flex justify-center mb-6">
+                        <button type="button" id="limpiarFirma" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
+                    </div>
 
-  function drawLine(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.closePath();
-  }
+                    <div id="server-error-message" class="hidden mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
 
-  // Limpiar firma
-  document.getElementById('limpiar-firma').addEventListener('click', function() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    signatureDataUrl = '';
-    document.getElementById('firma-data').value = '';
-  });
+                    <div class="mt-8 text-center">
+                        <button type="submit" id="submitButton" class="btn-brand text-lg">Firmar y Enviar</button>
+                    </div>
+                </div>
+            </form>
 
-  // Captura la firma como base64
-  canvas.addEventListener('touchend', actualizarInputFirma, { passive: false });
-  canvas.addEventListener('mouseup', actualizarInputFirma);
+            <!-- Modal de Agradecimiento -->
+            <div id="successModal" class="hidden modal-overlay">
+                <div class="modal-content">
+                    <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="text-2xl font-bold mt-4 mb-2">¡Gracias por tu confianza!</h3>
+                    <p class="text-gray-600">Tu consentimiento ha sido registrado exitosamente. Te esperamos en tu sesión.</p>
+                    <button id="closeModalButton" class="btn-brand mt-6">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </main>
 
-  function actualizarInputFirma() {
-    document.getElementById('firma-data').value = signatureDataUrl || canvas.toDataURL('image/png');
-  }
+    <!-- Footer (Copiado de index.html) -->
+    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
+        <div class="container mx-auto text-center space-y-2">
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
+            <div class="mt-4">
+                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
+            </div>
+        </div>
+    </footer>
 
-  // Envío y validación del formulario
-  document.getElementById('consentimiento-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (!canvas || ctx.getImageData(0, 0, canvas.width, canvas.height).data.every(v => v === 0)) {
-      alert('Por favor ingresa tu firma digital.');
-      return;
-    }
-    document.getElementById('mensaje-exito').classList.remove('hidden');
-    this.classList.add('hidden');
-    // aquí puedes manejar el envío a backend si requieres
-  });
-  </script>
+    <script>
+        // Lógica de firma que funciona en PC y Móvil (integrada de tu código)
+        const canvas = document.getElementById('firma-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentPos = { x: 0, y: 0 }; // Nueva variable de estado para evitar conflictos
+        let signatureDataUrl = '';
+        const submitButton = document.getElementById('submitButton');
+        const serverErrorDiv = document.getElementById('server-error-message');
+        const firmaForm = document.getElementById('firmaForm');
+        
+        // Función para adaptar el canvas al tamaño del contenedor
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            const PIXEL_RATIO = window.devicePixelRatio || 1;
+            
+            // Establecer el ancho del canvas con una proporción de 2:1 (ej. 350x150)
+            const newWidth = parent.offsetWidth;
+            const newHeight = newWidth * (150 / 350); 
+            
+            canvas.width = newWidth * PIXEL_RATIO;
+            canvas.height = newHeight * PIXEL_RATIO;
+            canvas.style.width = newWidth + 'px';
+            canvas.style.height = newHeight + 'px';
+            
+            // Restablecer el contexto para la nueva escala
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#003366';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Función para obtener coordenadas en mouse o touch
+        function getXY(e) {
+            let rect = canvas.getBoundingClientRect();
+            if (e.touches) {
+                // Evento touch: obtener la posición del primer toque
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            } else {
+                // Evento mouse
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+             ctx.beginPath();
+             ctx.moveTo(x1, y1);
+             ctx.lineTo(x2, y2);
+             ctx.stroke();
+             ctx.closePath();
+        }
+
+        // --- EVENT HANDLERS ---
+        
+        // Start Drawing Handler
+        const startDrawing = (e) => {
+            isDrawing = true;
+            const pos = getXY(e);
+            currentPos.x = pos.x;
+            currentPos.y = pos.y;
+        };
+
+        // Draw Move Handler
+        const drawMove = (e) => {
+            if (!isDrawing) return;
+            // Prevenir el scroll y el zoom en móvil (crítico para touch)
+            if (e.touches) { e.preventDefault(); } 
+            
+            const pos = getXY(e);
+            drawLine(currentPos.x, currentPos.y, pos.x, pos.y);
+            currentPos.x = pos.x;
+            currentPos.y = pos.y;
+            signatureDataUrl = canvas.toDataURL('image/png');
+        };
+
+        // Stop Drawing Handler
+        const stopDrawing = (e) => {
+            isDrawing = false;
+        };
+
+        // Eventos mouse (PC)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', drawMove);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Eventos touch (Móvil)
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', drawMove, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing, {passive: false});
+
+
+        // Botón limpiar firma
+        document.getElementById('limpiarFirma').onclick = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            signatureDataUrl = '';
+            serverErrorDiv.classList.add('hidden');
+        };
+
+        // Función para verificar si el canvas está vacío
+        function isCanvasEmpty() {
+            // Un canvas se considera vacío si no tiene trazos de color
+            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            return pixelData.every(v => v === 0);
+        }
+
+        // Envío del formulario
+        firmaForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // 1. Validación de la firma
+            if (isCanvasEmpty() || !signatureDataUrl) {
+                serverErrorDiv.textContent = 'Por favor, realiza tu firma digital para continuar.';
+                serverErrorDiv.classList.remove('hidden');
+                return;
+            }
+            serverErrorDiv.classList.add('hidden');
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            
+            // 2. Cargar datos de la sesión
+            const sessionData = sessionStorage.getItem('consentimiento_demograficos');
+            if (!sessionData) {
+                serverErrorDiv.textContent = 'Error: No se encontraron los datos demográficos. Por favor, regresa al inicio.';
+                serverErrorDiv.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Firmar y Enviar';
+                return;
+            }
+            
+            try {
+                const datosDemograficos = JSON.parse(sessionData);
+                
+                const finalData = {
+                    ...datosDemograficos, 
+                    consentimiento: {
+                        fecha: new Date().toISOString(),
+                        ip: "No disponible en el cliente", 
+                        userAgent: navigator.userAgent,
+                        terminosAceptados: true 
+                    },
+                    firmaDigital: signatureDataUrl
+                };
+                
+                // 3. Llamada a la API del servidor (save-consent.js)
+                // NOTA: Se asume que /api/save-consent ya está configurado con firebaseAdmin.js
+                const response = await fetch('/api/save-consent', {
+                    method: 'POST',
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    sessionStorage.removeItem('consentimiento_demograficos'); // Limpiar datos de sesión
+                    document.getElementById('successModal').classList.remove('hidden');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Hubo un problema en el servidor.');
+                }
+
+            } catch (error) {
+                console.error("Error al guardar el consentimiento:", error);
+                serverErrorDiv.textContent = `Hubo un error al guardar tu consentimiento. Por favor, intenta de nuevo. Detalle: ${error.message}`;
+                serverErrorDiv.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Firmar y Enviar';
+            }
+        });
+
+        document.getElementById('closeModalButton').addEventListener('click', () => {
+            document.getElementById('successModal').classList.add('hidden');
+            window.location.href = 'index.html'; // Redirigir al inicio
+        });
+
+    </script>
 </body>
 </html>
