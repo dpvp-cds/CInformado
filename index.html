@@ -26,6 +26,19 @@
             border-color: #003366;
             box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
         }
+        /* Estilos para el Banner de Cookies */
+        #cookieBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            transform: translateY(100%);
+            transition: transform 0.5s ease-out;
+        }
+        #cookieBanner.show {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -91,41 +104,16 @@
                 <h2 class="text-2xl font-bold border-b pb-3 mb-6">2. Términos del Consentimiento Informado</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700">
                     <p id="consentimientoIntro"></p>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.2 Propósito de la Intervención:</h4>
-                        <p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.3 Naturaleza del Proceso:</h4>
-                        <p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.4 Proceso de evaluación:</h4>
-                        <p id="evaluacionTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.5 Costos económicos:</h4>
-                        <p id="costosTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.6 Tratamiento de Datos:</h4>
-                        <p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p>
-                    </div>
+                    <div class="space-y-2"><h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.3 Naturaleza del Proceso:</h4><p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.4 Proceso de evaluación:</h4><p id="evaluacionTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.5 Costos económicos:</h4><p id="costosTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p></div>
                 </div>
-
-                <div class="mt-8 pt-6 border-t">
-                    <div class="flex items-center">
-                        <input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]">
-                        <label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label>
-                    </div>
-                </div>
+                <div class="mt-8 pt-6 border-t"><div class="flex items-center"><input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"><label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label></div></div>
                 <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes aceptar los términos para poder continuar.</div>
-                <div class="text-center mt-6">
-                    <button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button>
-                </div>
+                <div class="text-center mt-6"><button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button></div>
             </div>
         </div>
     </main>
@@ -137,8 +125,17 @@
         </div>
     </footer>
     
+    <div id="cookieBanner" class="bg-[#003366] text-white p-4 flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 shadow-2xl">
+        <p class="text-sm text-center">
+            Utilizamos cookies y datos de sesión para garantizar la funcionalidad del formulario y mejorar tu experiencia. Al continuar, aceptas nuestra
+            <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de tratamiento de datos.</a>
+        </p>
+        <button id="acceptCookies" class="bg-white text-[#003366] font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition-colors text-sm flex-shrink-0">Aceptar</button>
+    </div>
+    
 <script>
 document.addEventListener('DOMContentLoaded', async function() {
+    // Referencias a elementos
     const demographicsForm = document.getElementById('demographicsForm');
     const consentimientoContainer = document.getElementById('consentimientoContainer');
     const showConsentButton = document.getElementById('showConsentButton');
@@ -153,8 +150,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     const ciudadContainer = document.getElementById('ciudadContainer');
     const departamentoSelect = document.getElementById('departamento');
     const municipioSelect = document.getElementById('municipio');
+    const cookieBanner = document.getElementById('cookieBanner');
+    const acceptCookiesButton = document.getElementById('acceptCookies');
 
     let geodata = {};
+
+    // --- LÓGICA DEL BANNER DE COOKIES (RESTAURADA) ---
+    if (localStorage.getItem('cookiesAccepted') !== 'true') {
+        setTimeout(() => { cookieBanner.classList.add('show'); }, 500);
+    }
+    acceptCookiesButton.addEventListener('click', () => {
+        localStorage.setItem('cookiesAccepted', 'true');
+        cookieBanner.classList.remove('show');
+    });
+    // ---------------------------------------------
+
     document.getElementById('fechaDiligenciamiento').valueAsDate = new Date();
     
     async function cargarGeodata() {
