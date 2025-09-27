@@ -30,7 +30,7 @@
         }
         .btn-brand:hover {
             background-color: #002244;
-            transform: translateY(-2px);
+            transform: translateY(-px);
             box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
         }
         .btn-brand:disabled {
@@ -141,15 +141,9 @@
         function getEventPosition(e) {
             const rect = canvas.getBoundingClientRect();
             if (e.touches && e.touches[0]) {
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
             }
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
 
         function startDrawing(e) {
@@ -160,7 +154,7 @@
 
         function draw(e) {
             if (!isDrawing) return;
-            e.preventDefault(); // Evita el scroll en móvil
+            e.preventDefault();
             const pos = getEventPosition(e);
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
@@ -171,12 +165,10 @@
 
         const stopDrawing = () => isDrawing = false;
 
-        // Eventos PC
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-        // Eventos Móvil
         canvas.addEventListener('touchstart', startDrawing, { passive: false });
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
@@ -203,7 +195,6 @@
                 return;
             }
             
-            // **INICIO DE LA LÓGICA CORREGIDA**
             const sessionData = sessionStorage.getItem('consentimiento_demograficos');
             if (!sessionData) {
                 serverErrorDiv.textContent = 'Error: No se encontraron los datos demográficos. Por favor, regresa al inicio.';
@@ -215,16 +206,38 @@
             submitButton.textContent = 'Enviando...';
 
             try {
-                const datosDemograficos = JSON.parse(sessionData);
+                const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
 
-                // Empaquetamos los datos demográficos y la firma
+                // ----- INICIO DE LA CORRECCIÓN ESTRUCTURAL -----
+                // Aquí construimos el objeto con la estructura que el servidor espera.
                 const finalData = {
-                    ...datosDemograficos,
+                    demograficos: {
+                        nombre: datosCrudos.nombreCompleto, // Mapeo de nombreCompleto a nombre
+                        email: datosCrudos.email,
+                        fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
+                        fechaNacimiento: datosCrudos.fechaNacimiento,
+                        edad: datosCrudos.edad,
+                        pais: datosCrudos.pais,
+                        tipoDocumento: datosCrudos.tipoDocumento,
+                        documentoIdentidad: datosCrudos.documentoIdentidad,
+                        telefonoContacto: datosCrudos.telefonoContacto,
+                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
+                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
+                        // Datos del acudiente (si existen)
+                        nombreAcudiente: datosCrudos.nombreAcudiente || null,
+                        tipoAcudiente: datosCrudos.tipoAcudiente || null,
+                        documentoAcudiente: datosCrudos.documentoAcudiente || null
+                    },
+                    consentimiento: {
+                        fechaAceptacion: new Date().toISOString(),
+                        ipAddress: "No_capturada_cliente",
+                        userAgent: navigator.userAgent
+                    },
                     firmaDigital: firmaDigital
                 };
+                // ----- FIN DE LA CORRECCIÓN ESTRUCTURAL -----
 
-                // Enviamos el paquete completo al servidor
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
                     body: JSON.stringify(finalData),
@@ -236,6 +249,7 @@
                     successDiv.textContent = '¡Consentimiento enviado con éxito! Gracias por tu confianza.';
                     successDiv.classList.remove('hidden');
                     document.getElementById('limpiarFirma').disabled = true;
+                    submitButton.textContent = 'Enviado';
                 } else {
                     const errorData = await response.json();
                     throw new Error(errorData.message || 'Hubo un problema en el servidor.');
@@ -248,7 +262,6 @@
                 submitButton.disabled = false;
                 submitButton.textContent = 'Firmar y Enviar';
             }
-            // **FIN DE LA LÓGICA CORREGIDA**
         });
     });
     </script>
