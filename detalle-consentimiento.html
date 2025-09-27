@@ -139,3 +139,24 @@
         }
 
         function displayReport(reporte) {
+            const { demograficos, consentimiento, firmaDigital, fecha } = reporte;
+            
+            document.getElementById('reportTitle').textContent += ` de ${demograficos.nombre}`;
+
+            // Poblar texto del consentimiento (primero)
+            const esMenor = parseInt(demograficos.edad, 10) < 18;
+            const intro = document.getElementById('consentimientoIntro');
+            const confidencialidad = document.getElementById('confidencialidadTexto');
+            const evaluacion = document.getElementById('evaluacionTexto');
+            const costos = document.getElementById('costosTexto');
+
+            if (esMenor) {
+                intro.textContent = `Yo, ${demograficos.nombreAcudiente}, con documento de identidad ${demograficos.documentoAcudiente}, actuando como acudiente en calidad de ${demograficos.tipoAcudiente}, de ${demograficos.nombre}, con documento de identidad ${demograficos.documentoIdentidad}.`;
+                confidencialidad.textContent = 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente menor de edad, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.';
+                evaluacion.textContent = 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.';
+                costos.textContent = 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
+            } else {
+                intro.textContent = `Yo, ${demograficos.nombre}, identificado/a con documento de identidad ${demograficos.documentoIdentidad}, declaro que:`;
+                confidencialidad.textContent = 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.';
+                evaluacion.textContent = 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.';
+                costos.textContent = 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información
