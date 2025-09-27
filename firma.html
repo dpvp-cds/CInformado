@@ -1,186 +1,254 @@
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firma del Consentimiento - Caminos del Ser</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firma Digital - Caminos del Ser</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
-        h1, h2 { font-family: 'Poppins', sans-serif; color: #1a1a1a; font-weight: 700; }
-        .btn-brand { background-color: #003366; color: white; padding: 12px 30px; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; }
-        .btn-brand:hover { background-color: #002244; }
-        .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
-        .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        #firmaCanvas { border: 2px dashed #d1d5db; border-radius: 8px; cursor: crosshair; touch-action: none; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F8F7F2;
+            color: #4A4A4A;
+        }
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        .btn-brand {
+            background-color: #003366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-brand:hover {
+            background-color: #002244;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+        }
+        .btn-brand:disabled {
+            background-color: #99aabb;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        #firma-canvas {
+            border: 2px solid #003366;
+            background-color: #fafbfc;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            touch-action: none;
+            width: 100%;
+            height: 150px;
+        }
     </style>
 </head>
 <body class="antialiased">
 
-    <header class="bg-white shadow-sm">
+    <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-2 flex justify-between items-center">
-            <a href="index.html">
-                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
+            <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10">
             </a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Volver al Consentimiento</a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                Volver al Consentimiento
+            </a>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-12">
-        <div class="max-w-2xl mx-auto card text-center">
-            <h1 class="text-3xl font-bold mb-2">Paso Final: Tu Firma</h1>
-            <p class="text-gray-600 mb-6">Por favor, firma en el siguiente recuadro para validar tu consentimiento.</p>
+        <div class="max-w-xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Paso Final: Firma Digital</h1>
+            <p class="text-base md:text-lg text-gray-600 text-center mb-8">Por favor, firma en el recuadro para completar tu consentimiento.</p>
 
-            <div class="w-full max-w-md mx-auto">
-                <canvas id="firmaCanvas"></canvas>
-            </div>
+            <form id="firmaForm">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">Tu Firma Manuscrita</h2>
+                    <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos en la página anterior.</p>
 
-            <div class="flex justify-center gap-4 mt-6">
-                <button id="limpiarFirmaBtn" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-semibold hover:bg-gray-300 transition">Limpiar</button>
-                <button id="enviarBtn" class="btn-brand">Enviar Consentimiento</button>
-            </div>
-            <div id="server-message" class="mt-6 text-center font-semibold hidden"></div>
+                    <div class="mb-6 flex justify-center w-full">
+                        <canvas id="firma-canvas" width="350" height="150" class="cursor-crosshair"></canvas>
+                    </div>
+                    
+                    <div class="flex justify-center mb-6">
+                        <button type="button" id="limpiarFirma" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
+                    </div>
+
+                    <div id="server-error-message" class="hidden mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
+                    <div id="success-message" class="hidden mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center"></div>
+
+
+                    <div class="mt-8 text-center">
+                        <button type="submit" id="submitButton" class="btn-brand text-lg">Firmar y Enviar</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </main>
 
-    <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
-        <div class="container mx-auto text-center">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
+        <div class="container mx-auto text-center space-y-2">
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
             <div class="mt-4">
-                <a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Política de tratamiento de datos</a>
-                <span class="text-gray-600 mx-2">|</span>
-                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso Terapeuta</a>
+                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
             </div>
         </div>
     </footer>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const canvas = document.getElementById('firmaCanvas');
+        const canvas = document.getElementById('firma-canvas');
         const ctx = canvas.getContext('2d');
-        const limpiarBtn = document.getElementById('limpiarFirmaBtn');
-        const enviarBtn = document.getElementById('enviarBtn');
-        const serverMessageDiv = document.getElementById('server-message');
-
-        let dibujando = false;
-        let firmaVacia = true;
+        const firmaForm = document.getElementById('firmaForm');
+        const submitButton = document.getElementById('submitButton');
+        const serverErrorDiv = document.getElementById('server-error-message');
+        const successDiv = document.getElementById('success-message');
+        
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
 
         function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const ratio = window.devicePixelRatio || 1;
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext('2d').scale(ratio, ratio);
-            ctx.strokeStyle = "#000000";
+            ctx.scale(ratio, ratio);
             ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#003366';
         }
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        function getCoords(e) {
+        function getEventPosition(e) {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / (rect.width * window.devicePixelRatio);
-            const scaleY = canvas.height / (rect.height * window.devicePixelRatio);
-
-            if (e.touches && e.touches.length > 0) {
+            if (e.touches && e.touches[0]) {
                 return {
-                    x: (e.touches[0].clientX - rect.left) * scaleX,
-                    y: (e.touches[0].clientY - rect.top) * scaleY
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
                 };
             }
             return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
             };
         }
 
-        function iniciarDibujo(e) {
-            e.preventDefault();
-            dibujando = true;
-            firmaVacia = false;
-            const coords = getCoords(e);
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getEventPosition(e);
+            [lastX, lastY] = [pos.x, pos.y];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // Evita el scroll en móvil
+            const pos = getEventPosition(e);
             ctx.beginPath();
-            ctx.moveTo(coords.x, coords.y);
-        }
-
-        function dibujar(e) {
-            if (!dibujando) return;
-            e.preventDefault();
-            const coords = getCoords(e);
-            ctx.lineTo(coords.x, coords.y);
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
+            [lastX, lastY] = [pos.x, pos.y];
         }
 
-        function detenerDibujo() {
-            dibujando = false;
-            ctx.closePath();
-        }
+        const stopDrawing = () => isDrawing = false;
 
-        canvas.addEventListener('mousedown', iniciarDibujo);
-        canvas.addEventListener('mousemove', dibujar);
-        canvas.addEventListener('mouseup', detenerDibujo);
-        canvas.addEventListener('mouseout', detenerDibujo);
+        // Eventos PC
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        // Eventos Móvil
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
 
-        canvas.addEventListener('touchstart', iniciarDibujo, { passive: false });
-        canvas.addEventListener('touchmove', dibujar, { passive: false });
-        canvas.addEventListener('touchend', detenerDibujo, { passive: false });
-
-        limpiarBtn.addEventListener('click', () => {
+        document.getElementById('limpiarFirma').onclick = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            firmaVacia = true;
-        });
+            serverErrorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+        };
+        
+        function isCanvasEmpty() {
+            const pixelBuffer = new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+            return !pixelBuffer.some(color => color !== 0);
+        }
 
-        enviarBtn.addEventListener('click', async () => {
-            serverMessageDiv.classList.add('hidden');
+        firmaForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            serverErrorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            if (isCanvasEmpty()) {
+                serverErrorDiv.textContent = 'Por favor, realiza tu firma para continuar.';
+                serverErrorDiv.classList.remove('hidden');
+                return;
+            }
             
-            if (firmaVacia) {
-                serverMessageDiv.textContent = 'Por favor, proporciona tu firma.';
-                serverMessageDiv.className = 'mt-6 text-center font-semibold text-red-600';
-                serverMessageDiv.classList.remove('hidden');
+            // **INICIO DE LA LÓGICA CORREGIDA**
+            const sessionData = sessionStorage.getItem('consentimiento_demograficos');
+            if (!sessionData) {
+                serverErrorDiv.textContent = 'Error: No se encontraron los datos demográficos. Por favor, regresa al inicio.';
+                serverErrorDiv.classList.remove('hidden');
                 return;
             }
-
-            const datosTemporales = sessionStorage.getItem('datosConsentimiento');
-            if (!datosTemporales) {
-                serverMessageDiv.textContent = 'Error: No se encontraron los datos demográficos. Por favor, vuelve a empezar.';
-                serverMessageDiv.className = 'mt-6 text-center font-semibold text-red-600';
-                serverMessageDiv.classList.remove('hidden');
-                return;
-            }
-
-            enviarBtn.disabled = true;
-            enviarBtn.textContent = 'Procesando...';
+            
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
 
             try {
-                const datosCompletos = JSON.parse(datosTemporales);
-                datosCompletos.firmaDigital = canvas.toDataURL('image/png');
+                const datosDemograficos = JSON.parse(sessionData);
+                const firmaDigital = canvas.toDataURL('image/png');
 
+                // Empaquetamos los datos demográficos y la firma
+                const finalData = {
+                    ...datosDemograficos,
+                    firmaDigital: firmaDigital
+                };
+
+                // Enviamos el paquete completo al servidor
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosCompletos)
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' }
                 });
 
                 if (response.ok) {
-                    serverMessageDiv.textContent = '¡Gracias! Tu consentimiento ha sido enviado exitosamente.';
-                    serverMessageDiv.className = 'mt-6 text-center font-semibold text-green-600';
-                    sessionStorage.removeItem('datosConsentimiento');
-                    limpiarBtn.disabled = true;
+                    sessionStorage.removeItem('consentimiento_demograficos');
+                    successDiv.textContent = '¡Consentimiento enviado con éxito! Gracias por tu confianza.';
+                    successDiv.classList.remove('hidden');
+                    document.getElementById('limpiarFirma').disabled = true;
                 } else {
                     const errorData = await response.json();
                     throw new Error(errorData.message || 'Hubo un problema en el servidor.');
                 }
+
             } catch (error) {
-                serverMessageDiv.textContent = `Hubo un error al enviar tu consentimiento. Detalle: ${error.message}`;
-                serverMessageDiv.className = 'mt-6 text-center font-semibold text-red-600';
-                enviarBtn.disabled = false;
-                enviarBtn.textContent = 'Enviar Consentimiento';
-            } finally {
-                 serverMessageDiv.classList.remove('hidden');
+                console.error("Error al guardar el consentimiento:", error);
+                serverErrorDiv.textContent = `Hubo un error al guardar tu consentimiento. Detalle: ${error.message}`;
+                serverErrorDiv.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Firmar y Enviar';
             }
+            // **FIN DE LA LÓGICA CORREGIDA**
         });
     });
     </script>
