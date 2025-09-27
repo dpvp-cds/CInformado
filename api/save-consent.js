@@ -7,7 +7,7 @@ import { Buffer } from 'buffer';
 async function crearPDFConsentimiento(datos) {
     const { demograficos, firmaDigital, fecha } = datos;
     const pdfDoc = await PDFDocument.create();
-    let page = pdfDoc.addPage(); // Se declara con let para poder reasignarla
+    let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -15,24 +15,27 @@ async function crearPDFConsentimiento(datos) {
     let y = height - 40;
     const margin = 50;
     const maxWidth = width - 2 * margin;
+    const lineHeight = 14;
+    const titleLineHeight = 12;
 
     const drawWrappedText = (text, options) => {
-        const { font, size, lineHeight, x, maxWidth, color = rgb(0, 0, 0) } = options;
+        const { font, size, color = rgb(0, 0, 0) } = options;
         const words = text.split(' ');
         let line = '';
         y -= 5;
+
         for (const word of words) {
             const testLine = line + word + ' ';
             const testWidth = font.widthOfTextAtSize(testLine, size);
             if (testWidth > maxWidth && line !== '') {
-                page.drawText(line, { x, y, font, size, color });
+                page.drawText(line, { x: margin, y, font, size, color });
                 y -= lineHeight;
                 line = word + ' ';
             } else {
                 line = testLine;
             }
         }
-        page.drawText(line, { x, y, font, size, color });
+        page.drawText(line, { x: margin, y, font, size, color });
         y -= lineHeight;
     };
 
@@ -50,22 +53,40 @@ async function crearPDFConsentimiento(datos) {
         datos: 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.'
     };
 
-    drawWrappedText(textos.intro, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.1 Confidencialidad:', { x: margin, y: y-=20, font: boldFont, size: 10 });
-    drawWrappedText(textos.confidencialidad, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.2 Propósito de la Intervención:', { x: margin, y: y-=10, font: boldFont, size: 10 });
-    drawWrappedText(textos.proposito, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.3 Naturaleza del Proceso:', { x: margin, y: y-=10, font: boldFont, size: 10 });
-    drawWrappedText(textos.naturaleza, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.4 Proceso de evaluación:', { x: margin, y: y-=10, font: boldFont, size: 10 });
-    drawWrappedText(textos.evaluacion, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.5 Costos económicos:', { x: margin, y: y-=10, font: boldFont, size: 10 });
-    drawWrappedText(textos.costos, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
-    page.drawText('2.6 Tratamiento de Datos:', { x: margin, y: y-=10, font: boldFont, size: 10 });
-    drawWrappedText(textos.datos, { x: margin, font, size: 10, lineHeight: 14, maxWidth });
+    drawWrappedText(textos.intro, { font, size: 10, lineHeight });
 
-    // --- **LA CORRECCIÓN ESTÁ AQUÍ** ---
-    // En lugar de page.addPage(), usamos pdfDoc.addPage() para añadir una nueva página al documento.
+    // --- **INICIO DE LA CORRECCIÓN DE ESPACIADO** ---
+    y -= 15;
+    page.drawText('2.1 Confidencialidad:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.confidencialidad, { font, size: 10, lineHeight });
+
+    y -= 5;
+    page.drawText('2.2 Propósito de la Intervención:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.proposito, { font, size: 10, lineHeight });
+
+    y -= 5;
+    page.drawText('2.3 Naturaleza del Proceso:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.naturaleza, { font, size: 10, lineHeight });
+
+    y -= 5;
+    page.drawText('2.4 Proceso de evaluación:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.evaluacion, { font, size: 10, lineHeight });
+
+    y -= 5;
+    page.drawText('2.5 Costos económicos:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.costos, { font, size: 10, lineHeight });
+
+    y -= 5;
+    page.drawText('2.6 Tratamiento de Datos:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.datos, { font, size: 10, lineHeight });
+    // --- **FIN DE LA CORRECCIÓN DE ESPACIADO** ---
+
     page = pdfDoc.addPage();
     y = height - 40;
 
@@ -133,15 +154,15 @@ export default async function handler(request, response) {
             const resend = new Resend(resendApiKey);
             const pdfBuffer = await crearPDFConsentimiento(dataToSave);
             const mailToPaciente = {
-              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
+              from: 'Notificación Consentimiento <caminosdelser@emotic.com>',
               to: demograficos.email,
               subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
             const mailToTerapeuta = {
-              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
-              to: 'caminosdelser@emcotic.com',
+              from: 'Notificación Consentimiento <caminosdelser@emotic.com>',
+              to: 'caminosdelser@emotic.com',
               subject: `Nuevo Consentimiento Firmado: ${demograficos.nombre}`,
               html: `<p>Has recibido el consentimiento informado firmado del paciente <strong>${demograficos.nombre}</strong>.</p><p>El documento PDF se encuentra adjunto.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
