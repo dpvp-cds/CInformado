@@ -154,16 +154,16 @@ export default async function handler(request, response) {
             const resend = new Resend(resendApiKey);
             const pdfBuffer = await crearPDFConsentimiento(dataToSave);
             const mailToPaciente = {
-              from: 'Notificación Consentimiento <caminosdelser@emotic.com>',
+              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
               to: demograficos.email,
               subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
             const mailToTerapeuta = {
-              from: 'Notificación Consentimiento <caminosdelser@emotic.com>',
-              to: 'caminosdelser@emotic.com',
-              subject: `Nuevo Consentimiento Firmado: ${demograficos.nombre}`,
+              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
+              to: 'caminosdelser@emcotic.com',
+              subject: `Nuevo Consentimiento Informado Firmado: ${demograficos.nombre}`,
               html: `<p>Has recibido el consentimiento informado firmado del paciente <strong>${demograficos.nombre}</strong>.</p><p>El documento PDF se encuentra adjunto.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
@@ -175,3 +175,4 @@ export default async function handler(request, response) {
         response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
+
