@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consentimiento Informado</title>
+  <style>
+    body { margin: 20px; font-family: Arial, sans-serif; }
+    .container { max-width: 500px; margin: 0 auto; }
+    .firma-container { margin-top: 20px; }
+    canvas#firma { width: 100%; max-width: 350px; height: 150px; border: 1px solid #888; background: #fff; touch-action: none; }
+    .terms { margin-top: 20px; }
+    /* Corregir posibles overflow o height fijos */
+    html, body { height: auto; overflow-y: auto; }
+    /* Evitar overlays o estilos que bloqueen el checkbox */
+    input[type="checkbox"] { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+
+    <div class="terms">
+      <input type="checkbox" id="consentimiento" name="consentimiento">
+      <label for="consentimiento">He leído y acepto los términos y condiciones anteriormente descritos.</label>
+    </div>
+
+    <div class="firma-container">
+      <p>Firma aquí:</p>
+      <canvas id="firma" width="350" height="150"></canvas>
+      <button id="limpiarFirma" type="button">Limpiar firma</button>
+    </div>
+
+    <button type="submit" id="enviar">Enviar</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('firma');
+    const ctx = canvas.getContext('2d');
+    let dibujando = false, x = 0, y = 0;
+
+    // Función para obtener coordenadas en mouse o touch
+    function getXY(e) {
+      let rect = canvas.getBoundingClientRect();
+      if (e.touches) {
+        // Evento touch
+        return {
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        };
+      } else {
+        // Evento mouse
+        return {
+          x: e.offsetX,
+          y: e.offsetY
+        };
+      }
+    }
+
+    // Eventos mouse
+    canvas.addEventListener('mousedown', e => {
+      dibujando = true;
+      const pos = getXY(e);
+      x = pos.x; y = pos.y;
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!dibujando) return;
+      const pos = getXY(e);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      x = pos.x; y = pos.y;
+    });
+    canvas.addEventListener('mouseup', e => dibujando = false);
+    canvas.addEventListener('mouseout', e => dibujando = false);
+
+    // Eventos touch
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      dibujando = true;
+      const pos = getXY(e);
+      x = pos.x; y = pos.y;
+    }, {passive: false});
+    canvas.addEventListener('touchmove', e => {
+      if (!dibujando) return;
+      e.preventDefault();
+      const pos = getXY(e);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      x = pos.x; y = pos.y;
+    }, {passive: false});
+    canvas.addEventListener('touchend', e => {
+      dibujando = false;
+    }, {passive: false});
+
+    // Botón limpiar firma
+    document.getElementById('limpiarFirma').onclick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // Botón enviar: verifica que checkbox esté marcado
+    document.getElementById('enviar').onclick = function(e){
+      if(!document.getElementById('consentimiento').checked){
+        alert('Debes aceptar los términos para continuar.');
+        e.preventDefault();
+        return false;
+      }
+      // Aquí puedes agregar lógica para procesar la firma o los datos antes de enviar
+    };
+  </script>
+
+</body>
+</html>
