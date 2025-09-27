@@ -14,7 +14,6 @@
         .btn-brand:hover { background-color: #002244; }
         .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
         .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        /* ESTILOS RESTAURADOS */
         .input-styled, .select-styled {
             border: 1px solid #d1d5db;
             border-radius: 8px;
@@ -92,33 +91,16 @@
                 <h2 class="text-2xl font-bold border-b pb-3 mb-6">2. Términos del Consentimiento Informado</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700">
                     <p id="consentimientoIntro"></p>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.3 Naturaleza del Proceso:</h4><p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.4 Proceso de evaluación:</h4><p id="evaluacionTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.5 Costos económicos:</h4><p id="costosTexto"></p>
-                    </div>
-                    <div class="space-y-2">
-                        <h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p>
-                    </div>
+                    <div class="space-y-2"><h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.3 Naturaleza del Proceso:</h4><p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.4 Proceso de evaluación:</h4><p id="evaluacionTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.5 Costos económicos:</h4><p id="costosTexto"></p></div>
+                    <div class="space-y-2"><h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p></div>
                 </div>
-
-                <div class="mt-8 pt-6 border-t">
-                    <div class="flex items-center"><input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"><label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label></div>
-                </div>
+                <div class="mt-8 pt-6 border-t"><div class="flex items-center"><input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"><label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label></div></div>
                 <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes aceptar los términos para poder continuar.</div>
-                <div class="text-center mt-6">
-                    <button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button>
-                </div>
+                <div class="text-center mt-6"><button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button></div>
             </div>
         </div>
     </main>
@@ -131,8 +113,8 @@
     </footer>
     
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Referencias a elementos
+document.addEventListener('DOMContentLoaded', async function() {
+    // --- REFERENCIAS A ELEMENTOS ---
     const demographicsForm = document.getElementById('demographicsForm');
     const consentimientoContainer = document.getElementById('consentimientoContainer');
     const showConsentButton = document.getElementById('showConsentButton');
@@ -148,64 +130,85 @@ document.addEventListener('DOMContentLoaded', function() {
     const departamentoSelect = document.getElementById('departamento');
     const municipioSelect = document.getElementById('municipio');
 
-    let colombiaData = [];
+    let geodata = {};
 
     // --- INICIALIZACIÓN ---
     document.getElementById('fechaDiligenciamiento').valueAsDate = new Date();
-    const paises = ["Seleccione un país", "Colombia", "Estados Unidos", "Canadá", "México", "Argentina", "Bolivia", "Brasil", "Chile", "Ecuador", "Paraguay", "Perú", "Uruguay", "Venezuela", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Nicaragua", "Panamá", "Otro"];
-    paises.forEach(pais => {
-        const option = document.createElement('option');
-        option.value = pais === "Seleccione un país" ? "" : pais;
-        option.textContent = pais;
-        paisSelect.appendChild(option);
-    });
-
-    // --- LÓGICA DE UBICACIÓN (RESTAURADA) ---
-    async function cargarDatosColombia() {
-        if (colombiaData.length > 0) return;
+    
+    // --- LÓGICA DE UBICACIÓN (NUEVA, DESDE GEODATA.JSON) ---
+    async function cargarGeodata() {
         try {
-            const response = await fetch('https://www.datos.gov.co/resource/xdk5-pm3f.json');
-            const data = await response.json();
-            colombiaData = data.map(item => ({
-                departamento: item.departamento,
-                municipio: item.municipio
-            }));
+            const response = await fetch('geodata.json');
+            geodata = await response.json();
+            poblarPaises();
         } catch (error) {
-            console.error('Error cargando datos de Colombia:', error);
+            console.error('Error cargando geodata.json:', error);
         }
     }
 
-    function poblarDepartamentos() {
+    function poblarPaises() {
+        paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
+        const continentes = ['Norteamérica', 'Centroamérica', 'Suramérica'];
+        continentes.forEach(continente => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = continente;
+            const paises = Object.keys(geodata[continente]);
+            paises.forEach(pais => {
+                const option = document.createElement('option');
+                option.value = pais;
+                option.textContent = pais;
+                optgroup.appendChild(option);
+            });
+            paisSelect.appendChild(optgroup);
+        });
+    }
+
+    function poblarDepartamentos(pais) {
         departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
-        const departamentos = [...new Set(colombiaData.map(d => d.departamento))].sort();
-        departamentos.forEach(d => {
+        // Encontrar el país sin importar el continente
+        let departamentos = [];
+        for (const continente in geodata) {
+            if (geodata[continente][pais]) {
+                departamentos = Object.keys(geodata[continente][pais]);
+                break;
+            }
+        }
+        departamentos.sort().forEach(depto => {
             const option = document.createElement('option');
-            option.value = d;
-            option.textContent = d;
+            option.value = depto;
+            option.textContent = depto;
             departamentoSelect.appendChild(option);
         });
     }
 
-    function poblarMunicipios(departamento) {
+    function poblarMunicipios(pais, depto) {
         municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
-        const municipios = colombiaData.filter(d => d.departamento === departamento).map(d => d.municipio).sort();
-        municipios.forEach(m => {
+        let municipios = [];
+        for (const continente in geodata) {
+            if (geodata[continente][pais] && geodata[continente][pais][depto]) {
+                municipios = geodata[continente][pais][depto];
+                break;
+            }
+        }
+        municipios.sort().forEach(mun => {
             const option = document.createElement('option');
-            option.value = m;
-            option.textContent = m;
+            option.value = mun;
+            option.textContent = mun;
             municipioSelect.appendChild(option);
         });
     }
 
-    paisSelect.addEventListener('change', async () => {
+    paisSelect.addEventListener('change', () => {
         const pais = paisSelect.value;
         departamentoContainer.classList.add('hidden');
         municipioContainer.classList.add('hidden');
         ciudadContainer.classList.add('hidden');
+        municipioSelect.innerHTML = '';
+        departamentoSelect.innerHTML = '';
+
 
         if (pais === 'Colombia') {
-            await cargarDatosColombia();
-            poblarDepartamentos();
+            poblarDepartamentos(pais);
             departamentoContainer.classList.remove('hidden');
         } else if (pais) {
             ciudadContainer.classList.remove('hidden');
@@ -215,8 +218,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     departamentoSelect.addEventListener('change', () => {
         municipioContainer.classList.remove('hidden');
-        poblarMunicipios(departamentoSelect.value);
+        poblarMunicipios(paisSelect.value, departamentoSelect.value);
     });
+    
+    await cargarGeodata(); // Cargar los datos al inicio
 
     // --- LÓGICA DE EDAD Y TIPO DE DOCUMENTO ---
     function calcularEdad(fechaNacimiento) {
