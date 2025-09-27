@@ -120,7 +120,7 @@ export default async function handler(request, response) {
 
             // --- INICIO DE TU LÓGICA DE CORREO RESTAURADA ---
             const mailToPaciente = {
-              from: 'Notificación Consentimiento Informado <noreply@emcotic.com>', // Asegúrate que el dominio esté verificado
+              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>', // Asegúrate que el dominio esté verificado
               to: demograficos.email,
               subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
               html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
@@ -128,7 +128,7 @@ export default async function handler(request, response) {
             };
 
             const mailToTerapeuta = {
-              from: 'Notificación Consentimiento Informado <noreply@emcotic.com>', // Asegúrate que el dominio esté verificado
+              from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>', // Asegúrate que el dominio esté verificado
               to: 'caminosdelser@emcotic.com',
               subject: `Nuevo Consentimiento Firmado: ${demograficos.nombre}`,
               html: `<p>Has recibido el consentimiento informado firmado del paciente <strong>${demograficos.nombre}</strong>.</p><p>El documento PDF se encuentra adjunto.</p>`,
@@ -150,3 +150,4 @@ export default async function handler(request, response) {
         response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
+
