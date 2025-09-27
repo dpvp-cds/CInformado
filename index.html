@@ -91,16 +91,41 @@
                 <h2 class="text-2xl font-bold border-b pb-3 mb-6">2. Términos del Consentimiento Informado</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700">
                     <p id="consentimientoIntro"></p>
-                    <div class="space-y-2"><h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.3 Naturaleza del Proceso:</h4><p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.4 Proceso de evaluación:</h4><p id="evaluacionTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.5 Costos económicos:</h4><p id="costosTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p></div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.2 Propósito de la Intervención:</h4>
+                        <p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.3 Naturaleza del Proceso:</h4>
+                        <p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.4 Proceso de evaluación:</h4>
+                        <p id="evaluacionTexto"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.5 Costos económicos:</h4>
+                        <p id="costosTexto"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.6 Tratamiento de Datos:</h4>
+                        <p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p>
+                    </div>
                 </div>
-                <div class="mt-8 pt-6 border-t"><div class="flex items-center"><input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"><label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label></div></div>
+
+                <div class="mt-8 pt-6 border-t">
+                    <div class="flex items-center">
+                        <input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]">
+                        <label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label>
+                    </div>
+                </div>
                 <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes aceptar los términos para poder continuar.</div>
-                <div class="text-center mt-6"><button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button></div>
+                <div class="text-center mt-6">
+                    <button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button>
+                </div>
             </div>
         </div>
     </main>
@@ -114,7 +139,6 @@
     
 <script>
 document.addEventListener('DOMContentLoaded', async function() {
-    // --- REFERENCIAS A ELEMENTOS ---
     const demographicsForm = document.getElementById('demographicsForm');
     const consentimientoContainer = document.getElementById('consentimientoContainer');
     const showConsentButton = document.getElementById('showConsentButton');
@@ -131,19 +155,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     const municipioSelect = document.getElementById('municipio');
 
     let geodata = {};
-
-    // --- INICIALIZACIÓN ---
     document.getElementById('fechaDiligenciamiento').valueAsDate = new Date();
     
-    // --- LÓGICA DE UBICACIÓN (NUEVA, DESDE GEODATA.JSON) ---
     async function cargarGeodata() {
         try {
             const response = await fetch('geodata.json');
             geodata = await response.json();
             poblarPaises();
-        } catch (error) {
-            console.error('Error cargando geodata.json:', error);
-        }
+        } catch (error) { console.error('Error cargando geodata.json:', error); }
     }
 
     function poblarPaises() {
@@ -152,8 +171,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         continentes.forEach(continente => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = continente;
-            const paises = Object.keys(geodata[continente]);
-            paises.forEach(pais => {
+            Object.keys(geodata[continente]).sort().forEach(pais => {
                 const option = document.createElement('option');
                 option.value = pais;
                 option.textContent = pais;
@@ -165,14 +183,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function poblarDepartamentos(pais) {
         departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
-        // Encontrar el país sin importar el continente
         let departamentos = [];
-        for (const continente in geodata) {
-            if (geodata[continente][pais]) {
-                departamentos = Object.keys(geodata[continente][pais]);
-                break;
-            }
-        }
+        for (const cont in geodata) { if (geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
         departamentos.sort().forEach(depto => {
             const option = document.createElement('option');
             option.value = depto;
@@ -184,12 +196,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function poblarMunicipios(pais, depto) {
         municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
         let municipios = [];
-        for (const continente in geodata) {
-            if (geodata[continente][pais] && geodata[continente][pais][depto]) {
-                municipios = geodata[continente][pais][depto];
-                break;
-            }
-        }
+        for (const cont in geodata) { if (geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
         municipios.sort().forEach(mun => {
             const option = document.createElement('option');
             option.value = mun;
@@ -203,10 +210,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         departamentoContainer.classList.add('hidden');
         municipioContainer.classList.add('hidden');
         ciudadContainer.classList.add('hidden');
-        municipioSelect.innerHTML = '';
-        departamentoSelect.innerHTML = '';
-
-
         if (pais === 'Colombia') {
             poblarDepartamentos(pais);
             departamentoContainer.classList.remove('hidden');
@@ -221,9 +224,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         poblarMunicipios(paisSelect.value, departamentoSelect.value);
     });
     
-    await cargarGeodata(); // Cargar los datos al inicio
+    await cargarGeodata();
 
-    // --- LÓGICA DE EDAD Y TIPO DE DOCUMENTO ---
     function calcularEdad(fechaNacimiento) {
         const hoy = new Date();
         const nacimiento = new Date(fechaNacimiento);
@@ -238,7 +240,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         const edad = parseInt(edadInput.value, 10);
         tipoDocumentoSelect.innerHTML = '';
         let opciones = [];
-
         if (isNaN(edad)) { 
              opciones = pais === 'Colombia' ? ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'] : ['Documento Nacional de Identidad', 'Pasaporte'];
         } else if (edad < 18) {
@@ -246,7 +247,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         } else {
             opciones = pais === 'Colombia' ? ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'] : ['Documento Nacional de Identidad', 'Pasaporte'];
         }
-
         opciones.forEach(op => {
             const option = document.createElement('option');
             option.value = op;
@@ -267,7 +267,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // --- LÓGICA DE FLUJO DE FORMULARIO ---
     showConsentButton.addEventListener('click', function() {
         if (!demographicsForm.checkValidity()) {
             demographicsForm.reportValidity();
@@ -275,10 +274,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         document.getElementById('form-error').classList.add('hidden');
-        
         demographicsForm.classList.add('hidden');
         consentimientoContainer.classList.remove('hidden');
-        pageSubtitle.textContent = "Por favor, lee y acepta los siguientes términos para continuar.";
+        document.getElementById('page-subtitle').textContent = "Por favor, lee y acepta los siguientes términos para continuar.";
         window.scrollTo(0, 0);
 
         const formData = new FormData(demographicsForm);
