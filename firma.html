@@ -30,7 +30,7 @@
         }
         .btn-brand:hover {
             background-color: #002244;
-            transform: translateY(-px);
+            transform: translateY(-2px);
             box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
         }
         .btn-brand:disabled {
@@ -113,6 +113,15 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // ----- INICIO DEL CÓDIGO GUARDIÁN -----
+        const sessionData = sessionStorage.getItem('consentimiento_demograficos');
+        if (!sessionData) {
+            // Si no hay datos, redirige al inicio.
+            window.location.href = 'index.html';
+            return; // Detiene la ejecución del resto del script.
+        }
+        // ----- FIN DEL CÓDIGO GUARDIÁN -----
+
         const canvas = document.getElementById('firma-canvas');
         const ctx = canvas.getContext('2d');
         const firmaForm = document.getElementById('firmaForm');
@@ -195,13 +204,6 @@
                 return;
             }
             
-            const sessionData = sessionStorage.getItem('consentimiento_demograficos');
-            if (!sessionData) {
-                serverErrorDiv.textContent = 'Error: No se encontraron los datos demográficos. Por favor, regresa al inicio.';
-                serverErrorDiv.classList.remove('hidden');
-                return;
-            }
-            
             submitButton.disabled = true;
             submitButton.textContent = 'Enviando...';
 
@@ -209,11 +211,9 @@
                 const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
 
-                // ----- INICIO DE LA CORRECCIÓN ESTRUCTURAL -----
-                // Aquí construimos el objeto con la estructura que el servidor espera.
                 const finalData = {
                     demograficos: {
-                        nombre: datosCrudos.nombreCompleto, // Mapeo de nombreCompleto a nombre
+                        nombre: datosCrudos.nombreCompleto,
                         email: datosCrudos.email,
                         fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
                         fechaNacimiento: datosCrudos.fechaNacimiento,
@@ -224,7 +224,6 @@
                         telefonoContacto: datosCrudos.telefonoContacto,
                         contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
                         contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
-                        // Datos del acudiente (si existen)
                         nombreAcudiente: datosCrudos.nombreAcudiente || null,
                         tipoAcudiente: datosCrudos.tipoAcudiente || null,
                         documentoAcudiente: datosCrudos.documentoAcudiente || null
@@ -236,7 +235,6 @@
                     },
                     firmaDigital: firmaDigital
                 };
-                // ----- FIN DE LA CORRECCIÓN ESTRUCTURAL -----
 
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
