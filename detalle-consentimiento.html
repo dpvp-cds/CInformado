@@ -34,31 +34,6 @@
         <div id="reportContent" class="hidden space-y-8">
             <h1 id="reportTitle" class="text-4xl font-bold text-center">Detalle del Consentimiento</h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="card">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Paciente</h2>
-                    <div id="demographicsContent" class="space-y-3"></div>
-                </div>
-
-                <div class="space-y-8">
-                    <div class="card">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Firma Digital</h2>
-                        <div class="flex justify-center items-center p-4 bg-gray-50 rounded-lg">
-                            <img id="signatureImage" src="" alt="Firma del paciente" class="max-w-full h-auto">
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Metadatos</h2>
-                        <div id="metadataContent" class="space-y-3"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="acudienteCard" class="card hidden">
-                <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Acudiente</h2>
-                <div id="acudienteContent" class="space-y-3"></div>
-            </div>
-
             <div class="card">
                 <h2 class="text-2xl font-bold mb-4 border-b pb-2">Términos del Consentimiento Aceptado</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700 text-sm">
@@ -88,6 +63,31 @@
                         <p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p>
                     </div>
                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Paciente</h2>
+                    <div id="demographicsContent" class="space-y-3"></div>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="card">
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Firma Digital</h2>
+                        <div class="flex justify-center items-center p-4 bg-gray-50 rounded-lg">
+                            <img id="signatureImage" src="" alt="Firma del paciente" class="max-w-full h-auto">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Metadatos</h2>
+                        <div id="metadataContent" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="acudienteCard" class="card hidden">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Acudiente</h2>
+                <div id="acudienteContent" class="space-y-3"></div>
             </div>
         </div>
     </main>
@@ -174,7 +174,6 @@
                 acudienteCard.classList.remove('hidden');
             }
             
-            // --- INICIO DE LA LÓGICA PARA MOSTRAR TEXTO DEL CONSENTIMIENTO ---
             const esMenor = parseInt(demograficos.edad, 10) < 18;
             const intro = document.getElementById('consentimientoIntro');
             const confidencialidad = document.getElementById('confidencialidadTexto');
@@ -192,7 +191,6 @@
                 evaluacion.textContent = 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.';
                 costos.textContent = 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
             }
-            // --- FIN DE LA LÓGICA ---
         }
     </script>
 </body>
