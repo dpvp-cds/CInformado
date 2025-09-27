@@ -88,6 +88,18 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             text-align: center;
         }
+        #cookieBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            transform: translateY(100%);
+            transition: transform 0.5s ease-out;
+        }
+        #cookieBanner.show {
+            transform: translateY(0);
+        }
     </style>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
@@ -264,48 +276,33 @@
                         </div>
                     </div>
 
-                    <!-- Contenedor de la firma -->
-                    <div class="card">
-                        <h2 class="text-2xl font-bold mb-4">3. Firma y Confirmación</h2>
-                        <p class="mb-4 text-gray-600 text-sm">Al firmar digitalmente y presionar el botón de "Enviar", confirmo que he leído, entendido y aceptado todos los términos del presente consentimiento informado.</p>
-
-                        <div class="mb-6 flex justify-center">
-                            <canvas id="signature-pad" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
-                        </div>
-                        <div class="flex justify-center mb-6">
-                            <button type="button" id="clearSignature" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
-                        </div>
-
-                        <div id="server-error-message" class="hidden mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
-
-                        <div class="mt-8 text-center">
-                            <button type="submit" id="submitButton" class="btn-brand text-lg" disabled>Firmar y Enviar Consentimiento</button>
-                        </div>
+                    <!-- Botón de continuación, reemplazando la Sección 3 de Firma -->
+                    <div class="card mt-8 text-center">
+                        <button type="button" id="nextToSignButton" class="btn-brand text-lg" disabled>Continuar a la Firma</button>
                     </div>
                 </div>
             </form>
-
-            <!-- Modal de Agradecimiento -->
-            <div id="successModal" class="hidden modal-overlay">
-                <div class="modal-content">
-                    <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <h3 class="text-2xl font-bold mt-4 mb-2">¡Gracias por tu confianza!</h3>
-                    <p class="text-gray-600">Tu consentimiento ha sido registrado exitosamente. Te esperamos en tu sesión.</p>
-                    <button id="closeModalButton" class="btn-brand mt-6">Entendido</button>
-                </div>
-            </div>
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
-        <div class="container mx-auto text-center">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+        <div class="container mx-auto text-center space-y-2">
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
             <div class="mt-4">
                 <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
             </div>
         </div>
     </footer>
+
+    <!-- Banner de Aceptación de Cookies/Datos -->
+    <div id="cookieBanner" class="bg-[#003366] text-white p-4 flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 shadow-2xl">
+        <p class="text-sm text-center">
+            Utilizamos cookies y datos de sesión para garantizar la funcionalidad del formulario y mejorar tu experiencia. Al continuar, aceptas nuestra
+            <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de tratamiento de datos.</a>
+        </p>
+        <button id="acceptCookies" class="bg-white text-[#003366] font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition-colors text-sm flex-shrink-0">Aceptar</button>
+    </div>
 
     <script type="module">
         
@@ -314,6 +311,7 @@
             const demographicsContainer = document.getElementById('demographicsContainer');
             const consentimientoYFirmaContainer = document.getElementById('consentimientoYFirmaContainer');
             const continueButton = document.getElementById('continueButton');
+            const nextToSignButton = document.getElementById('nextToSignButton'); // Nuevo botón de redirección
             const nombreInput = document.getElementById('nombrePaciente');
             const fechaNacimientoInput = document.getElementById('fechaNacimiento');
             const edadInput = document.getElementById('edad');
@@ -322,111 +320,38 @@
             const nombreAdultoInput = document.getElementById('nombreAdulto');
             const documentoAdultoInput = document.getElementById('documentoAdulto');
             const tipoAcudienteSelect = document.getElementById('tipoAcudiente');
-            const submitButton = document.getElementById('submitButton');
-            const successModal = document.getElementById('successModal');
-            const closeModalButton = document.getElementById('closeModalButton');
-            const serverErrorDiv = document.getElementById('server-error-message');
             const tipoIdentificacionSelect = document.getElementById('tipoIdentificacion');
             const confidencialidadTexto = document.getElementById('confidencialidad-texto');
             const evaluacionTexto = document.getElementById('evaluacion-texto');
             const costosTexto = document.getElementById('costos-texto');
+            const acceptTermsCheckbox = document.getElementById('aceptoTerminos');
+            const serverErrorDiv = document.createElement('div'); // Crear un div para el error si no existe
+            const cookieBanner = document.getElementById('cookieBanner');
+            const acceptCookiesButton = document.getElementById('acceptCookies');
+
+
+            // --- LÓGICA DEL BANNER DE COOKIES ---
+            if (localStorage.getItem('cookiesAccepted') !== 'true') {
+                setTimeout(() => {
+                    cookieBanner.classList.add('show');
+                }, 500);
+            }
+
+            acceptCookiesButton.addEventListener('click', () => {
+                localStorage.setItem('cookiesAccepted', 'true');
+                cookieBanner.classList.remove('show');
+            });
+            // -----------------------------------
+
+
+            // Inicializar error div
+            serverErrorDiv.classList.add('hidden', 'mt-6', 'bg-red-100', 'border', 'border-red-400', 'text-red-700', 'px-4', 'py-3', 'rounded-lg', 'text-center');
+            demographicsContainer.appendChild(serverErrorDiv); // Añadirlo a la primera sección para mostrar errores
             
-            // Variables para la firma
-            const canvas = document.getElementById('signature-pad');
-            const ctx = canvas.getContext('2d');
-            let isDrawing = false;
-            let signatureDataUrl = null;
-            let lastPosition = {x: 0, y: 0};
-
-            // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
-            const resizeCanvas = () => {
-                const parent = canvas.parentElement;
-                const PIXEL_RATIO = window.devicePixelRatio || 1;
-                canvas.width = parent.offsetWidth * PIXEL_RATIO;
-                canvas.height = (parent.offsetWidth / 2) * PIXEL_RATIO; // Proporción 2:1
-                ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-                ctx.lineWidth = 2;
-                ctx.lineJoin = 'round';
-                ctx.lineCap = 'round';
-                ctx.strokeStyle = '#003366';
-            };
-            
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-
-            const getMousePos = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                return {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                };
-            };
-            
-            const getTouchPos = (e) => {
-                const rect = canvas.getBoundingClientRect();
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
-            };
-
-            const drawLine = (x1, y1, x2, y2) => {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-            };
-
-            // Eventos de ratón
-            canvas.addEventListener('mousedown', (e) => {
-                isDrawing = true;
-                lastPosition = getMousePos(e);
-            });
-            canvas.addEventListener('mousemove', (e) => {
-                if (!isDrawing) return;
-                const currentPosition = getMousePos(e);
-                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-                lastPosition = currentPosition;
-                signatureDataUrl = canvas.toDataURL('image/png');
-            });
-            canvas.addEventListener('mouseup', () => {
-                isDrawing = false;
-            });
-            canvas.addEventListener('mouseleave', () => {
-                isDrawing = false;
-            });
-
-            // Eventos táctiles
-            canvas.addEventListener('touchstart', (e) => {
-                e.preventDefault(); 
-                isDrawing = true;
-                lastPosition = getTouchPos(e);
-            }, { passive: false }); 
-
-            canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                if (!isDrawing) return;
-                const currentPosition = getTouchPos(e);
-                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-                lastPosition = currentPosition;
-                signatureDataUrl = canvas.toDataURL('image/png');
-            }, { passive: false });
-            canvas.addEventListener('touchend', () => {
-                isDrawing = false;
-            });
-
-            document.getElementById('clearSignature').addEventListener('click', () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                signatureDataUrl = null;
-            });
-
             // Lógica de fechas y edad
             const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-            document.getElementById('fechaDiligenciamiento').value = formattedDate;
+            const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            document.getElementById('fechaDiligenciamiento').value = localDate;
 
 
             fechaNacimientoInput.addEventListener('change', () => {
@@ -573,7 +498,36 @@
                 municipioContainer.classList.remove('hidden');
             });
 
-            // Botón de continuar
+            // --- LÓGICA DE TRANSICIÓN Y GUARDADO DE DATOS EN SESSION ---
+            
+            const gatherDemographics = () => {
+                 return {
+                        fechaDiligenciamiento: document.getElementById('fechaDiligenciamiento').value,
+                        nombreCompleto: document.getElementById('nombrePaciente').value,
+                        fechaNacimiento: document.getElementById('fechaNacimiento').value,
+                        edad: parseInt(document.getElementById('edad').value),
+                        telefono: document.getElementById('telefono').value,
+                        email: document.getElementById('email').value,
+                        paisResidencia: document.getElementById('paisResidencia').value,
+                        ciudad: document.getElementById('paisResidencia').value === 'Colombia' ? 
+                                `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` : 
+                                document.getElementById('ciudadResidencia').value,
+                        tipoIdentificacion: document.getElementById('tipoIdentificacion').value,
+                        numeroIdentificacion: document.getElementById('numeroIdentificacion').value,
+                        direccion: document.getElementById('direccion').value,
+                        adultoResponsable: {
+                            nombre: document.getElementById('nombreAdulto').value || null,
+                            documento: document.getElementById('documentoAdulto').value || null,
+                            tipo: document.getElementById('tipoAcudiente').value || null,
+                        },
+                        contactoEmergencia: {
+                            nombre: document.getElementById('nombreEmergencia').value,
+                            telefono: document.getElementById('telefonoEmergencia').value,
+                        },
+                 };
+            };
+            
+            // Botón de continuar a la Sección 2 (Consentimiento)
             continueButton.addEventListener('click', () => {
                 const requiredFields = demographicsContainer.querySelectorAll('[required]');
                 let allValid = true;
@@ -587,6 +541,7 @@
                 });
 
                 if (allValid) {
+                    serverErrorDiv.classList.add('hidden');
                     demographicsContainer.classList.remove('visible');
                     demographicsContainer.style.maxHeight = '0';
                     demographicsContainer.style.opacity = '0';
@@ -595,12 +550,13 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
                     // Lógica para mostrar nombre del paciente o del acudiente
-                    const nombrePaciente = document.getElementById('nombrePaciente').value;
-                    const numeroIdentificacionPaciente = document.getElementById('numeroIdentificacion').value;
-                    const nombreAdulto = document.getElementById('nombreAdulto').value;
-                    const documentoAdulto = document.getElementById('documentoAdulto').value;
-                    const tipoAcudiente = document.getElementById('tipoAcudiente').value;
-                    const edad = parseInt(document.getElementById('edad').value);
+                    const datos = gatherDemographics();
+                    const nombrePaciente = datos.nombreCompleto;
+                    const numeroIdentificacionPaciente = datos.numeroIdentificacion;
+                    const nombreAdulto = datos.adultoResponsable.nombre;
+                    const documentoAdulto = datos.adultoResponsable.documento;
+                    const tipoAcudiente = datos.adultoResponsable.tipo;
+                    const edad = datos.edad;
 
                     let displayText = '';
                     if (edad < 18) {
@@ -637,6 +593,8 @@
                     }
                     costosTexto.textContent = costosText;
 
+                    // Guardar datos demográficos en sessionStorage antes de pasar a la firma
+                    sessionStorage.setItem('consentimiento_demograficos', JSON.stringify(datos));
 
                 } else {
                      serverErrorDiv.textContent = 'Por favor, completa todos los campos demográficos obligatorios.';
@@ -644,85 +602,20 @@
                 }
             });
             
-            // Habilitar/deshabilitar botón de envío
-            const acceptTermsCheckbox = document.getElementById('aceptoTerminos');
+            // Habilitar/deshabilitar botón de envío (ahora se llama nextToSignButton)
             acceptTermsCheckbox.addEventListener('change', () => {
-                submitButton.disabled = !acceptTermsCheckbox.checked;
+                nextToSignButton.disabled = !acceptTermsCheckbox.checked;
             });
 
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                if (!signatureDataUrl) {
-                    serverErrorDiv.textContent = 'Por favor, firma en el recuadro para continuar.';
-                    serverErrorDiv.classList.remove('hidden');
-                    return;
+            // Redirección a firma.html al hacer click en el nuevo botón
+            nextToSignButton.addEventListener('click', () => {
+                // Ya tenemos los datos guardados en sessionStorage en el paso anterior
+                // Ahora validamos que los términos hayan sido aceptados
+                if (acceptTermsCheckbox.checked) {
+                    window.location.href = 'firma.html';
+                } else {
+                     alert('Debes aceptar los términos para continuar.');
                 }
-                serverErrorDiv.classList.add('hidden');
-                
-                submitButton.disabled = true;
-                submitButton.textContent = 'Enviando...';
-
-                try {
-                    const finalData = {
-                        demograficos: {
-                            fechaDiligenciamiento: document.getElementById('fechaDiligenciamiento').value,
-                            nombreCompleto: document.getElementById('nombrePaciente').value,
-                            fechaNacimiento: document.getElementById('fechaNacimiento').value,
-                            edad: parseInt(document.getElementById('edad').value),
-                            telefono: document.getElementById('telefono').value,
-                            email: document.getElementById('email').value,
-                            paisResidencia: document.getElementById('paisResidencia').value,
-                            ciudad: document.getElementById('paisResidencia').value === 'Colombia' ? 
-                                    `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` : 
-                                    document.getElementById('ciudadResidencia').value,
-                            tipoIdentificacion: document.getElementById('tipoIdentificacion').value,
-                            numeroIdentificacion: document.getElementById('numeroIdentificacion').value,
-                            direccion: document.getElementById('direccion').value,
-                        },
-                        adultoResponsable: {
-                             nombre: document.getElementById('nombreAdulto').value || null,
-                             documento: document.getElementById('documentoAdulto').value || null,
-                             tipo: document.getElementById('tipoAcudiente').value || null,
-                        },
-                        contactoEmergencia: {
-                            nombre: document.getElementById('nombreEmergencia').value,
-                            telefono: document.getElementById('telefonoEmergencia').value,
-                        },
-                        consentimiento: {
-                            fecha: new Date().toISOString(),
-                            ip: "No disponible en el cliente", 
-                            userAgent: navigator.userAgent
-                        },
-                        firmaDigital: signatureDataUrl
-                    };
-                    
-                    const response = await fetch('/api/save-consent', {
-                        method: 'POST',
-                        body: JSON.stringify(finalData),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-
-                    if (response.ok) {
-                        submitButton.disabled = false;
-                        submitButton.textContent = 'Firmar y Enviar Consentimiento';
-                        successModal.classList.remove('hidden');
-                    } else {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'Hubo un problema en el servidor.');
-                    }
-
-                } catch (error) {
-                    console.error("Error al guardar el consentimiento:", error);
-                    serverErrorDiv.textContent = `Hubo un error al guardar tu consentimiento. Por favor, intenta de nuevo. Detalle: ${error.message}`;
-                    serverErrorDiv.classList.remove('hidden');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Firmar y Enviar Consentimiento';
-                }
-            });
-            
-            closeModalButton.addEventListener('click', () => {
-                successModal.classList.add('hidden');
             });
         });
 
