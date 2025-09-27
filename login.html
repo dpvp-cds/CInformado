@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso a Consultor - Escala DSME</title>
+    <title>Acceso a Terapeuta - CInformado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,7 +61,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html">
@@ -70,12 +69,11 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="container mx-auto px-6 py-12 flex items-center justify-center">
         <div class="w-full max-w-md">
             <div class="card">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold">Acceso a Consultor</h1>
+                    <h1 class="text-3xl font-bold">Acceso a Terapeuta</h1>
                     <p class="text-gray-500 mt-2">Ingresa tus credenciales para continuar.</p>
                 </div>
                 <form id="loginForm">
@@ -90,7 +88,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-[#1a1a1a] text-white py-8">
         <div class="container mx-auto text-center">
             <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
@@ -104,13 +101,12 @@
             const errorMessage = document.getElementById('errorMessage');
             
             // La contraseña está almacenada aquí de forma segura para la validación del lado del cliente.
-            // La seguridad real del portal se manejará en las funciones del servidor.
             if (passwordInput.value === 'Ja#020904') {
                 errorMessage.classList.add('hidden');
                 // Guardamos un token de sesión para indicar que el consultor está autenticado.
                 sessionStorage.setItem('consultorAuth', 'true');
-                // Redirigimos al portal de reportes de empresa.
-                window.location.href = 'portal-empresa.html';
+                // Redirigimos al portal de consentimientos (CAMBIO REALIZADO AQUÍ).
+                window.location.href = 'portal-consentimientos.html';
             } else {
                 errorMessage.classList.remove('hidden');
                 passwordInput.value = '';
