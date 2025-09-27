@@ -14,6 +14,19 @@
         .btn-brand:hover { background-color: #002244; }
         .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
         .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        /* ESTILOS RESTAURADOS */
+        .input-styled, .select-styled {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 100%;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-styled:focus, .select-styled:focus {
+            outline: none;
+            border-color: #003366;
+            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -205,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
         poblarMunicipios(departamentoSelect.value);
     });
 
-    // --- LÓGICA DE EDAD Y TIPO DE DOCUMENTO (RESTAURADA Y MEJORADA) ---
+    // --- LÓGICA DE EDAD Y TIPO DE DOCUMENTO ---
     function calcularEdad(fechaNacimiento) {
         const hoy = new Date();
         const nacimiento = new Date(fechaNacimiento);
@@ -221,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tipoDocumentoSelect.innerHTML = '';
         let opciones = [];
 
-        if (isNaN(edad)) { // Si aún no se ha puesto la fecha de nacimiento
+        if (isNaN(edad)) { 
              opciones = pais === 'Colombia' ? ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'] : ['Documento Nacional de Identidad', 'Pasaporte'];
         } else if (edad < 18) {
             opciones = ['Tarjeta de Identidad'];
