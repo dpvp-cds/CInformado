@@ -1,9 +1,9 @@
 {
-  "name": "dsme-cds-server",
+  "name": "consentimiento-cds-server",
   "version": "1.0.0",
   "type": "module",
-  "description": "Funciones de servidor para la Escala DSME",
-  "main": "index.js",
+  "description": "Dependencias para las funciones de servidor del Consentimiento Informado.",
+  "main": "api/save-consent.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +12,7 @@
   "dependencies": {
     "firebase-admin": "^12.1.1",
     "pdf-lib": "^1.17.1",
-    "resend": "^3.4.0"
+    "resend": "^3.4.0",
+    "buffer": "^6.0.3"
   }
 }
