@@ -264,131 +264,468 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-          <h2 class="mb-1 text-lg font-bold">Firma digital</h2>
-          <div class="firma-container">
-              <canvas id="firma-canvas" width="480" height="240"></canvas>
-              <div class="firma-btns mt-2">
-                 <button id="limpiar-firma" type="button" class="btn-brand" tabindex="-1">Limpiar</button>
-              </div>
-          </div>
-          <input type="hidden" name="firma" id="firma-data" required />
+                    <!-- Contenedor de la firma -->
+                    <div class="card">
+                        <h2 class="text-2xl font-bold mb-4">3. Firma y Confirmación</h2>
+                        <p class="mb-4 text-gray-600 text-sm">Al firmar digitalmente y presionar el botón de "Enviar", confirmo que he leído, entendido y aceptado todos los términos del presente consentimiento informado.</p>
+
+                        <div class="mb-6 flex justify-center">
+                            <canvas id="signature-pad" class="border border-gray-300 rounded-lg cursor-crosshair bg-gray-50"></canvas>
+                        </div>
+                        <div class="flex justify-center mb-6">
+                            <button type="button" id="clearSignature" class="text-sm text-[#003366] hover:underline transition-colors">Borrar Firma</button>
+                        </div>
+
+                        <div id="server-error-message" class="hidden mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
+
+                        <div class="mt-8 text-center">
+                            <button type="submit" id="submitButton" class="btn-brand text-lg" disabled>Firmar y Enviar Consentimiento</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Modal de Agradecimiento -->
+            <div id="successModal" class="hidden modal-overlay">
+                <div class="modal-content">
+                    <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="text-2xl font-bold mt-4 mb-2">¡Gracias por tu confianza!</h3>
+                    <p class="text-gray-600">Tu consentimiento ha sido registrado exitosamente. Te esperamos en tu sesión.</p>
+                    <button id="closeModalButton" class="btn-brand mt-6">Entendido</button>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn-brand w-full">Enviar</button>
-      </form>
-      <div id="mensaje-exito" class="hidden mt-6 bg-green-100 text-green-700 p-4 rounded text-center">
-        Tu consentimiento ha sido registrado exitosamente. Te esperamos en tu sesión.
-      </div>
-    </div>
-  </div>
-  <script>
-  // Sección de firma digital canvas - adaptada responsive y móvil
-  const canvas = document.getElementById('firma-canvas');
-  const ctx = canvas.getContext('2d');
-  let isDrawing = false;
-  let lastPosition = {x:0, y:0};
-  let signatureDataUrl = '';
-  
-  function resizeCanvas() {
-    const parent = canvas.parentElement;
-    const PIXEL_RATIO = window.devicePixelRatio || 1;
-    // Ancho del parent 100% y alto 50% proporción aprox (ajusta según lo que prefieras)
-    canvas.width = parent.offsetWidth * PIXEL_RATIO;
-    canvas.height = (parent.offsetWidth * 0.5) * PIXEL_RATIO;
-    canvas.style.width = parent.offsetWidth + 'px';
-    canvas.style.height = (parent.offsetWidth * 0.5) + 'px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#003366';
-  }
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', resizeCanvas);
-  resizeCanvas();
+    </main>
 
-  // Funciones para obtener posición
-  function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-  function getTouchPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.touches[0].clientX - rect.left,
-      y: e.touches[0].clientY - rect.top
-    };
-  }
+    <!-- Footer -->
+    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
+        <div class="container mx-auto text-center">
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+            <div class="mt-4">
+                <a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a>
+            </div>
+        </div>
+    </footer>
 
-  // Eventos de mouse
-  canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    lastPosition = getMousePos(e);
-  });
-  canvas.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-    const currentPosition = getMousePos(e);
-    drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-    lastPosition = currentPosition;
-    signatureDataUrl = canvas.toDataURL('image/png');
-  });
-  canvas.addEventListener('mouseup', () => isDrawing = false);
-  canvas.addEventListener('mouseleave', () => isDrawing = false);
+    <script type="module">
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('consentimientoForm');
+            const demographicsContainer = document.getElementById('demographicsContainer');
+            const consentimientoYFirmaContainer = document.getElementById('consentimientoYFirmaContainer');
+            const continueButton = document.getElementById('continueButton');
+            const nombreInput = document.getElementById('nombrePaciente');
+            const fechaNacimientoInput = document.getElementById('fechaNacimiento');
+            const edadInput = document.getElementById('edad');
+            const nombrePacienteDisplay = document.getElementById('nombrePacienteDisplay');
+            const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
+            const nombreAdultoInput = document.getElementById('nombreAdulto');
+            const documentoAdultoInput = document.getElementById('documentoAdulto');
+            const tipoAcudienteSelect = document.getElementById('tipoAcudiente');
+            const submitButton = document.getElementById('submitButton');
+            const successModal = document.getElementById('successModal');
+            const closeModalButton = document.getElementById('closeModalButton');
+            const serverErrorDiv = document.getElementById('server-error-message');
+            const tipoIdentificacionSelect = document.getElementById('tipoIdentificacion');
+            const confidencialidadTexto = document.getElementById('confidencialidad-texto');
+            const evaluacionTexto = document.getElementById('evaluacion-texto');
+            const costosTexto = document.getElementById('costos-texto');
+            
+            // Variables para la firma
+            const canvas = document.getElementById('signature-pad');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let signatureDataUrl = null;
+            let lastPosition = {x: 0, y: 0};
 
-  // Eventos touch
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    isDrawing = true;
-    lastPosition = getTouchPos(e);
-  }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (!isDrawing) return;
-    const currentPosition = getTouchPos(e);
-    drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
-    lastPosition = currentPosition;
-    signatureDataUrl = canvas.toDataURL('image/png');
-  }, { passive: false });
-  canvas.addEventListener('touchend', () => isDrawing = false, { passive: false });
+            // Ajustar el tamaño del canvas de forma dinámica y manejar el redimensionamiento
+            const resizeCanvas = () => {
+                const parent = canvas.parentElement;
+                const PIXEL_RATIO = window.devicePixelRatio || 1;
+                canvas.width = parent.offsetWidth * PIXEL_RATIO;
+                canvas.height = (parent.offsetWidth / 2) * PIXEL_RATIO; // Proporción 2:1
+                ctx.scale(PIXEL_RATIO, PIXEL_RATIO);
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#003366';
+            };
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
 
-  function drawLine(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.closePath();
-  }
+            const getMousePos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            };
+            
+            const getTouchPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            };
 
-  // Limpiar firma
-  document.getElementById('limpiar-firma').addEventListener('click', function() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    signatureDataUrl = '';
-    document.getElementById('firma-data').value = '';
-  });
+            const drawLine = (x1, y1, x2, y2) => {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            };
 
-  // Captura la firma como base64
-  canvas.addEventListener('touchend', actualizarInputFirma, { passive: false });
-  canvas.addEventListener('mouseup', actualizarInputFirma);
+            // Eventos de ratón
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                lastPosition = getMousePos(e);
+            });
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                const currentPosition = getMousePos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
+                signatureDataUrl = canvas.toDataURL('image/png');
+            });
+            canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+            canvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+            });
 
-  function actualizarInputFirma() {
-    document.getElementById('firma-data').value = signatureDataUrl || canvas.toDataURL('image/png');
-  }
+            // Eventos táctiles
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                isDrawing = true;
+                lastPosition = getTouchPos(e);
+            }, { passive: false }); 
 
-  // Envío y validación del formulario
-  document.getElementById('consentimiento-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (!canvas || ctx.getImageData(0, 0, canvas.width, canvas.height).data.every(v => v === 0)) {
-      alert('Por favor ingresa tu firma digital.');
-      return;
-    }
-    document.getElementById('mensaje-exito').classList.remove('hidden');
-    this.classList.add('hidden');
-    // aquí puedes manejar el envío a backend si requieres
-  });
-  </script>
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const currentPosition = getTouchPos(e);
+                drawLine(lastPosition.x, lastPosition.y, currentPosition.x, currentPosition.y);
+                lastPosition = currentPosition;
+                signatureDataUrl = canvas.toDataURL('image/png');
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => {
+                isDrawing = false;
+            });
+
+            document.getElementById('clearSignature').addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                signatureDataUrl = null;
+            });
+
+            // Lógica de fechas y edad
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            document.getElementById('fechaDiligenciamiento').value = formattedDate;
+
+
+            fechaNacimientoInput.addEventListener('change', () => {
+                const birthDate = new Date(fechaNacimientoInput.value);
+                const todayDate = new Date();
+                let age = todayDate.getFullYear() - birthDate.getFullYear();
+                const m = todayDate.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                edadInput.value = age;
+
+                if (age < 18) {
+                    adultoResponsableContainer.classList.remove('hidden');
+                    nombreAdultoInput.required = true;
+                    documentoAdultoInput.required = true;
+                    tipoAcudienteSelect.required = true;
+                    tipoIdentificacionSelect.innerHTML = '<option value="ti">Tarjeta de Identidad</option>';
+                } else {
+                    adultoResponsableContainer.classList.add('hidden');
+                    nombreAdultoInput.required = false;
+                    documentoAdultoInput.required = false;
+                    tipoAcudienteSelect.required = false;
+                    loadDocumentTypes(paisResidenciaSelect.value);
+                }
+            });
+
+            // Lógica de ubicación
+            const paisResidenciaSelect = document.getElementById('paisResidencia');
+            const ciudadContainer = document.getElementById('ciudadContainer');
+            const departamentoContainer = document.getElementById('departamentoContainer');
+            const municipioContainer = document.getElementById('municipioContainer');
+            const departamentoSelect = document.getElementById('departamento');
+            const municipioSelect = document.getElementById('municipio');
+            let colombiaData = [];
+            
+            const paises = [
+                { name: 'Selecciona un país', value: '' }, { name: 'Colombia', value: 'Colombia' },
+                { name: 'Estados Unidos', value: 'Estados Unidos' }, { name: 'Canadá', value: 'Canadá' },
+                { name: 'México', value: 'México' },
+                { name: '--- Centroamérica ---', value: '', disabled: true },
+                { name: 'Costa Rica', value: 'Costa Rica' }, { name: 'El Salvador', value: 'El Salvador' },
+                { name: 'Guatemala', value: 'Guatemala' }, { name: 'Honduras', value: 'Honduras' },
+                { name: 'Nicaragua', value: 'Nicaragua' }, { name: 'Panamá', value: 'Panamá' },
+                { name: '--- Sudamérica ---', value: '', disabled: true },
+                { name: 'Argentina', value: 'Argentina' }, { name: 'Bolivia', value: 'Bolivia' },
+                { name: 'Brasil', value: 'Brasil' }, { name: 'Chile', value: 'Chile' },
+                { name: 'Ecuador', value: 'Ecuador' }, { name: 'Paraguay', value: 'Paraguay' },
+                { name: 'Perú', value: 'Perú' }, { name: 'Uruguay', value: 'Uruguay' },
+                { name: 'Venezuela', value: 'Venezuela' }
+            ];
+
+            paises.forEach(pais => {
+                const option = document.createElement('option');
+                option.value = pais.value;
+                option.textContent = pais.name;
+                if (pais.disabled) option.disabled = true;
+                paisResidenciaSelect.appendChild(option);
+            });
+
+            const docTypes = {
+                'Colombia': [
+                    { name: 'Cédula de Ciudadanía', value: 'cc' },
+                    { name: 'Cédula de Extranjería', value: 'ce' },
+                ],
+                'default': [
+                    { name: 'Documento de Identidad', value: 'otro' }
+                ]
+            };
+            
+            function loadDocumentTypes(pais) {
+                 const selectedDocs = docTypes[pais] || docTypes['default'];
+                 tipoIdentificacionSelect.innerHTML = '';
+                 selectedDocs.forEach(doc => {
+                     const option = document.createElement('option');
+                     option.value = doc.value;
+                     option.textContent = doc.name;
+                     tipoIdentificacionSelect.appendChild(option);
+                 });
+            }
+            
+            async function cargarDatosColombia() {
+                try {
+                    const response = await fetch('https://raw.githubusercontent.com/marcovega/colombia-json/master/colombia.json');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    colombiaData = await response.json();
+                } catch (error) {
+                    console.error('Error fetching Colombia data:', error);
+                }
+            }
+
+            function cargarDepartamentos() {
+                departamentoSelect.innerHTML = '<option value="" disabled selected>Selecciona un departamento</option>';
+                const departamentos = [...new Set(colombiaData.map(d => d.departamento))].sort();
+                departamentos.forEach(dep => {
+                    const option = document.createElement('option');
+                    option.value = dep;
+                    option.textContent = dep;
+                    departamentoSelect.appendChild(option);
+                });
+            }
+
+            function cargarMunicipios(departamento) {
+                municipioSelect.innerHTML = '<option value="" disabled selected>Selecciona un municipio</option>';
+                const municipios = colombiaData.find(d => d.departamento === departamento)?.ciudades || [];
+                municipios.sort().forEach(mun => {
+                    const option = document.createElement('option');
+                    option.value = mun;
+                    option.textContent = mun;
+                    municipioSelect.appendChild(option);
+                });
+            }
+
+            paisResidenciaSelect.addEventListener('change', () => {
+                const selectedPais = paisResidenciaSelect.value;
+                ciudadContainer.classList.add('hidden');
+                departamentoContainer.classList.add('hidden');
+                municipioContainer.classList.add('hidden');
+                
+                // Si la edad es menor a 18, no se actualiza el tipo de documento.
+                if (parseInt(edadInput.value) < 18) {
+                    // No hacer nada, la lógica del campo de nacimiento ya lo manejó.
+                } else {
+                    loadDocumentTypes(selectedPais);
+                }
+
+                if (selectedPais === 'Colombia') {
+                    if (colombiaData.length === 0) {
+                        cargarDatosColombia().then(() => {
+                            cargarDepartamentos();
+                            departamentoContainer.classList.remove('hidden');
+                        });
+                    } else {
+                        cargarDepartamentos();
+                        departamentoContainer.classList.remove('hidden');
+                    }
+                } else if (selectedPais) {
+                    ciudadContainer.classList.remove('hidden');
+                }
+            });
+
+            departamentoSelect.addEventListener('change', () => {
+                cargarMunicipios(departamentoSelect.value);
+                municipioContainer.classList.remove('hidden');
+            });
+
+            // Botón de continuar
+            continueButton.addEventListener('click', () => {
+                const requiredFields = demographicsContainer.querySelectorAll('[required]');
+                let allValid = true;
+                requiredFields.forEach(field => {
+                    if (!field.value) {
+                        allValid = false;
+                        field.style.borderColor = '#ef4444';
+                    } else {
+                        field.style.borderColor = '#d1d5db';
+                    }
+                });
+
+                if (allValid) {
+                    demographicsContainer.classList.remove('visible');
+                    demographicsContainer.style.maxHeight = '0';
+                    demographicsContainer.style.opacity = '0';
+                    
+                    consentimientoYFirmaContainer.classList.add('visible');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // Lógica para mostrar nombre del paciente o del acudiente
+                    const nombrePaciente = document.getElementById('nombrePaciente').value;
+                    const numeroIdentificacionPaciente = document.getElementById('numeroIdentificacion').value;
+                    const nombreAdulto = document.getElementById('nombreAdulto').value;
+                    const documentoAdulto = document.getElementById('documentoAdulto').value;
+                    const tipoAcudiente = document.getElementById('tipoAcudiente').value;
+                    const edad = parseInt(document.getElementById('edad').value);
+
+                    let displayText = '';
+                    if (edad < 18) {
+                        displayText = `${nombreAdulto}, con documento de identidad ${documentoAdulto}, actuando como acudiente en calidad de ${tipoAcudiente}, de ${nombrePaciente}, menor de edad, con documento de identidad ${numeroIdentificacionPaciente}`;
+                    } else {
+                        displayText = `${nombrePaciente}, mayor de edad y con plenas facultades mentales`;
+                    }
+                    document.getElementById('nombrePacienteDisplay').textContent = displayText;
+
+                    // Lógica para el texto de confidencialidad
+                    let confidencialidadText = '';
+                    if (edad < 18) {
+                        confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente menor de edad, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
+                    } else {
+                        confidencialidadText = `Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.`;
+                    }
+                    confidencialidadTexto.textContent = confidencialidadText;
+                    
+                    // Lógica para el texto de evaluación
+                    let evaluacionText = '';
+                    if (edad < 18) {
+                        evaluacionText = `autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.`;
+                    } else {
+                        evaluacionText = `autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.`;
+                    }
+                    evaluacionTexto.textContent = evaluacionText;
+                    
+                    // Lógica para el texto de costos
+                    let costosText = '';
+                    if (edad < 18) {
+                        costosText = `Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
+                    } else {
+                        costosText = `me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.`;
+                    }
+                    costosTexto.textContent = costosText;
+
+
+                } else {
+                     serverErrorDiv.textContent = 'Por favor, completa todos los campos demográficos obligatorios.';
+                     serverErrorDiv.classList.remove('hidden');
+                }
+            });
+            
+            // Habilitar/deshabilitar botón de envío
+            const acceptTermsCheckbox = document.getElementById('aceptoTerminos');
+            acceptTermsCheckbox.addEventListener('change', () => {
+                submitButton.disabled = !acceptTermsCheckbox.checked;
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!signatureDataUrl) {
+                    serverErrorDiv.textContent = 'Por favor, firma en el recuadro para continuar.';
+                    serverErrorDiv.classList.remove('hidden');
+                    return;
+                }
+                serverErrorDiv.classList.add('hidden');
+                
+                submitButton.disabled = true;
+                submitButton.textContent = 'Enviando...';
+
+                try {
+                    const finalData = {
+                        demograficos: {
+                            fechaDiligenciamiento: document.getElementById('fechaDiligenciamiento').value,
+                            nombreCompleto: document.getElementById('nombrePaciente').value,
+                            fechaNacimiento: document.getElementById('fechaNacimiento').value,
+                            edad: parseInt(document.getElementById('edad').value),
+                            telefono: document.getElementById('telefono').value,
+                            email: document.getElementById('email').value,
+                            paisResidencia: document.getElementById('paisResidencia').value,
+                            ciudad: document.getElementById('paisResidencia').value === 'Colombia' ? 
+                                    `${document.getElementById('municipio').value}, ${document.getElementById('departamento').value}` : 
+                                    document.getElementById('ciudadResidencia').value,
+                            tipoIdentificacion: document.getElementById('tipoIdentificacion').value,
+                            numeroIdentificacion: document.getElementById('numeroIdentificacion').value,
+                            direccion: document.getElementById('direccion').value,
+                        },
+                        adultoResponsable: {
+                             nombre: document.getElementById('nombreAdulto').value || null,
+                             documento: document.getElementById('documentoAdulto').value || null,
+                             tipo: document.getElementById('tipoAcudiente').value || null,
+                        },
+                        contactoEmergencia: {
+                            nombre: document.getElementById('nombreEmergencia').value,
+                            telefono: document.getElementById('telefonoEmergencia').value,
+                        },
+                        consentimiento: {
+                            fecha: new Date().toISOString(),
+                            ip: "No disponible en el cliente", 
+                            userAgent: navigator.userAgent
+                        },
+                        firmaDigital: signatureDataUrl
+                    };
+                    
+                    const response = await fetch('/api/save-consent', {
+                        method: 'POST',
+                        body: JSON.stringify(finalData),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (response.ok) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Firmar y Enviar Consentimiento';
+                        successModal.classList.remove('hidden');
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Hubo un problema en el servidor.');
+                    }
+
+                } catch (error) {
+                    console.error("Error al guardar el consentimiento:", error);
+                    serverErrorDiv.textContent = `Hubo un error al guardar tu consentimiento. Por favor, intenta de nuevo. Detalle: ${error.message}`;
+                    serverErrorDiv.classList.remove('hidden');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Firmar y Enviar Consentimiento';
+                }
+            });
+            
+            closeModalButton.addEventListener('click', () => {
+                successModal.classList.add('hidden');
+            });
+        });
+
+    </script>
 </body>
 </html>
