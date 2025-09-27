@@ -1,115 +1,87 @@
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consentimiento Informado Digital - Caminos del Ser</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #F8F7F2;
-            color: #4A4A4A;
-        }
-        h1, h2, h3 {
-            font-family: 'Poppins', sans-serif;
-            color: #1a1a1a;
-            font-weight: 700;
-        }
-        .btn-brand {
-            background-color: #003366;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .btn-brand:hover {
-            background-color: #002244;
-            transform: translateY(-2px);
-            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
-        }
-        .btn-brand:disabled {
-            background-color: #99aabb;
-            cursor: not-allowed;
-            transform: translateY(0);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-        }
-        .input-styled, .select-styled {
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 10px 15px;
-            width: 100%;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .input-styled:focus, .select-styled:focus {
-            outline: none;
-            border-color: #003366;
-            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
-        }
-        .section-container {
-            overflow: hidden;
-            transition: max-height 0.7s ease-in-out, opacity 0.7s ease-in-out;
-            /* Aumentar max-height para evitar corte en móviles */
-            max-height: 0; 
-            opacity: 0;
-        }
-        .section-container.visible {
-            max-height: 4000px; /* Aumento a 4000px */
-            opacity: 1;
-        }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
-    </style>
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consentimiento Informado Digital - Caminos del Ser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #F8F7F2;
+      color: #4A4A4A;
+    }
+    h1, h2, h3 {
+      font-family: 'Poppins', sans-serif;
+      color: #1a1a1a;
+      font-weight: 700;
+    }
+    .btn-brand {
+      background-color: #003366;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 9999px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .btn-brand:hover {
+      background-color: #002244;
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(0,0,0,0.1);
+    }
+    .btn-brand:disabled {
+      background-color: #99aabb;
+      cursor: not-allowed;
+      transform: translateY(0);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .card {
+      background-color: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 3px 20px 0 rgba(0,0,0,0.10);
+    }
+    @media (max-width: 600px) {
+      .card {
+        padding: 1rem;
+      }
+    }
+    /* Firma canvas container */
+    .firma-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto 1rem auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem .5rem;
+      box-shadow: 0 3px 16px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    #firma-canvas {
+      border: 2px solid #003366;
+      background-color: #fafbfc;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto .5rem auto;
+      touch-action: none;
+    }
+    .firma-btns {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+  </style>
 </head>
-<body class="antialiased">
-
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="container mx-auto px-6 py-2 flex justify-center items-center">
-            <a href="https://www.caminosdelser.co" target="_blank">
-                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10">
-            </a>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container mx-auto px-6 py-12">
-        <div class="max-w-4xl mx-auto">
-            <!-- Reducción del tamaño del texto para que no sea tan grande -->
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento Informado</h1>
-            <p class="text-base md:text-lg text-gray-600 text-center mb-8">Por favor, completa tus datos para iniciar el proceso.</p>
+<body>
+  <div class="container mx-auto max-w-screen-md px-4 py-6">
+    <div class="card">
+      <h1 class="text-2xl mb-4">Consentimiento Informado</h1>
+      <p>Por favor, completa tus datos para iniciar el proceso.</p>
       <br>
       <form id="consentimiento-form">
         <div class="mb-3">
