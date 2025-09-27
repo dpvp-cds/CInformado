@@ -12,11 +12,10 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
         .btn-brand { background-color: #003366; color: white; padding: 12px 30px; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; }
         .btn-brand:hover { background-color: #002244; }
+        .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
         .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
         .input-styled, .select-styled { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 15px; width: 100%; }
         .input-styled:focus, .select-styled:focus { outline: none; border-color: #003366; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
-        .section-container { transition: max-height 0.7s ease-in-out, opacity 0.5s ease; max-height: 0; opacity: 0; overflow: hidden; }
-        .section-container.open { max-height: 4000px; opacity: 1; }
     </style>
 </head>
 <body>
@@ -29,7 +28,7 @@
     <main class="container mx-auto px-6 py-12">
         <div class="max-w-4xl mx-auto">
             <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento Informado Digital</h1>
-            <p class="text-center text-gray-600 mb-8">Por favor, completa tus datos para generar y aceptar los términos del servicio.</p>
+            <p class="text-center text-gray-600 mb-8" id="page-subtitle">Por favor, completa tus datos para generar y aceptar los términos del servicio.</p>
 
             <form id="demographicsForm" class="card space-y-6">
                 <h2 class="text-2xl font-bold border-b pb-3">1. Información del Paciente</h2>
@@ -78,15 +77,57 @@
                 </div>
                 <div id="form-error" class="text-red-600 text-center font-semibold hidden">Por favor, completa todos los campos requeridos.</div>
                 <div class="text-center pt-4">
-                    <button type="button" id="continueButton" class="btn-brand">Continuar a la Firma</button>
+                    <button type="button" id="showConsentButton" class="btn-brand">Continuar y Leer Consentimiento</button>
                 </div>
             </form>
+
+            <div id="consentimientoContainer" class="hidden card">
+                <h2 class="text-2xl font-bold border-b pb-3 mb-6">2. Términos del Consentimiento Informado</h2>
+                <div class="prose max-w-none space-y-4 text-gray-700">
+                    <p id="consentimientoIntro"></p>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.1 Confidencialidad:</h4>
+                        <p id="confidencialidadTexto"></p>
+                    </div>
+                     <div class="space-y-2">
+                        <h4 class="font-bold">2.2 Propósito de la Intervención:</h4>
+                        <p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.3 Naturaleza del Proceso:</h4>
+                        <p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.4 Proceso de evaluación:</h4>
+                        <p id="evaluacionTexto"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.5 Costos económicos:</h4>
+                        <p id="costosTexto"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-bold">2.6 Tratamiento de Datos:</h4>
+                        <p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t">
+                    <div class="flex items-center">
+                        <input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 text-[#003366] border-gray-300 rounded focus:ring-[#003366]">
+                        <label for="aceptoTerminos" class="ml-3 block text-sm font-medium text-gray-700">He leído y acepto los términos y condiciones anteriormente descritos.</label>
+                    </div>
+                </div>
+                 <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes aceptar los términos para poder continuar.</div>
+                <div class="text-center mt-6">
+                    <button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button>
+                </div>
+            </div>
         </div>
     </main>
-
+    
     <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
         <div class="container mx-auto text-center">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+             <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
             <div class="mt-4">
                 <a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Política de tratamiento de datos</a>
                 <span class="text-gray-600 mx-2">|</span>
@@ -94,111 +135,143 @@
             </div>
         </div>
     </footer>
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- INICIALIZACIÓN DE CAMPOS ---
-        const fechaDiligenciamiento = document.getElementById('fechaDiligenciamiento');
-        fechaDiligenciamiento.valueAsDate = new Date();
 
-        const paisSelect = document.getElementById('pais');
-        const tipoDocumentoSelect = document.getElementById('tipoDocumento');
-        const fechaNacimientoInput = document.getElementById('fechaNacimiento');
-        const edadInput = document.getElementById('edad');
-        const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
-        const continueButton = document.getElementById('continueButton');
-        const form = document.getElementById('demographicsForm');
-        const formError = document.getElementById('form-error');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- REFERENCIAS A ELEMENTOS ---
+    const demographicsForm = document.getElementById('demographicsForm');
+    const consentimientoContainer = document.getElementById('consentimientoContainer');
+    const showConsentButton = document.getElementById('showConsentButton');
+    const continueToSignatureButton = document.getElementById('continueToSignatureButton');
+    const aceptoTerminosCheckbox = document.getElementById('aceptoTerminos');
+    const consentError = document.getElementById('consent-error');
+    const pageSubtitle = document.getElementById('page-subtitle');
 
-        const paises = ["Seleccione un país", "Colombia", "Estados Unidos", "Canadá", "México", "Argentina", "Bolivia", "Brasil", "Chile", "Ecuador", "Paraguay", "Perú", "Uruguay", "Venezuela", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Nicaragua", "Panamá", "Otro"];
-        paises.forEach(pais => {
-            const option = document.createElement('option');
-            option.value = pais.toLowerCase().replace(/ /g, '_');
-            option.textContent = pais;
-            if (pais === "Seleccione un país") option.value = "";
-            paisSelect.appendChild(option);
-        });
-
-        // --- LÓGICA DE FORMULARIO DINÁMICO ---
-        function calcularEdad(fechaNacimiento) {
-            const hoy = new Date();
-            const nacimiento = new Date(fechaNacimiento);
-            let edad = hoy.getFullYear() - nacimiento.getFullYear();
-            const mes = hoy.getMonth() - nacimiento.getMonth();
-            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-                edad--;
-            }
-            return edad;
-        }
-
-        function actualizarTipoDocumento() {
-            const pais = paisSelect.value;
-            const edad = parseInt(edadInput.value, 10);
-            tipoDocumentoSelect.innerHTML = ''; 
-
-            let opciones = [];
-            if (edad < 18 && pais === 'colombia') {
-                opciones = ['Tarjeta de Identidad'];
-            } else if (pais === 'colombia') {
-                opciones = ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'];
-            } else {
-                opciones = ['Documento Nacional de Identidad', 'Pasaporte', 'Otro'];
-            }
-
-            opciones.forEach(op => {
-                const option = document.createElement('option');
-                option.value = op.toLowerCase().replace(/ /g, '_');
-                option.textContent = op;
-                tipoDocumentoSelect.appendChild(option);
-            });
-        }
-
-        fechaNacimientoInput.addEventListener('change', function() {
-            if (this.value) {
-                const edad = calcularEdad(this.value);
-                edadInput.value = edad;
-                adultoResponsableContainer.classList.toggle('hidden', edad >= 18);
-                // Requerir campos de acudiente solo si es menor de edad
-                document.getElementById('nombreAcudiente').required = edad < 18;
-                document.getElementById('tipoAcudiente').required = edad < 18;
-                document.getElementById('documentoAcudiente').required = edad < 18;
-                actualizarTipoDocumento();
-            }
-        });
-
-        paisSelect.addEventListener('change', actualizarTipoDocumento);
-
-        // --- LÓGICA DE GUARDADO Y REDIRECCIÓN (LA PIEZA CLAVE CORREGIDA) ---
-        continueButton.addEventListener('click', function() {
-            formError.classList.add('hidden');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                formError.classList.remove('hidden');
-                return;
-            }
-
-            // 1. Recolectar todos los datos del formulario
-            const formData = new FormData(form);
-            const datosDemograficos = {};
-            formData.forEach((value, key) => {
-                datosDemograficos[key] = value;
-            });
-            
-            // 2. Guardar los datos en sessionStorage
-            try {
-                sessionStorage.setItem('consentimiento_demograficos', JSON.stringify(datosDemograficos));
-                console.log("Datos guardados en sessionStorage.");
-                
-                // 3. Redirigir a la página de la firma
-                window.location.href = 'firma.html';
-
-            } catch (error) {
-                console.error("Error al guardar en sessionStorage:", error);
-                formError.textContent = "Hubo un error al preparar los datos. Por favor, intenta de nuevo.";
-                formError.classList.remove('hidden');
-            }
-        });
+    // --- LÓGICA DE FORMULARIO DINÁMICO (SIN CAMBIOS) ---
+    const fechaDiligenciamiento = document.getElementById('fechaDiligenciamiento');
+    fechaDiligenciamiento.valueAsDate = new Date();
+    const paisSelect = document.getElementById('pais');
+    const tipoDocumentoSelect = document.getElementById('tipoDocumento');
+    const fechaNacimientoInput = document.getElementById('fechaNacimiento');
+    const edadInput = document.getElementById('edad');
+    const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
+    const paises = ["Seleccione un país", "Colombia", "Estados Unidos", "Canadá", "México", "Argentina", "Bolivia", "Brasil", "Chile", "Ecuador", "Paraguay", "Perú", "Uruguay", "Venezuela", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Nicaragua", "Panamá", "Otro"];
+    paises.forEach(pais => {
+        const option = document.createElement('option');
+        option.value = pais.toLowerCase().replace(/ /g, '_');
+        option.textContent = pais;
+        if (pais === "Seleccione un país") option.value = "";
+        paisSelect.appendChild(option);
     });
-    </script>
+    function calcularEdad(fechaNacimiento) {
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNacimiento);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) { edad--; }
+        return edad;
+    }
+    function actualizarTipoDocumento() {
+        const pais = paisSelect.value;
+        const edad = parseInt(edadInput.value, 10);
+        tipoDocumentoSelect.innerHTML = '';
+        let opciones = [];
+        if (edad < 18 && pais === 'colombia') {
+            opciones = ['Tarjeta de Identidad'];
+        } else if (pais === 'colombia') {
+            opciones = ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'];
+        } else {
+            opciones = ['Documento Nacional de Identidad', 'Pasaporte', 'Otro'];
+        }
+        opciones.forEach(op => {
+            const option = document.createElement('option');
+            option.value = op.toLowerCase().replace(/ /g, '_');
+            option.textContent = op;
+            tipoDocumentoSelect.appendChild(option);
+        });
+    }
+    fechaNacimientoInput.addEventListener('change', function() {
+        if (this.value) {
+            const edad = calcularEdad(this.value);
+            edadInput.value = edad;
+            adultoResponsableContainer.classList.toggle('hidden', edad >= 18);
+            document.getElementById('nombreAcudiente').required = edad < 18;
+            document.getElementById('tipoAcudiente').required = edad < 18;
+            document.getElementById('documentoAcudiente').required = edad < 18;
+            actualizarTipoDocumento();
+        }
+    });
+    paisSelect.addEventListener('change', actualizarTipoDocumento);
+
+    // --- LÓGICA DE FLUJO CORREGIDA ---
+
+    // 1. Botón "Continuar y Leer Consentimiento"
+    showConsentButton.addEventListener('click', function() {
+        const formError = document.getElementById('form-error');
+        formError.classList.add('hidden');
+        if (!demographicsForm.checkValidity()) {
+            demographicsForm.reportValidity();
+            formError.classList.remove('hidden');
+            return;
+        }
+
+        // Ocultar formulario y mostrar consentimiento
+        demographicsForm.classList.add('hidden');
+        consentimientoContainer.classList.remove('hidden');
+        pageSubtitle.textContent = "Por favor, lee y acepta los siguientes términos para continuar.";
+        window.scrollTo(0, 0);
+
+        // Poblar el texto dinámico del consentimiento
+        const formData = new FormData(demographicsForm);
+        const datos = Object.fromEntries(formData.entries());
+        const esMenor = parseInt(datos.edad, 10) < 18;
+
+        const intro = document.getElementById('consentimientoIntro');
+        const confidencialidad = document.getElementById('confidencialidadTexto');
+        const evaluacion = document.getElementById('evaluacionTexto');
+        const costos = document.getElementById('costosTexto');
+
+        if (esMenor) {
+            intro.textContent = `Yo, ${datos.nombreAcudiente}, con documento de identidad ${datos.documentoAcudiente}, actuando como acudiente en calidad de ${datos.tipoAcudiente}, de ${datos.nombreCompleto}, con documento de identidad ${datos.documentoIdentidad}.`;
+            confidencialidad.textContent = 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente menor de edad, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.';
+            evaluacion.textContent = 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.';
+            costos.textContent = 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
+        } else {
+            intro.textContent = `Yo, ${datos.nombreCompleto}, identificado/a con documento de identidad ${datos.documentoIdentidad}, declaro que:`;
+            confidencialidad.textContent = 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.';
+            evaluacion.textContent = 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.';
+            costos.textContent = 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
+        }
+    });
+
+    // 2. Checkbox para habilitar el botón de firma
+    aceptoTerminosCheckbox.addEventListener('change', function() {
+        continueToSignatureButton.disabled = !this.checked;
+        if(this.checked) {
+            consentError.classList.add('hidden');
+        }
+    });
+
+    // 3. Botón "Continuar a la Firma"
+    continueToSignatureButton.addEventListener('click', function() {
+        if (!aceptoTerminosCheckbox.checked) {
+            consentError.classList.remove('hidden');
+            return;
+        }
+
+        const formData = new FormData(demographicsForm);
+        const datosDemograficos = Object.fromEntries(formData.entries());
+        
+        try {
+            sessionStorage.setItem('consentimiento_demograficos', JSON.stringify(datosDemograficos));
+            window.location.href = 'firma.html';
+        } catch (error) {
+            console.error("Error al guardar en sessionStorage:", error);
+            consentError.textContent = "Hubo un error al preparar los datos. Por favor, intenta de nuevo.";
+            consentError.classList.remove('hidden');
+        }
+    });
+});
+</script>
 </body>
 </html>
