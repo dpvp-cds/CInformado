@@ -1,10 +1,15 @@
+console.log("--- Módulo save-consent-pareja.js: Iniciando carga. ---");
+
 import { db } from '../lib/firebaseAdmin.js';
 import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
 
+console.log("--- Módulo save-consent-pareja.js: Dependencias importadas correctamente. ---");
+
 // --- FUNCIÓN DEDICADA PARA CREAR EL PDF DE PAREJA ---
 async function crearPDFConsentimientoPareja(datos) {
+    // ... (el código de la función no cambia)
     const { demograficos, firmas, fecha } = datos;
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage();
@@ -48,7 +53,6 @@ async function crearPDFConsentimientoPareja(datos) {
         }
     };
     
-    // --- PÁGINA 1: TÉRMINOS DEL CONSENTIMIENTO ---
     page.drawText('Consentimiento Informado Digital de Pareja - Caminos del Ser', { x: margin, y, font: boldFont, size: 16, color: rgb(0, 0.2, 0.4) });
     y -= 30;
 
@@ -78,13 +82,11 @@ async function crearPDFConsentimientoPareja(datos) {
     page.drawText('4.5 Tratamiento de Datos:', { x: margin, y, font: boldFont, size: 10 }); y -= 15;
     drawWrappedText(textos.datos, {});
 
-    // --- PÁGINA 2: DATOS REGISTRADOS ---
     page = pdfDoc.addPage();
     y = height - 40;
 
     page.drawText('Datos Registrados del Consentimiento', { x: margin, y, font: boldFont, size: 16, color: rgb(0, 0.2, 0.4) }); y -= 30;
 
-    // MIEMBRO 1
     page.drawText('Información del Miembro 1', { x: margin, y, font: boldFont, size: 12, color: rgb(0.1, 0.1, 0.1) }); y -= 20;
     drawDetail('Nombre Completo', demograficos.nombreCompleto1);
     drawDetail('Documento', `${demograficos.documentoIdentidad1} (${demograficos.tipoDocumento1})`);
@@ -94,7 +96,6 @@ async function crearPDFConsentimientoPareja(datos) {
     drawDetail('Contacto de Emergencia', `${demograficos.contactoEmergenciaNombre1} (${demograficos.contactoEmergenciaTelefono1})`);
     y -= 15;
 
-    // MIEMBRO 2
     page.drawText('Información del Miembro 2', { x: margin, y, font: boldFont, size: 12, color: rgb(0.1, 0.1, 0.1) }); y -= 20;
     drawDetail('Nombre Completo', demograficos.nombreCompleto2);
     drawDetail('Documento', `${demograficos.documentoIdentidad2} (${demograficos.tipoDocumento2})`);
@@ -104,7 +105,6 @@ async function crearPDFConsentimientoPareja(datos) {
     drawDetail('Contacto de Emergencia', `${demograficos.contactoEmergenciaNombre2} (${demograficos.contactoEmergenciaTelefono2})`);
     y -= 15;
 
-    // INFORMACIÓN COMPARTIDA
     page.drawText('Información Compartida', { x: margin, y, font: boldFont, size: 12, color: rgb(0.1, 0.1, 0.1) }); y -= 20;
     drawDetail('Tipo de Unión', demograficos.tipoUnion);
     drawDetail('Tiempo de Relación', `${demograficos.tiempoRelacion} años`);
@@ -115,7 +115,6 @@ async function crearPDFConsentimientoPareja(datos) {
     drawDetail('Hijos', demograficos.numHijos);
     drawDetail('Mascotas', demograficos.numMascotas);
     
-    // --- FIRMAS ---
     y -= 30;
     page.drawText('Firmas Digitales', { x: margin, y, font: boldFont, size: 14 }); y -= 10;
     
@@ -143,80 +142,60 @@ async function crearPDFConsentimientoPareja(datos) {
     return pdfBytes;
 }
 
-
 // --- HANDLER PRINCIPAL ---
 export default async function handler(request, response) {
-    if (request.method !== 'POST') {
-        return response.status(405).json({ message: 'Método no permitido.' });
-    }
+    console.log("--- Handler save-consent-pareja.js: INVOCADO. ---");
     try {
+        console.log("--- Handler save-consent-pareja.js: Dentro del bloque TRY. ---");
         const data = request.body;
         const { demograficos, firmas } = data;
 
         if (!demograficos || !demograficos.nombreCompleto1 || !demograficos.email1 || !demograficos.nombreCompleto2 || !demograficos.email2 || !firmas || !firmas.miembro1 || !firmas.miembro2) {
+            console.log("--- Handler save-consent-pareja.js: Faltan datos críticos. Abortando. ---");
             return response.status(400).json({ message: 'Faltan datos críticos de la pareja o las firmas.' });
         }
         
-        const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado' };
+        console.log("--- Handler save-consent-pareja.js: Datos validados. Creando objeto para guardar. ---");
+        const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado', tipoTerapia: 'Pareja' };
         
-        // Guardamos en la misma colección, el tipo de terapia nos ayudará a diferenciar.
         const docRef = await db.collection('consents').add(dataToSave);
+        console.log(`--- Handler save-consent-pareja.js: Datos guardados en Firestore. ID: ${docRef.id} ---`);
         
         const resendApiKey = process.env.RESEND2_API_KEY;
         if (!resendApiKey) {
-            console.warn("Servidor: RESEND2_API_KEY no definida.");
+            console.warn("Servidor: RESEND2_API_KEY no definida. Omitiendo envío de correos.");
         } else {
-            const resend = new Resend(resendApiKey);
+            console.log("--- Handler save-consent-pareja.js: Generando PDF. ---");
             const pdfBuffer = await crearPDFConsentimientoPareja(dataToSave);
+            console.log("--- Handler save-consent-pareja.js: PDF generado. Enviando correos. ---");
+            const resend = new Resend(resendApiKey);
             
             const commonEmailData = {
               from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
               attachments: [{ filename: `Consentimiento-Pareja-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
 
-            const mailMiembro1 = {
-              ...commonEmailData,
-              to: demograficos.email1,
-              subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombreCompleto1},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +57 3233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
-            };
-            
-            const mailMiembro2 = {
-              ...commonEmailData,
-              to: demograficos.email2,
-              subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombreCompleto2},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +57 3233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
-            };
-
-            const mailTerapeuta = {
-              ...commonEmailData,
-              to: 'caminosdelser@emcotic.com',
-              subject: `Nuevo Consentimiento de Pareja: ${demograficos.nombreCompleto1} y ${demograficos.nombreCompleto2}`,
-              html: `<p>Has recibido el consentimiento informado de la pareja compuesta por <strong>${demograficos.nombreCompleto1}</strong> y <strong>${demograficos.nombreCompleto2}</strong>.</p><p>El documento PDF se encuentra adjunto.</p>`,
-            };
+            const mailMiembro1 = { ...commonEmailData, to: demograficos.email1, subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`, html: `<p>Estimado/a ${demograficos.nombreCompleto1},</p><p>Recibes una copia del consentimiento informado para la terapia de pareja con el Psicólogo Jorge Arango Castaño.</p><p>Adjunto, encontrarás el PDF con ambas firmas.</p>`, };
+            const mailMiembro2 = { ...commonEmailData, to: demograficos.email2, subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`, html: `<p>Estimado/a ${demograficos.nombreCompleto2},</p><p>Recibes una copia del consentimiento informado para la terapia de pareja con el Psicólogo Jorge Arango Castaño.</p><p>Adjunto, encontrarás el PDF con ambas firmas.</p>`, };
+            const mailTerapeuta = { ...commonEmailData, to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento de Pareja: ${demograficos.nombreCompleto1} y ${demograficos.nombreCompleto2}`, html: `<p>Has recibido el consentimiento informado de la pareja compuesta por <strong>${demograficos.nombreCompleto1}</strong> y <strong>${demograficos.nombreCompleto2}</strong>.</p><p>El documento PDF se encuentra adjunto.</p>`, };
             
             await Promise.all([
                 resend.emails.send(mailMiembro1),
                 resend.emails.send(mailMiembro2),
                 resend.emails.send(mailTerapeuta)
             ]);
+            console.log("--- Handler save-consent-pareja.js: Correos enviados. ---");
         }
         
+        console.log("--- Handler save-consent-pareja.js: Proceso completado exitosamente. ---");
         response.status(200).json({ message: 'Consentimiento de pareja procesado exitosamente', id: docRef.id });
     } catch (error) {
-        console.error("Error catastrófico en save-consent-pareja:", error);
-        // --- INICIO DE LA MEJORA ---
-        // En lugar de dejar que Vercel envíe una página HTML,
-        // capturamos el error y enviamos una respuesta JSON clara.
-        // Esto nos dirá exactamente qué falló.
+        console.error("--- Handler save-consent-pareja.js: ERROR CATASTRÓFICO en el bloque CATCH. ---", error);
         response.status(500).json({ 
             message: 'Error interno del servidor.', 
-            // Añadimos el detalle del error para un diagnóstico preciso.
             detail: error.message, 
-            // También incluimos el stack trace para un debug avanzado si es necesario.
             stack: error.stack 
         });
-        // --- FIN DE LA MEJORA ---
     }
 }
 
