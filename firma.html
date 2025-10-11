@@ -58,9 +58,50 @@
         const canvas = document.getElementById('firma-canvas');
         const ctx = canvas.getContext('2d');
         const firmaForm = document.getElementById('firmaForm');
-        // ... (resto de inicializaciones sin cambios)
+        const submitButton = document.getElementById('submitButton');
+        const serverErrorDiv = document.getElementById('server-error-message');
+        const successDiv = document.getElementById('success-message');
+        
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
 
-        // ... (código de canvas sin cambios) ...
+        function resizeCanvas() {
+            const ratio = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#003366';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function getEventPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches && e.touches[0]) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        const startDrawing = (e) => { isDrawing = true; const pos = getEventPosition(e);[lastX, lastY] = [pos.x, pos.y]; };
+        const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getEventPosition(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y); ctx.stroke();[lastX, lastY] = [pos.x, pos.y]; };
+        const stopDrawing = () => isDrawing = false;
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        document.getElementById('limpiarFirma').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); serverErrorDiv.classList.add('hidden'); successDiv.classList.add('hidden'); };
+        
+        const isCanvasEmpty = () => !new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer).some(color => color !== 0);
 
         firmaForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -73,9 +114,6 @@
                 const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
 
-                // --- INICIO DE LA CORRECCIÓN ---
-                // En lugar de reconstruir el objeto, pasamos el objeto completo 'datosCrudos'
-                // que ya contiene el campo 'modalidadSesion'.
                 const finalData = {
                     demograficos: datosCrudos, 
                     consentimiento: {
@@ -84,7 +122,6 @@
                     },
                     firmaDigital: firmaDigital
                 };
-                // --- FIN DE LA CORRECCIÓN ---
                 
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
