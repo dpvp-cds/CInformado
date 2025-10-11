@@ -157,7 +157,7 @@ export default async function handler(request, response) {
               from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
               to: demograficos.email,
               subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573175103393" target="_blank">WhatsApp +57 3175103393</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
             const mailToTerapeuta = {
@@ -175,4 +175,5 @@ export default async function handler(request, response) {
         response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
+
 
