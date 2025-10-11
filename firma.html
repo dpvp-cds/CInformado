@@ -114,14 +114,37 @@
                 const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
 
+                // --- INICIO DE LA CORRECCIÓN ---
+                // Reconstruimos el objeto 'demograficos' para asegurar que los nombres de los campos
+                // coincidan con lo que el servidor espera, especialmente 'nombre'.
                 const finalData = {
-                    demograficos: datosCrudos, 
+                    demograficos: {
+                        nombre: datosCrudos.nombreCompleto,
+                        email: datosCrudos.email,
+                        fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
+                        fechaNacimiento: datosCrudos.fechaNacimiento,
+                        edad: datosCrudos.edad,
+                        pais: datosCrudos.pais,
+                        departamento: datosCrudos.departamento || null,
+                        ciudad: datosCrudos.municipio || datosCrudos.ciudad || null,
+                        direccion: datosCrudos.direccion,
+                        tipoDocumento: datosCrudos.tipoDocumento,
+                        documentoIdentidad: datosCrudos.documentoIdentidad,
+                        telefonoContacto: datosCrudos.telefonoContacto,
+                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
+                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
+                        nombreAcudiente: datosCrudos.nombreAcudiente || null,
+                        tipoAcudiente: datosCrudos.tipoAcudiente || null,
+                        documentoAcudiente: datosCrudos.documentoAcudiente || null,
+                        modalidadSesion: datosCrudos.modalidadSesion
+                    },
                     consentimiento: {
                         fechaAceptacion: new Date().toISOString(),
                         userAgent: navigator.userAgent
                     },
                     firmaDigital: firmaDigital
                 };
+                // --- FIN DE LA CORRECCIÓN ---
                 
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
