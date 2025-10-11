@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consentimiento de Pareja - Caminos del Ser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
+        .btn-brand { background-color: #003366; color: white; padding: 12px 30px; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; }
+        .btn-brand:hover { background-color: #002244; }
+        .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
+        .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .input-styled, .select-styled {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 100%;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-styled:focus, .select-styled:focus {
+            outline: none;
+            border-color: #003366;
+            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-2 flex justify-between items-center">
+            <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10">
+            </a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                Volver a la Selección
+            </a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento para Terapia de Pareja</h1>
+            <p class="text-center text-gray-600 mb-8" id="page-subtitle">Por favor, completen sus datos para generar y aceptar los términos del servicio.</p>
+
+            <form id="demographicsForm" class="card space-y-8">
+                
+                <div class="flex justify-end">
+                    <div>
+                        <label for="fechaDiligenciamiento" class="block mb-2 font-medium text-sm text-gray-600">Fecha de Diligenciamiento</label>
+                        <input type="date" id="fechaDiligenciamiento" name="fechaDiligenciamiento" class="input-styled bg-gray-100" readonly>
+                    </div>
+                </div>
+
+                <!-- Miembro 1 -->
+                <div class="space-y-6 pt-4 border-t">
+                    <h2 class="text-2xl font-bold border-b pb-3 text-[#003366]">1. Información del Miembro 1</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label for="nombreCompleto1" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="nombreCompleto1" name="nombreCompleto1" class="input-styled" required></div>
+                        <div><label for="fechaNacimiento1" class="block mb-2 font-medium">Fecha de Nacimiento</label><input type="date" id="fechaNacimiento1" name="fechaNacimiento1" class="input-styled" required></div>
+                        <div><label for="edad1" class="block mb-2 font-medium">Edad</label><input type="text" id="edad1" name="edad1" class="input-styled bg-gray-100" readonly></div>
+                        <div><label for="tipoDocumento1" class="block mb-2 font-medium">Tipo de Documento</label><select id="tipoDocumento1" name="tipoDocumento1" class="select-styled" required></select></div>
+                        <div><label for="documentoIdentidad1" class="block mb-2 font-medium">Documento de Identidad</label><input type="text" id="documentoIdentidad1" name="documentoIdentidad1" class="input-styled" required></div>
+                        <div><label for="telefonoContacto1" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto1" name="telefonoContacto1" class="input-styled" required></div>
+                        <div class="md:col-span-2"><label for="email1" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email1" name="email1" class="input-styled" required></div>
+                    </div>
+                </div>
+
+                <!-- Miembro 2 -->
+                <div class="space-y-6 pt-8 border-t">
+                    <h2 class="text-2xl font-bold border-b pb-3 text-[#003366]">2. Información del Miembro 2</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label for="nombreCompleto2" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="nombreCompleto2" name="nombreCompleto2" class="input-styled" required></div>
+                        <div><label for="fechaNacimiento2" class="block mb-2 font-medium">Fecha de Nacimiento</label><input type="date" id="fechaNacimiento2" name="fechaNacimiento2" class="input-styled" required></div>
+                        <div><label for="edad2" class="block mb-2 font-medium">Edad</label><input type="text" id="edad2" name="edad2" class="input-styled bg-gray-100" readonly></div>
+                         <div><label for="tipoDocumento2" class="block mb-2 font-medium">Tipo de Documento</label><select id="tipoDocumento2" name="tipoDocumento2" class="select-styled" required></select></div>
+                        <div><label for="documentoIdentidad2" class="block mb-2 font-medium">Documento de Identidad</label><input type="text" id="documentoIdentidad2" name="documentoIdentidad2" class="input-styled" required></div>
+                        <div><label for="telefonoContacto2" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto2" name="telefonoContacto2" class="input-styled" required></div>
+                        <div class="md:col-span-2"><label for="email2" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email2" name="email2" class="input-styled" required></div>
+                    </div>
+                </div>
+
+                <!-- Información Compartida -->
+                <div class="space-y-6 pt-8 border-t">
+                    <h2 class="text-2xl font-bold border-b pb-3">3. Información Compartida</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <div class="md:col-span-2"><h3 class="text-lg font-semibold">Información de la Relación</h3></div>
+                        <div><label for="tiempoRelacion" class="block mb-2 font-medium">Tiempo total de relación (años)</label><input type="number" id="tiempoRelacion" name="tiempoRelacion" class="input-styled" required min="0"></div>
+                        <div>
+                            <label for="tipoUnion" class="block mb-2 font-medium">Tipo de unión</label>
+                            <select id="tipoUnion" name="tipoUnion" class="select-styled" required>
+                                <option value="">Seleccione...</option>
+                                <option value="novios">Solo novios - sin convivir</option>
+                                <option value="union_libre">Unión libre</option>
+                                <option value="casados_religion">Casados por alguna religión</option>
+                                <option value="casados_civil">Casados por lo civil</option>
+                            </select>
+                        </div>
+                        <div id="camposConvivencia" class="hidden"><label for="anosConvivencia" class="block mb-2 font-medium">Años de convivencia</label><input type="number" id="anosConvivencia" name="anosConvivencia" class="input-styled" min="0"></div>
+                        <div id="camposCasados" class="hidden"><label for="anosCasados" class="block mb-2 font-medium">Años de casados</label><input type="number" id="anosCasados" name="anosCasados" class="input-styled" min="0"></div>
+                        
+                        <!-- Contenedor de Residencia -->
+                        <div id="residenciaContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label for="pais" class="block mb-2 font-medium">País de Residencia</label>
+                                <select id="pais" name="pais" class="select-styled"></select>
+                            </div>
+                            <div id="departamentoContainer" class="hidden"><label for="departamento" class="block mb-2 font-medium">Departamento</label><select id="departamento" name="departamento" class="select-styled"></select></div>
+                            <div id="municipioContainer" class="hidden"><label for="municipio" class="block mb-2 font-medium">Municipio / Ciudad</label><select id="municipio" name="municipio" class="select-styled"></select></div>
+                            <div id="ciudadContainer" class="hidden"><label for="ciudad" class="block mb-2 font-medium">Ciudad de Residencia</label><input type="text" id="ciudad" name="ciudad" class="input-styled"></div>
+                            <div class="md:col-span-2"><label for="direccion" class="block mb-2 font-medium">Dirección de Residencia</label><input type="text" id="direccion" name="direccion" class="input-styled"></div>
+                        </div>
+                        
+                        <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Familia</h3></div>
+                        <div><label for="numHijos" class="block mb-2 font-medium">Número de hijos</label><input type="number" id="numHijos" name="numHijos" class="input-styled" required min="0" value="0"></div>
+                        <div><label for="numMascotas" class="block mb-2 font-medium">Número de mascotas</label><input type="number" id="numMascotas" name="numMascotas" class="input-styled" required min="0" value="0"></div>
+
+                        <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia</h3></div>
+                        <div><label for="contactoEmergenciaNombre" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre" name="contactoEmergenciaNombre" class="input-styled" required></div>
+                        <div><label for="contactoEmergenciaTelefono" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono" name="contactoEmergenciaTelefono" class="input-styled" required></div>
+                    </div>
+                </div>
+
+                <div id="form-error" class="text-red-600 text-center font-semibold hidden">Por favor, completa todos los campos requeridos.</div>
+                <div class="text-center pt-4">
+                    <button type="button" id="showConsentButton" class="btn-brand">Continuar y Leer Consentimiento</button>
+                </div>
+            </form>
+
+            <div id="consentimientoContainer" class="hidden card">
+                <h2 class="text-2xl font-bold border-b pb-3 mb-6">4. Términos del Consentimiento Informado de Pareja</h2>
+                <div class="prose max-w-none space-y-4 text-gray-700">
+                    <p id="consentimientoIntro"></p>
+                    <div class="space-y-2"><h4 class="font-bold">4.1 Confidencialidad:</h4><p>Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con la pareja, la cual será inviolable, salvo que la integridad física de alguno de los miembros se vea amenazada, o la de terceros, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional. La información compartida en sesiones individuales con cualquiera de los miembros podrá ser utilizada en la terapia conjunta si el terapeuta lo considera pertinente para el avance del proceso.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica de pareja, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia para mejorar la dinámica y el bienestar de la relación.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.3 Naturaleza del Proceso:</h4><p>Se nos ha informado que el proceso puede incluir entrevistas conjuntas e individuales, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa y honesta es fundamental para el éxito del mismo.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.4 Costos económicos:</h4><p>Nos comprometemos a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.5 Tratamiento de Datos:</h4><p>Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual hemos podido consultar.</p></div>
+                </div>
+                
+                 <div class="mt-8 pt-6 border-t">
+                    <h3 class="text-lg font-semibold mb-3">Modalidad de esta Sesión de Consentimiento</h3>
+                    <div id="modalidadContainer" class="flex items-center space-x-6">
+                        <div class="flex items-center"><input id="modalidadPresencial" name="modalidadSesion" type="radio" value="presencial" class="h-4 w-4 text-[#003366] border-gray-300 focus:ring-[#003366]" required><label for="modalidadPresencial" class="ml-3 block text-sm font-medium text-gray-700">Presencial</label></div>
+                        <div class="flex items-center"><input id="modalidadVirtual" name="modalidadSesion" type="radio" value="virtual" class="h-4 w-4 text-[#003366] border-gray-300 focus:ring-[#003366]" required><label for="modalidadVirtual" class="ml-3 block text-sm font-medium text-gray-700">Virtual</label></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t">
+                    <h3 class="text-lg font-semibold mb-3">Declaración y Aceptación Final</h3>
+                    <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                        <input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="h-4 w-4 mt-1 flex-shrink-0 text-[#003366] border-gray-300 rounded focus:ring-[#003366]" disabled>
+                        <label for="aceptoTerminos" id="declaracionFinalLabel" class="ml-3 block text-sm font-medium text-gray-500">Por favor, selecciona primero la modalidad de la sesión.</label>
+                    </div>
+                </div>
+
+                <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Deben seleccionar una modalidad y aceptar la declaración para poder continuar.</div>
+                <div class="text-center mt-6"><button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button></div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
+        <div class="container mx-auto text-center"><p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p></div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Referencias a elementos
+    const demographicsForm = document.getElementById('demographicsForm');
+    const consentimientoContainer = document.getElementById('consentimientoContainer');
+    const showConsentButton = document.getElementById('showConsentButton');
+    const continueToSignatureButton = document.getElementById('continueToSignatureButton');
+    
+    const fechaNacimiento1 = document.getElementById('fechaNacimiento1');
+    const edad1Input = document.getElementById('edad1');
+    const tipoDocumento1 = document.getElementById('tipoDocumento1');
+
+    const fechaNacimiento2 = document.getElementById('fechaNacimiento2');
+    const edad2Input = document.getElementById('edad2');
+    const tipoDocumento2 = document.getElementById('tipoDocumento2');
+    
+    const paisSelect = document.getElementById('pais');
+    const departamentoContainer = document.getElementById('departamentoContainer');
+    const municipioContainer = document.getElementById('municipioContainer');
+    const ciudadContainer = document.getElementById('ciudadContainer');
+    const departamentoSelect = document.getElementById('departamento');
+    const municipioSelect = document.getElementById('municipio');
+    const modalidadRadios = document.querySelectorAll('input[name="modalidadSesion"]');
+    const declaracionFinalLabel = document.getElementById('declaracionFinalLabel');
+    const aceptoTerminosCheckbox = document.getElementById('aceptoTerminos');
+    
+    const tipoUnionSelect = document.getElementById('tipoUnion');
+    const camposConvivencia = document.getElementById('camposConvivencia');
+    const anosConvivenciaInput = document.getElementById('anosConvivencia');
+    const camposCasados = document.getElementById('camposCasados');
+    const anosCasadosInput = document.getElementById('anosCasados');
+    
+    // Contenedor y campos de residencia
+    const residenciaContainer = document.getElementById('residenciaContainer');
+    const residenciaInputs = residenciaContainer.querySelectorAll('input, select');
+    const direccionInput = document.getElementById('direccion');
+
+    let geodata = {};
+
+    document.getElementById('fechaDiligenciamiento').valueAsDate = new Date();
+    
+    async function cargarGeodata() {
+        try {
+            const response = await fetch('geodata.json');
+            geodata = await response.json();
+            poblarPaises();
+        } catch (error) { console.error('Error cargando geodata.json:', error); }
+    }
+    
+    function poblarTiposDocumento() {
+        const opciones = ['Cédula', 'Cédula de Extranjería', 'Pasaporte'];
+        [tipoDocumento1, tipoDocumento2].forEach(select => {
+            select.innerHTML = '<option value="">Seleccione...</option>';
+            opciones.forEach(op => select.add(new Option(op, op)));
+        });
+    }
+
+    function poblarPaises() {
+        paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
+        Object.keys(geodata).forEach(continente => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = continente;
+            Object.keys(geodata[continente]).sort().forEach(pais => {
+                const option = document.createElement('option');
+                option.value = pais;
+                option.textContent = pais;
+                optgroup.appendChild(option);
+            });
+            paisSelect.appendChild(optgroup);
+        });
+    }
+
+    paisSelect.addEventListener('change', () => {
+        const pais = paisSelect.value;
+        departamentoContainer.classList.add('hidden');
+        municipioContainer.classList.add('hidden');
+        ciudadContainer.classList.add('hidden');
+        if (pais === 'Colombia') {
+            poblarDepartamentos(pais);
+            departamentoContainer.classList.remove('hidden');
+        } else if (pais) {
+            ciudadContainer.classList.remove('hidden');
+        }
+    });
+    
+    departamentoSelect.addEventListener('change', () => {
+        municipioContainer.classList.remove('hidden');
+        poblarMunicipios(paisSelect.value, departamentoSelect.value);
+    });
+
+    function poblarDepartamentos(pais) {
+        departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
+        let departamentos = [];
+        for (const cont in geodata) { if (geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
+        departamentos.sort().forEach(depto => departamentoSelect.add(new Option(depto, depto)));
+    }
+
+    function poblarMunicipios(pais, depto) {
+        municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
+        let municipios = [];
+        for (const cont in geodata) { if (geodata[cont][pais]?.[depto]) { municipios = geodata[cont][pais][depto]; break; } }
+        municipios.sort().forEach(mun => municipioSelect.add(new Option(mun, mun)));
+    }
+    
+    await cargarGeodata();
+    poblarTiposDocumento();
+
+    function calcularEdad(fechaNacimiento) {
+        if (!fechaNacimiento) return '';
+        const hoy = new Date();
+        const nacimiento = new Date(fechaNacimiento);
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const m = hoy.getMonth() - nacimiento.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) { edad--; }
+        return edad;
+    }
+
+    fechaNacimiento1.addEventListener('change', () => edad1Input.value = calcularEdad(fechaNacimiento1.value));
+    fechaNacimiento2.addEventListener('change', () => edad2Input.value = calcularEdad(fechaNacimiento2.value));
+    
+    tipoUnionSelect.addEventListener('change', () => {
+        const seleccion = tipoUnionSelect.value;
+        const convivencia = ['union_libre', 'casados_religion', 'casados_civil'].includes(seleccion);
+        const casados = ['casados_religion', 'casados_civil'].includes(seleccion);
+        const novios = seleccion === 'novios';
+
+        // Lógica para campos de convivencia y casados
+        camposConvivencia.classList.toggle('hidden', !convivencia);
+        anosConvivenciaInput.required = convivencia;
+        camposCasados.classList.toggle('hidden', !casados);
+        anosCasadosInput.required = casados;
+
+        // Lógica para residencia
+        residenciaContainer.classList.toggle('hidden', novios);
+        paisSelect.required = !novios;
+        direccionInput.required = !novios;
+    });
+
+    showConsentButton.addEventListener('click', function() {
+        if (!demographicsForm.checkValidity()) {
+            demographicsForm.reportValidity();
+            document.getElementById('form-error').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('form-error').classList.add('hidden');
+        demographicsForm.classList.add('hidden');
+        consentimientoContainer.classList.remove('hidden');
+        document.getElementById('page-subtitle').textContent = "Por favor, lean y acepten los siguientes términos para continuar.";
+        window.scrollTo(0, 0);
+
+        const formData = new FormData(demographicsForm);
+        const datos = Object.fromEntries(formData.entries());
+        document.getElementById('consentimientoIntro').textContent = `Nosotros, ${datos.nombreCompleto1}, identificado/a con documento de identidad ${datos.documentoIdentidad1}, y ${datos.nombreCompleto2}, identificado/a con documento de identidad ${datos.documentoIdentidad2}, declaramos que:`;
+    });
+
+    function updateDeclaracionFinal() {
+        const formData = new FormData(demographicsForm);
+        const datos = Object.fromEntries(formData.entries());
+        const modalidadSeleccionada = document.querySelector('input[name="modalidadSesion"]:checked');
+
+        if (!modalidadSeleccionada) {
+            declaracionFinalLabel.textContent = 'Por favor, selecciona primero la modalidad de la sesión.';
+            declaracionFinalLabel.classList.add('text-gray-500');
+            aceptoTerminosCheckbox.disabled = true;
+            return;
+        }
+
+        aceptoTerminosCheckbox.disabled = false;
+        declaracionFinalLabel.classList.remove('text-gray-500');
+        
+        const modalidad = modalidadSeleccionada.value === 'presencial' ? 'presencial' : 'virtual';
+        
+        declaracionFinalLabel.innerHTML = `Declaramos y damos fe de que nosotros, ${datos.nombreCompleto1} y ${datos.nombreCompleto2}, hemos leído y comprendido este documento durante una sesión <strong>${modalidad}</strong> con el Psicólogo Jorge Arango Castaño, donde se nos ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a nuestra entera satisfacción. Al marcar esta casilla, aceptamos todos los términos descritos anteriormente.`;
+    }
+
+    modalidadRadios.forEach(radio => radio.addEventListener('change', updateDeclaracionFinal));
+    
+    document.getElementById('nombreCompleto1').addEventListener('input', updateDeclaracionFinal);
+    document.getElementById('nombreCompleto2').addEventListener('input', updateDeclaracionFinal);
+
+    aceptoTerminosCheckbox.addEventListener('change', function() {
+        const modalidadSeleccionada = document.querySelector('input[name="modalidadSesion"]:checked');
+        continueToSignatureButton.disabled = !this.checked || !modalidadSeleccionada;
+    });
+
+    continueToSignatureButton.addEventListener('click', function() {
+        const modalidadSeleccionada = document.querySelector('input[name="modalidadSesion"]:checked');
+        if (!aceptoTerminosCheckbox.checked || !modalidadSeleccionada) {
+            document.getElementById('consent-error').classList.remove('hidden');
+            return;
+        }
+
+        const formData = new FormData(demographicsForm);
+        const datosDemograficos = Object.fromEntries(formData.entries());
+        datosDemograficos.modalidadSesion = modalidadSeleccionada.value;
+        datosDemograficos.tipoTerapia = 'Pareja';
+
+        try {
+            sessionStorage.setItem('consentimiento_pareja_demograficos', JSON.stringify(datosDemograficos));
+            window.location.href = 'firmaparejas.html';
+        } catch (error) {
+            console.error("Error al guardar en sessionStorage:", error);
+            document.getElementById('consent-error').textContent = "Hubo un error al preparar los datos. Intenta de nuevo.";
+            document.getElementById('consent-error').classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>
+
