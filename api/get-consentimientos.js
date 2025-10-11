@@ -1,35 +1,45 @@
 import { db } from '../lib/firebaseAdmin.js';
 
 export default async function handler(request, response) {
-    // 1. Verificamos que sea una solicitud para OBTENER datos.
     if (request.method !== 'GET') {
         return response.status(405).json({ message: 'Método no permitido.' });
     }
 
-    // NOTA DE SEGURIDAD: En un futuro, aquí se podría verificar que solo un consultor autenticado pueda hacer esta petición.
-    // Por ahora, la seguridad está en la página del portal.
-
     try {
-        // 2. Pedimos la colección 'consents' y la ordenamos por fecha descendente.
         const snapshot = await db.collection('consents').orderBy('fecha', 'desc').get();
         
-        // 3. Si no hay documentos, devolvemos una lista vacía.
         if (snapshot.empty) {
             return response.status(200).json([]);
         }
         
-        // 4. Transformamos los datos a un formato limpio que el portal pueda entender.
+        // --- INICIO DE LA MEJORA ---
+        // Ahora el servidor determina el formato de visualización.
         const consentimientos = snapshot.docs.map(doc => {
             const data = doc.data();
-            return {
-                id: doc.id,
-                nombre: data.demograficos.nombre,
-                email: data.demograficos.email,
-                fecha: data.fecha
-            };
+            const esPareja = data.demograficos?.tipoTerapia === 'Pareja';
+
+            if (esPareja) {
+                // Si es pareja, construimos un nombre descriptivo.
+                return {
+                    id: doc.id,
+                    nombre: `Pareja: ${data.demograficos.nombreCompleto1} y ${data.demograficos.nombreCompleto2}`,
+                    email: data.demograficos.email1, // Usamos el email del primer miembro para la lista.
+                    fecha: data.fecha,
+                    tipo: 'Pareja' // Añadimos un tipo para que el frontend pueda reaccionar.
+                };
+            } else {
+                // Si es individual, mantenemos el formato original.
+                return {
+                    id: doc.id,
+                    nombre: data.demograficos.nombre,
+                    email: data.demograficos.email,
+                    fecha: data.fecha,
+                    tipo: 'Individual'
+                };
+            }
         });
+        // --- FIN DE LA MEJORA ---
         
-        // 5. Enviamos la lista de consentimientos de vuelta al portal.
         response.status(200).json(consentimientos);
 
     } catch (error) {
