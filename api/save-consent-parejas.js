@@ -178,14 +178,14 @@ export default async function handler(request, response) {
               ...commonEmailData,
               to: demograficos.email1,
               subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombreCompleto1},</p><p>Recibes una copia del consentimiento informado para la terapia de pareja con el Psicólogo Jorge Arango Castaño.</p><p>Adjunto, encontrarás el PDF con ambas firmas.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombreCompleto1},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +57 3233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
             };
             
             const mailMiembro2 = {
               ...commonEmailData,
               to: demograficos.email2,
               subject: `Copia de su Consentimiento Informado de Pareja - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombreCompleto2},</p><p>Recibes una copia del consentimiento informado para la terapia de pareja con el Psicólogo Jorge Arango Castaño.</p><p>Adjunto, encontrarás el PDF con ambas firmas.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombreCompleto2},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +57 3233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
             };
 
             const mailTerapeuta = {
