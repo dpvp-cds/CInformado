@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Dependencias para las funciones de servidor del Consentimiento Informado.",
-  "main": "api/save-consent.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
