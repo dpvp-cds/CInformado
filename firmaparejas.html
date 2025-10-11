@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.textContent = 'Enviando...';
 
         try {
-            const firma1 = document.getElementById(canvases[0].id).toDataURL('image/png');
-            const firma2 = document.getElementById(canvases[1].id).toDataURL('image/png');
+            const firma1 = document.getElementById('firma-canvas-1').toDataURL('image/png');
+            const firma2 = document.getElementById('firma-canvas-2').toDataURL('image/png');
             const finalData = { demograficos: datosCrudos, consentimiento: { fechaAceptacion: new Date().toISOString(), userAgent: navigator.userAgent }, firmas: { miembro1: firma1, miembro2: firma2 } };
 
             const response = await fetch('/api/save-consent-pareja', {
@@ -166,14 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                let errorDetail = `El servidor respondió con el código de error ${response.status}.`;
+                const errorText = await response.text();
+                let errorDetail;
                 try {
-                    const errorData = await response.json();
-                    errorDetail = errorData.detail || errorData.message || JSON.stringify(errorData);
+                    const errorData = JSON.parse(errorText);
+                    errorDetail = errorData.detail || errorData.message || errorText;
                 } catch (jsonError) {
-                    const errorText = await response.text();
                     console.error("Respuesta no-JSON del servidor:", errorText);
-                    errorDetail += " La respuesta del servidor no fue un JSON válido.";
+                    errorDetail = `El servidor respondió con el código ${response.status}. La respuesta no fue un JSON válido.`;
                 }
                 throw new Error(errorDetail);
             }
