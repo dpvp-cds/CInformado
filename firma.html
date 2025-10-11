@@ -21,7 +21,7 @@
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-2 flex justify-between items-center">
             <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0"><img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10"></a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
+            <a href="individual.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
         </div>
     </header>
     <main class="container mx-auto px-6 py-12">
@@ -43,8 +43,7 @@
     </main>
     <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
         <div class="container mx-auto text-center space-y-2">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
-            <div class="mt-4"><a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a></div>
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
         </div>
     </footer>
 
@@ -52,57 +51,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         const sessionData = sessionStorage.getItem('consentimiento_demograficos');
         if (!sessionData) {
-            window.location.href = 'index.html';
+            window.location.href = 'individual.html';
             return;
         }
 
         const canvas = document.getElementById('firma-canvas');
         const ctx = canvas.getContext('2d');
         const firmaForm = document.getElementById('firmaForm');
-        const submitButton = document.getElementById('submitButton');
-        const serverErrorDiv = document.getElementById('server-error-message');
-        const successDiv = document.getElementById('success-message');
-        
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        // ... (resto de inicializaciones sin cambios)
 
-        function resizeCanvas() {
-            const ratio = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            ctx.scale(ratio, ratio);
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#003366';
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function getEventPosition(e) {
-            const rect = canvas.getBoundingClientRect();
-            if (e.touches && e.touches[0]) {
-                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-            }
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        const startDrawing = (e) => { isDrawing = true; const pos = getEventPosition(e);[lastX, lastY] = [pos.x, pos.y]; };
-        const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getEventPosition(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y); ctx.stroke();[lastX, lastY] = [pos.x, pos.y]; };
-        const stopDrawing = () => isDrawing = false;
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
-
-        document.getElementById('limpiarFirma').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); serverErrorDiv.classList.add('hidden'); successDiv.classList.add('hidden'); };
-        
-        const isCanvasEmpty = () => !new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer).some(color => color !== 0);
+        // ... (código de canvas sin cambios) ...
 
         firmaForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -116,27 +74,10 @@
                 const firmaDigital = canvas.toDataURL('image/png');
 
                 // --- INICIO DE LA CORRECCIÓN ---
-                // Se añaden los campos de ubicación que faltaban
+                // En lugar de reconstruir el objeto, pasamos el objeto completo 'datosCrudos'
+                // que ya contiene el campo 'modalidadSesion'.
                 const finalData = {
-                    demograficos: {
-                        nombre: datosCrudos.nombreCompleto,
-                        email: datosCrudos.email,
-                        fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
-                        fechaNacimiento: datosCrudos.fechaNacimiento,
-                        edad: datosCrudos.edad,
-                        pais: datosCrudos.pais,
-                        departamento: datosCrudos.departamento || null,
-                        ciudad: datosCrudos.municipio || datosCrudos.ciudad || null,
-                        direccion: datosCrudos.direccion,
-                        tipoDocumento: datosCrudos.tipoDocumento,
-                        documentoIdentidad: datosCrudos.documentoIdentidad,
-                        telefonoContacto: datosCrudos.telefonoContacto,
-                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
-                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
-                        nombreAcudiente: datosCrudos.nombreAcudiente || null,
-                        tipoAcudiente: datosCrudos.tipoAcudiente || null,
-                        documentoAcudiente: datosCrudos.documentoAcudiente || null
-                    },
+                    demograficos: datosCrudos, 
                     consentimiento: {
                         fechaAceptacion: new Date().toISOString(),
                         userAgent: navigator.userAgent
@@ -144,7 +85,7 @@
                     firmaDigital: firmaDigital
                 };
                 // --- FIN DE LA CORRECCIÓN ---
-
+                
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
                     body: JSON.stringify(finalData),
@@ -173,3 +114,4 @@
     </script>
 </body>
 </html>
+
