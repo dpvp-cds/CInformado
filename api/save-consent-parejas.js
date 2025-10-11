@@ -205,6 +205,18 @@ export default async function handler(request, response) {
         response.status(200).json({ message: 'Consentimiento de pareja procesado exitosamente', id: docRef.id });
     } catch (error) {
         console.error("Error catastrófico en save-consent-pareja:", error);
-        response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
+        // --- INICIO DE LA MEJORA ---
+        // En lugar de dejar que Vercel envíe una página HTML,
+        // capturamos el error y enviamos una respuesta JSON clara.
+        // Esto nos dirá exactamente qué falló.
+        response.status(500).json({ 
+            message: 'Error interno del servidor.', 
+            // Añadimos el detalle del error para un diagnóstico preciso.
+            detail: error.message, 
+            // También incluimos el stack trace para un debug avanzado si es necesario.
+            stack: error.stack 
+        });
+        // --- FIN DE LA MEJORA ---
     }
 }
+
