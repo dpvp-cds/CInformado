@@ -86,10 +86,17 @@
                             day: '2-digit', month: 'long', year: 'numeric',
                             hour: '2-digit', minute: '2-digit'
                         });
-                        // --- CAMBIO: Se añade un div contenedor con flex y el botón de eliminar ---
+
+                        // --- INICIO DE LA MEJORA ---
+                        // Icono dinámico según el tipo de consentimiento.
+                        const icon = consent.tipo === 'Pareja' 
+                            ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-blue-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>`
+                            : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-green-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>`;
+
                         html += `
                             <div class="consent-item p-4 flex justify-between items-center" id="consent-item-${consent.id}">
-                                <a href="detalle-consentimiento.html?id=${consent.id}" class="flex-grow">
+                                <a href="detalle-consentimiento.html?id=${consent.id}" class="flex-grow flex items-center">
+                                    ${icon}
                                     <div>
                                         <p class="font-bold text-lg text-[#003366]">${consent.nombre}</p>
                                         <p class="text-sm text-gray-600">Email: ${consent.email}</p>
@@ -103,6 +110,7 @@
                                 </button>
                             </div>
                         `;
+                        // --- FIN DE LA MEJORA ---
                     });
                     html += '</div>';
                     
@@ -116,25 +124,19 @@
             }
         }
 
-        // --- NUEVA FUNCIÓN PARA ELIMINAR ---
         async function deleteConsent(id) {
-            // 1. Pedir confirmación al usuario
             if (!confirm('¿Estás seguro de que deseas eliminar este consentimiento de forma permanente? Esta acción no se puede deshacer.')) {
                 return;
             }
-
             try {
-                // 2. Llamar al nuevo endpoint del servidor
                 const response = await fetch(`/api/eliminar-consentimiento?id=${id}`, {
                     method: 'DELETE',
                 });
-
                 if (response.ok) {
-                    // 3. Si tiene éxito, eliminar el elemento de la vista
                     const consentItem = document.getElementById(`consent-item-${id}`);
                     if (consentItem) {
                         consentItem.style.opacity = '0';
-                        setTimeout(() => consentItem.remove(), 500); // Eliminar después de la animación
+                        setTimeout(() => consentItem.remove(), 500);
                     }
                 } else {
                     const errorData = await response.json();
