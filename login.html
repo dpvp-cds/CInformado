@@ -39,6 +39,10 @@
             transform: translateY(-2px);
             box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
         }
+        .btn-brand:disabled {
+            background-color: #99aabb;
+            cursor: not-allowed;
+        }
         .card {
             background-color: white;
             border-radius: 16px;
@@ -82,7 +86,7 @@
                         <input type="password" id="password" class="input-styled" required>
                     </div>
                     <div id="errorMessage" class="text-red-600 text-center mb-4 hidden">Contraseña incorrecta.</div>
-                    <button type="submit" class="btn-brand w-full">Ingresar al Portal</button>
+                    <button type="submit" id="submitButton" class="btn-brand w-full">Ingresar al Portal</button>
                 </form>
             </div>
         </div>
@@ -95,20 +99,51 @@
     </footer>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const passwordInput = document.getElementById('password');
             const errorMessage = document.getElementById('errorMessage');
+            const submitButton = document.getElementById('submitButton');
             
-            // La contraseña está almacenada aquí de forma segura para la validación del lado del cliente.
-            if (passwordInput.value === 'Ja#020904') {
-                errorMessage.classList.add('hidden');
-                // Guardamos un token de sesión para indicar que el consultor está autenticado.
-                sessionStorage.setItem('consultorAuth', 'true');
-                // Redirigimos al portal de consentimientos (CAMBIO REALIZADO AQUÍ).
-                window.location.href = 'portal-consentimientos.html';
-            } else {
+            // Deshabilitar el botón y mostrar estado de carga
+            submitButton.disabled = true;
+            submitButton.textContent = 'Verificando...';
+            errorMessage.classList.add('hidden');
+
+            try {
+                // --- INICIO DE LA LÓGICA SEGURA ---
+                // 1. Enviar la contraseña al endpoint de la API para su verificación en el servidor.
+                const response = await fetch('/api/authenticate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password: passwordInput.value }),
+                });
+
+                // 2. Analizar la respuesta del servidor.
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Si el servidor dice que la contraseña es correcta:
+                        sessionStorage.setItem('consultorAuth', 'true');
+                        window.location.href = 'portal-consentimientos.html';
+                    }
+                } else {
+                    // Si el servidor responde con un error (ej. 401 No Autorizado), mostramos el mensaje.
+                    errorMessage.classList.remove('hidden');
+                }
+                // --- FIN DE LA LÓGICA SEGURA ---
+
+            } catch (error) {
+                // Manejar errores de red (ej. sin conexión a internet)
+                console.error('Error de red al autenticar:', error);
+                errorMessage.textContent = 'Error de conexión. Inténtalo de nuevo.';
                 errorMessage.classList.remove('hidden');
+            } finally {
+                // Volver a habilitar el botón y restaurar su texto
+                submitButton.disabled = false;
+                submitButton.textContent = 'Ingresar al Portal';
                 passwordInput.value = '';
                 passwordInput.focus();
             }
