@@ -101,7 +101,6 @@
                     <div class="space-y-2"><h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p></div>
                 </div>
                 
-                <!-- INICIO DE SECCIÓN AÑADIDA -->
                 <div class="mt-8 pt-6 border-t">
                     <h3 class="text-lg font-semibold mb-3">Modalidad de esta Sesión de Consentimiento</h3>
                     <p class="text-sm text-gray-600 mb-4">Por favor, selecciona cómo se está llevando a cabo esta sesión.</p>
@@ -116,9 +115,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- FIN DE SECCIÓN AÑADIDA -->
 
-                <!-- INICIO DE SECCIÓN MODIFICADA -->
                 <div class="mt-6 pt-6 border-t">
                     <h3 class="text-lg font-semibold mb-3">Declaración y Aceptación Final</h3>
                     <div class="flex items-start p-4 bg-gray-50 rounded-lg">
@@ -126,7 +123,6 @@
                         <label for="aceptoTerminos" id="declaracionFinalLabel" class="ml-3 block text-sm font-medium text-gray-500">Por favor, selecciona primero la modalidad de la sesión.</label>
                     </div>
                 </div>
-                <!-- FIN DE SECCIÓN MODIFICADA -->
 
                 <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes seleccionar una modalidad y aceptar la declaración para poder continuar.</div>
                 <div class="text-center mt-6">
@@ -160,12 +156,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const ciudadContainer = document.getElementById('ciudadContainer');
     const departamentoSelect = document.getElementById('departamento');
     const municipioSelect = document.getElementById('municipio');
-
-    // --- INICIO DE NUEVAS REFERENCIAS ---
     const modalidadRadios = document.querySelectorAll('input[name="modalidadSesion"]');
     const declaracionFinalLabel = document.getElementById('declaracionFinalLabel');
     const aceptoTerminosCheckbox = document.getElementById('aceptoTerminos');
-    // --- FIN DE NUEVAS REFERENCIAS ---
     
     let geodata = {};
 
@@ -174,33 +167,42 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function cargarGeodata() {
         try {
             const response = await fetch('geodata.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             geodata = await response.json();
             poblarPaises();
-        } catch (error) { console.error('Error cargando geodata.json:', error); }
+        } catch (error) { 
+            console.error('Error crítico cargando geodata.json:', error); 
+            alert('No se pudo cargar la información de países y ciudades. Por favor, recarga la página.');
+        }
     }
 
     function poblarPaises() {
         paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
-        const continentes = ['América del Sur', 'América Central', 'América del Norte', 'Europa', 'Otro'];
+        const continentes = Object.keys(geodata);
         continentes.forEach(continente => {
-            if (geodata[continente]) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = continente;
-                Object.keys(geodata[continente]).sort().forEach(pais => {
-                    const option = document.createElement('option');
-                    option.value = pais;
-                    option.textContent = pais;
-                    optgroup.appendChild(option);
-                });
-                paisSelect.appendChild(optgroup);
-            }
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = continente;
+            Object.keys(geodata[continente]).sort().forEach(pais => {
+                const option = document.createElement('option');
+                option.value = pais;
+                option.textContent = pais;
+                optgroup.appendChild(option);
+            });
+            paisSelect.appendChild(optgroup);
         });
     }
 
     function poblarDepartamentos(pais) {
         departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
         let departamentos = [];
-        for (const cont in geodata) { if (geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
+        for (const cont in geodata) { 
+            if (geodata[cont][pais]) { 
+                departamentos = Object.keys(geodata[cont][pais]); 
+                break; 
+            } 
+        }
         departamentos.sort().forEach(depto => {
             const option = document.createElement('option');
             option.value = depto;
@@ -212,7 +214,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     function poblarMunicipios(pais, depto) {
         municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
         let municipios = [];
-        for (const cont in geodata) { if (geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
+        for (const cont in geodata) { 
+            if (geodata[cont][pais] && geodata[cont][pais][depto]) { 
+                municipios = geodata[cont][pais][depto]; 
+                break; 
+            } 
+        }
         municipios.sort().forEach(mun => {
             const option = document.createElement('option');
             option.value = mun;
@@ -305,7 +312,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('costosTexto').textContent = esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
     });
 
-    // --- INICIO DE NUEVA FUNCIÓN ---
     function updateDeclaracionFinal() {
         const formData = new FormData(demographicsForm);
         const datos = Object.fromEntries(formData.entries());
@@ -364,8 +370,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('consent-error').classList.remove('hidden');
         }
     });
-    // --- FIN DE LÓGICA MODIFICADA ---
 });
 </script>
 </body>
 </html>
+
