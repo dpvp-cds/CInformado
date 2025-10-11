@@ -13,6 +13,7 @@
         .detail-item { border-bottom: 1px solid #e5e7eb; padding: 0.75rem 0; display: grid; grid-template-columns: 180px 1fr; gap: 1rem; align-items: start; }
         .detail-item:last-child { border-bottom: none; }
         .detail-label { font-weight: 600; color: #4b5563; }
+        .prose p { text-align: justify; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -63,7 +64,6 @@
             }
 
             try {
-                // Ya no se necesita el pase de acceso, la seguridad está en la sesión del portal.
                 const response = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -96,11 +96,18 @@
             const { demograficos, consentimiento, firmaDigital, fecha } = reporte;
             document.getElementById('reportTitle').textContent += ` de ${demograficos.nombre}`;
             const dynamicContent = document.getElementById('dynamic-content');
-            
             const fechaFormateada = new Date(fecha).toLocaleString('es-CO', { dateStyle: 'full', timeStyle: 'short' });
             
+            const esMenor = parseInt(demograficos.edad, 10) < 18;
+            const textos = {
+                intro: esMenor ? `Yo, ${demograficos.nombreAcudiente}, con documento ${demograficos.documentoAcudiente}, como ${demograficos.tipoAcudiente} de ${demograficos.nombre} (doc ${demograficos.documentoIdentidad}), declaro que:` : `Yo, ${demograficos.nombre}, con documento ${demograficos.documentoIdentidad}, declaro que:`,
+                confidencialidad: 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.',
+                evaluacion: esMenor ? 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.' : 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.',
+                costos: esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.'
+            };
+
             let acudienteHtml = '';
-            if (demograficos.nombreAcudiente) {
+            if (esMenor && demograficos.nombreAcudiente) {
                 acudienteHtml = `
                 <div class="card">
                     <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Acudiente</h2>
@@ -113,6 +120,15 @@
             }
             
             dynamicContent.innerHTML = `
+                <div class="card mb-8">
+                    <h2 class="text-2xl font-bold border-b pb-3 mb-6">Términos del Consentimiento Aceptado</h2>
+                    <div class="prose max-w-none space-y-4 text-gray-700 text-sm">
+                        <p>${textos.intro}</p>
+                        <div class="space-y-2"><h4 class="font-bold">Confidencialidad:</h4><p>${textos.confidencialidad}</p></div>
+                        <div class="space-y-2"><h4 class="font-bold">Proceso de evaluación:</h4><p>${textos.evaluacion}</p></div>
+                        <div class="space-y-2"><h4 class="font-bold">Costos económicos:</h4><p>${textos.costos}</p></div>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="card">
                         <h2 class="text-2xl font-bold mb-4 border-b pb-2">Información del Paciente</h2>
@@ -120,7 +136,7 @@
                             ${createDetailItem('Nombre Completo', demograficos.nombre)}
                             ${createDetailItem('Email', demograficos.email)}
                             ${createDetailItem('Documento', `${demograficos.documentoIdentidad} (${demograficos.tipoDocumento})`)}
-                            ${createDetailItem('Fecha de Nacimiento', `${demograficos.fechaNacimiento} (Edad: ${demograficos.edad})`)}
+                            ${createDetailItem('Nacimiento', `${demograficos.fechaNacimiento} (Edad: ${demograficos.edad})`)}
                             ${createDetailItem('Ubicación', `${demograficos.ciudad || ''}${demograficos.departamento ? ', ' + demograficos.departamento : ''}, ${demograficos.pais}`)}
                             ${createDetailItem('Dirección', demograficos.direccion)}
                             ${createDetailItem('Teléfono', demograficos.telefonoContacto)}
@@ -149,10 +165,22 @@
             const { demograficos, consentimiento, firmas, fecha } = reporte;
             document.getElementById('reportTitle').textContent = `Consentimiento de Pareja: ${demograficos.nombreCompleto1} y ${demograficos.nombreCompleto2}`;
             const dynamicContent = document.getElementById('dynamic-content');
-
             const fechaFormateada = new Date(fecha).toLocaleString('es-CO', { dateStyle: 'full', timeStyle: 'short' });
 
+            const textos = {
+                intro: `Nosotros, ${demograficos.nombreCompleto1}, identificado/a con documento de identidad ${demograficos.documentoIdentidad1}, y ${demograficos.nombreCompleto2}, identificado/a con documento de identidad ${demograficos.documentoIdentidad2}, declaramos que:`,
+                confidencialidad1: 'Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con la pareja, la cual será inviolable, salvo que la integridad física de alguno de los miembros se vea amenazada, o la de terceros, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional. La información compartida en sesiones individuales con cualquiera de los miembros podrá ser utilizada en la terapia conjunta si el terapeuta lo considera pertinente para el avance del proceso.',
+                confidencialidad2: 'Entendemos y nos comprometemos a respetar la privacidad y confidencialidad que el psicólogo tendrá con el otro miembro de la relación. Es decir, ninguno podrá preguntarle al psicólogo sobre las sesiones individuales que se tenga con el otro y el psicólogo no podrá divulgar información confidencial y privada que se hable en las sesiones individuales sin la previa autorización expresa del miembro de la pareja involucrado.'
+            };
+
             dynamicContent.innerHTML = `
+                <div class="card mb-8">
+                     <h2 class="text-2xl font-bold border-b pb-3 mb-6">Términos del Consentimiento Aceptado</h2>
+                    <div class="prose max-w-none space-y-4 text-gray-700 text-sm">
+                        <p>${textos.intro}</p>
+                        <div class="space-y-2"><h4 class="font-bold">Confidencialidad:</h4><p>${textos.confidencialidad1}</p><p>${textos.confidencialidad2}</p></div>
+                    </div>
+                </div>
                 <div class="space-y-8">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="card">
