@@ -67,6 +67,9 @@
                         <div><label for="documentoIdentidad1" class="block mb-2 font-medium">Documento de Identidad</label><input type="text" id="documentoIdentidad1" name="documentoIdentidad1" class="input-styled" required></div>
                         <div><label for="telefonoContacto1" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto1" name="telefonoContacto1" class="input-styled" required></div>
                         <div class="md:col-span-2"><label for="email1" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email1" name="email1" class="input-styled" required></div>
+                        <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia (distinto a la pareja)</h3></div>
+                        <div><label for="contactoEmergenciaNombre1" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre1" name="contactoEmergenciaNombre1" class="input-styled" required></div>
+                        <div><label for="contactoEmergenciaTelefono1" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono1" name="contactoEmergenciaTelefono1" class="input-styled" required></div>
                     </div>
                 </div>
 
@@ -81,6 +84,9 @@
                         <div><label for="documentoIdentidad2" class="block mb-2 font-medium">Documento de Identidad</label><input type="text" id="documentoIdentidad2" name="documentoIdentidad2" class="input-styled" required></div>
                         <div><label for="telefonoContacto2" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto2" name="telefonoContacto2" class="input-styled" required></div>
                         <div class="md:col-span-2"><label for="email2" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email2" name="email2" class="input-styled" required></div>
+                        <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia (distinto a la pareja)</h3></div>
+                        <div><label for="contactoEmergenciaNombre2" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre2" name="contactoEmergenciaNombre2" class="input-styled" required></div>
+                        <div><label for="contactoEmergenciaTelefono2" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono2" name="contactoEmergenciaTelefono2" class="input-styled" required></div>
                     </div>
                 </div>
 
@@ -104,8 +110,7 @@
                         <div id="camposConvivencia" class="hidden"><label for="anosConvivencia" class="block mb-2 font-medium">Años de convivencia</label><input type="number" id="anosConvivencia" name="anosConvivencia" class="input-styled" min="0"></div>
                         <div id="camposCasados" class="hidden"><label for="anosCasados" class="block mb-2 font-medium">Años de casados</label><input type="number" id="anosCasados" name="anosCasados" class="input-styled" min="0"></div>
                         
-                        <!-- Contenedor de Residencia -->
-                        <div id="residenciaContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div id="residenciaContainer" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
                              <div>
                                 <label for="pais" class="block mb-2 font-medium">País de Residencia</label>
                                 <select id="pais" name="pais" class="select-styled"></select>
@@ -119,10 +124,6 @@
                         <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Familia</h3></div>
                         <div><label for="numHijos" class="block mb-2 font-medium">Número de hijos</label><input type="number" id="numHijos" name="numHijos" class="input-styled" required min="0" value="0"></div>
                         <div><label for="numMascotas" class="block mb-2 font-medium">Número de mascotas</label><input type="number" id="numMascotas" name="numMascotas" class="input-styled" required min="0" value="0"></div>
-
-                        <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia</h3></div>
-                        <div><label for="contactoEmergenciaNombre" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre" name="contactoEmergenciaNombre" class="input-styled" required></div>
-                        <div><label for="contactoEmergenciaTelefono" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono" name="contactoEmergenciaTelefono" class="input-styled" required></div>
                     </div>
                 </div>
 
@@ -135,12 +136,15 @@
             <div id="consentimientoContainer" class="hidden card">
                 <h2 class="text-2xl font-bold border-b pb-3 mb-6">4. Términos del Consentimiento Informado de Pareja</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700">
-                    <p id="consentimientoIntro"></p>
-                    <div class="space-y-2"><h4 class="font-bold">4.1 Confidencialidad:</h4><p>Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con la pareja, la cual será inviolable, salvo que la integridad física de alguno de los miembros se vea amenazada, o la de terceros, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional. La información compartida en sesiones individuales con cualquiera de los miembros podrá ser utilizada en la terapia conjunta si el terapeuta lo considera pertinente para el avance del proceso.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">4.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica de pareja, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia para mejorar la dinámica y el bienestar de la relación.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">4.3 Naturaleza del Proceso:</h4><p>Se nos ha informado que el proceso puede incluir entrevistas conjuntas e individuales, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa y honesta es fundamental para el éxito del mismo.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">4.4 Costos económicos:</h4><p>Nos comprometemos a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">4.5 Tratamiento de Datos:</h4><p>Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual hemos podido consultar.</p></div>
+                    <p id="consentimientoIntro" class="text-justify"></p>
+                    <div class="space-y-2"><h4 class="font-bold">4.1 Confidencialidad:</h4>
+                        <p class="text-justify">Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con la pareja, la cual será inviolable, salvo que la integridad física de alguno de los miembros se vea amenazada, o la de terceros, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional. La información compartida en sesiones individuales con cualquiera de los miembros podrá ser utilizada en la terapia conjunta si el terapeuta lo considera pertinente para el avance del proceso.</p>
+                        <p class="text-justify">Entendemos y nos comprometemos a respetar la privacidad y confidencialidad que el psicólogo tendrá con el otro miembro de la relación. Es decir, ninguno podrá preguntarle al psicólogo sobre las sesiones individuales que se tenga con el otro y el psicólogo no podrá divulgar información confidencial y privada que se hable en las sesiones individuales sin la previa autorización expresa del miembro de la pareja involucrado.</p>
+                    </div>
+                    <div class="space-y-2"><h4 class="font-bold">4.2 Propósito de la Intervención:</h4><p class="text-justify">El propósito es realizar una evaluación y/o intervención psicológica de pareja, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia para mejorar la dinámica y el bienestar de la relación.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.3 Naturaleza del Proceso:</h4><p class="text-justify">Se nos ha informado que el proceso puede incluir entrevistas conjuntas e individuales, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa y honesta es fundamental para el éxito del mismo.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.4 Costos económicos:</h4><p class="text-justify">Nos comprometemos a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.</p></div>
+                    <div class="space-y-2"><h4 class="font-bold">4.5 Tratamiento de Datos:</h4><p class="text-justify">Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual hemos podido consultar.</p></div>
                 </div>
                 
                  <div class="mt-8 pt-6 border-t">
@@ -201,9 +205,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const camposCasados = document.getElementById('camposCasados');
     const anosCasadosInput = document.getElementById('anosCasados');
     
-    // Contenedor y campos de residencia
     const residenciaContainer = document.getElementById('residenciaContainer');
-    const residenciaInputs = residenciaContainer.querySelectorAll('input, select');
     const direccionInput = document.getElementById('direccion');
 
     let geodata = {};
@@ -295,13 +297,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         const casados = ['casados_religion', 'casados_civil'].includes(seleccion);
         const novios = seleccion === 'novios';
 
-        // Lógica para campos de convivencia y casados
         camposConvivencia.classList.toggle('hidden', !convivencia);
         anosConvivenciaInput.required = convivencia;
         camposCasados.classList.toggle('hidden', !casados);
         anosCasadosInput.required = casados;
 
-        // Lógica para residencia
         residenciaContainer.classList.toggle('hidden', novios);
         paisSelect.required = !novios;
         direccionInput.required = !novios;
