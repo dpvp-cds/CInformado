@@ -32,15 +32,12 @@
             
             <form id="firmaForm" class="space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Firma Miembro 1 -->
                     <div class="card">
                         <h2 class="text-2xl font-bold mb-4" id="tituloFirma1">Firma del Miembro 1</h2>
                         <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos.</p>
                         <canvas id="firma-canvas-1" class="firma-canvas cursor-crosshair"></canvas>
                         <div class="text-center mt-4"><button type="button" class="limpiarFirma text-sm text-[#003366] hover:underline" data-canvas="firma-canvas-1">Borrar Firma</button></div>
                     </div>
-
-                    <!-- Firma Miembro 2 -->
                     <div class="card">
                         <h2 class="text-2xl font-bold mb-4" id="tituloFirma2">Firma del Miembro 2</h2>
                         <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos.</p>
@@ -65,15 +62,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- INICIO DE LA MEJORA DE SEGURIDAD ---
     const sessionData = sessionStorage.getItem('consentimiento_pareja_demograficos');
-    // Si no existen los datos de la pareja en la sesión, significa que no vienen
-    // del paso anterior. Se les redirige a la página principal.
     if (!sessionData) {
-        window.location.href = '/'; // Redirige a la raíz del sitio web.
-        return; // Detiene la ejecución del resto del script.
+        window.location.href = '/';
+        return;
     }
-    // --- FIN DE LA MEJORA DE SEGURIDAD ---
 
     const datosCrudos = JSON.parse(sessionData);
     document.getElementById('tituloFirma1').textContent = `Firma de ${datosCrudos.nombreCompleto1}`;
@@ -84,14 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const serverErrorDiv = document.getElementById('server-error-message');
     const successDiv = document.getElementById('success-message');
     
-    const canvases = [
-        { id: 'firma-canvas-1', ctx: null, isDrawing: false, lastX: 0, lastY: 0 },
-        { id: 'firma-canvas-2', ctx: null, isDrawing: false, lastX: 0, lastY: 0 }
-    ];
+    const canvases = [ { id: 'firma-canvas-1', ctx: null, isDrawing: false }, { id: 'firma-canvas-2', ctx: null, isDrawing: false } ];
 
     function initializeCanvas(canvasConfig) {
         const canvas = document.getElementById(canvasConfig.id);
         canvasConfig.ctx = canvas.getContext('2d');
+        let lastX = 0, lastY = 0;
         
         const resizeCanvas = () => {
             const ratio = window.devicePixelRatio || 1;
@@ -109,29 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const getEventPosition = (e) => {
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches ? e.touches[0] : null;
-            return {
-                x: (touch ? touch.clientX : e.clientX) - rect.left,
-                y: (touch ? touch.clientY : e.clientY) - rect.top
-            };
+            return { x: (touch ? touch.clientX : e.clientX) - rect.left, y: (touch ? touch.clientY : e.clientY) - rect.top };
         };
 
-        const startDrawing = (e) => {
-            canvasConfig.isDrawing = true;
-            const pos = getEventPosition(e);
-            [canvasConfig.lastX, canvasConfig.lastY] = [pos.x, pos.y];
-        };
-
-        const draw = (e) => {
-            if (!canvasConfig.isDrawing) return;
-            e.preventDefault();
-            const pos = getEventPosition(e);
-            canvasConfig.ctx.beginPath();
-            canvasConfig.ctx.moveTo(canvasConfig.lastX, canvasConfig.lastY);
-            canvasConfig.ctx.lineTo(pos.x, pos.y);
-            canvasConfig.ctx.stroke();
-            [canvasConfig.lastX, canvasConfig.lastY] = [pos.x, pos.y];
-        };
-
+        const startDrawing = (e) => { canvasConfig.isDrawing = true; const pos = getEventPosition(e); [lastX, lastY] = [pos.x, pos.y]; };
+        const draw = (e) => { if (!canvasConfig.isDrawing) return; e.preventDefault(); const pos = getEventPosition(e); canvasConfig.ctx.beginPath(); canvasConfig.ctx.moveTo(lastX, lastY); canvasConfig.ctx.lineTo(pos.x, pos.y); canvasConfig.ctx.stroke(); [lastX, lastY] = [pos.x, pos.y]; };
         const stopDrawing = () => { canvasConfig.isDrawing = false; };
 
         canvas.addEventListener('mousedown', startDrawing);
@@ -142,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
     }
-
     canvases.forEach(initializeCanvas);
 
     document.querySelectorAll('.limpiarFirma').forEach(button => {
@@ -165,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     firmaForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-
         const canvas1Empty = isCanvasEmpty(canvases[0]);
         const canvas2Empty = isCanvasEmpty(canvases[1]);
 
@@ -186,18 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const firma1 = document.getElementById(canvases[0].id).toDataURL('image/png');
             const firma2 = document.getElementById(canvases[1].id).toDataURL('image/png');
-
-            const finalData = {
-                demograficos: datosCrudos,
-                consentimiento: {
-                    fechaAceptacion: new Date().toISOString(),
-                    userAgent: navigator.userAgent
-                },
-                firmas: {
-                    miembro1: firma1,
-                    miembro2: firma2
-                }
-            };
+            const finalData = { demograficos: datosCrudos, consentimiento: { fechaAceptacion: new Date().toISOString(), userAgent: navigator.userAgent }, firmas: { miembro1: firma1, miembro2: firma2 } };
 
             const response = await fetch('/api/save-consent-pareja', {
                 method: 'POST',
@@ -205,18 +165,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' }
             });
 
-            if (response.ok) {
-                sessionStorage.removeItem('consentimiento_pareja_demograficos');
-                successDiv.textContent = '¡Consentimiento de pareja enviado con éxito! Gracias por su confianza.';
-                successDiv.classList.remove('hidden');
-                document.querySelectorAll('.limpiarFirma').forEach(b => b.disabled = true);
-                submitButton.textContent = 'Enviado';
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Hubo un problema en el servidor.');
+            if (!response.ok) {
+                let errorDetail = `El servidor respondió con el código de error ${response.status}.`;
+                try {
+                    const errorData = await response.json();
+                    errorDetail = errorData.detail || errorData.message || JSON.stringify(errorData);
+                } catch (jsonError) {
+                    const errorText = await response.text();
+                    console.error("Respuesta no-JSON del servidor:", errorText);
+                    errorDetail += " La respuesta del servidor no fue un JSON válido.";
+                }
+                throw new Error(errorDetail);
             }
+
+            const result = await response.json();
+            sessionStorage.removeItem('consentimiento_pareja_demograficos');
+            successDiv.textContent = '¡Consentimiento de pareja enviado con éxito! Gracias por su confianza.';
+            successDiv.classList.remove('hidden');
+            document.querySelectorAll('.limpiarFirma').forEach(b => b.disabled = true);
+            submitButton.textContent = 'Enviado';
+
         } catch (error) {
-            console.error("Error al guardar:", error);
+            console.error("Error detallado en el proceso de envío:", error);
             serverErrorDiv.textContent = `Error: ${error.message}`;
             serverErrorDiv.classList.remove('hidden');
             submitButton.disabled = false;
