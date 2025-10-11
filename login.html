@@ -83,7 +83,18 @@
                 <form id="loginForm">
                     <div class="mb-6">
                         <label for="password" class="block mb-2 font-medium">Contraseña</label>
-                        <input type="password" id="password" class="input-styled" required>
+                        <div class="relative">
+                            <input type="password" id="password" class="input-styled pr-10" required>
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .91-2.905 3.033-5.235 5.698-6.388M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.364 4.364l-2.286-2.286A6.974 6.974 0 0019.5 12c-.183-.584-.41-1.153-.686-1.686m-2.286-2.286L15 6.5M5 5l14 14" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div id="errorMessage" class="text-red-600 text-center mb-4 hidden">Contraseña incorrecta.</div>
                     <button type="submit" id="submitButton" class="btn-brand w-full">Ingresar al Portal</button>
@@ -105,14 +116,11 @@
             const errorMessage = document.getElementById('errorMessage');
             const submitButton = document.getElementById('submitButton');
             
-            // Deshabilitar el botón y mostrar estado de carga
             submitButton.disabled = true;
             submitButton.textContent = 'Verificando...';
             errorMessage.classList.add('hidden');
 
             try {
-                // --- INICIO DE LA LÓGICA SEGURA ---
-                // 1. Enviar la contraseña al endpoint de la API para su verificación en el servidor.
                 const response = await fetch('/api/authenticate', {
                     method: 'POST',
                     headers: {
@@ -121,34 +129,43 @@
                     body: JSON.stringify({ password: passwordInput.value }),
                 });
 
-                // 2. Analizar la respuesta del servidor.
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
-                        // Si el servidor dice que la contraseña es correcta:
                         sessionStorage.setItem('consultorAuth', 'true');
                         window.location.href = 'portal-consentimientos.html';
                     }
                 } else {
-                    // Si el servidor responde con un error (ej. 401 No Autorizado), mostramos el mensaje.
                     errorMessage.classList.remove('hidden');
                 }
-                // --- FIN DE LA LÓGICA SEGURA ---
 
             } catch (error) {
-                // Manejar errores de red (ej. sin conexión a internet)
                 console.error('Error de red al autenticar:', error);
                 errorMessage.textContent = 'Error de conexión. Inténtalo de nuevo.';
                 errorMessage.classList.remove('hidden');
             } finally {
-                // Volver a habilitar el botón y restaurar su texto
                 submitButton.disabled = false;
                 submitButton.textContent = 'Ingresar al Portal';
                 passwordInput.value = '';
                 passwordInput.focus();
             }
         });
+
+        // --- Lógica para mostrar/ocultar contraseña ---
+        const togglePasswordButton = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+
+        togglePasswordButton.addEventListener('click', function () {
+            const passwordField = document.getElementById('password');
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            eyeIcon.classList.toggle('hidden');
+            eyeSlashIcon.classList.toggle('hidden');
+        });
     </script>
 
 </body>
 </html>
+
