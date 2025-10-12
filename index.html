@@ -23,7 +23,10 @@
             <a href="https://www.caminosdelser.co" target="_blank">
                 <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
             </a>
-            <a href="login.html" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Acceso Terapeuta</a>
+            <div class="flex items-center space-x-6">
+                <a href="para-psicologos.html" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Para Psicólogos</a>
+                <a href="login.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] border-l border-gray-300 pl-6">Acceso Terapeuta</a>
+            </div>
         </div>
     </header>
 
@@ -66,12 +69,43 @@
 
     <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
         <div class="container mx-auto text-center">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. | <a href="politicadatos.html" target="_blank" class="hover:text-gray-200 underline">Política de Tratamiento de datos</a></p>
         </div>
     </footer>
 
+    <!-- Banner de Cookies -->
+    <div id="cookieBanner" class="hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] text-white p-4 md:p-3 shadow-2xl z-50">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between text-center md:text-left">
+            <p class="text-sm mb-3 md:mb-0 md:mr-6">
+                Utilizamos cookies y datos de sesión para garantizar la funcionalidad del formulario y mejorar tu experiencia. Al continuar, aceptas nuestra
+                <a href="politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de Tratamiento de Datos.</a>
+            </p>
+            <button id="acceptCookies" class="bg-white text-[#003366] font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition-colors text-sm flex-shrink-0">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cookieBanner = document.getElementById('cookieBanner');
+            const acceptCookiesButton = document.getElementById('acceptCookies');
+
+            // Comprobar si las cookies ya han sido aceptadas
+            if (!localStorage.getItem('cookiesAccepted')) {
+                // Usamos un pequeño retraso para asegurar que la página se cargue antes de mostrar el banner
+                setTimeout(() => {
+                    cookieBanner.classList.remove('hidden');
+                    cookieBanner.classList.add('flex');
+                }, 500);
+            }
+
+            acceptCookiesButton.addEventListener('click', function() {
+                localStorage.setItem('cookiesAccepted', 'true');
+                cookieBanner.style.display = 'none';
+            });
+        });
+    </script>
+
 </body>
 </html>
-
 
 
