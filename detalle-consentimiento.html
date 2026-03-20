@@ -247,9 +247,11 @@
                         direccion: demoAntiguo.direccion2 || demoAntiguo.direccion,
                         eps: demoAntiguo.eps2 || demoAntiguo.eps
                     };
-                    firmas = reporte.firmas || {
-                        firma1: reporte.firmaDigital1 || reporte.firmaDigital,
-                        firma2: reporte.firmaDigital2 || reporte.firmaDigital
+                    
+                    // Ampliamos la red de búsqueda para capturar la firma histórica sin importar cómo se guardó
+                    firmas = {
+                        firma1: (reporte.firmas && reporte.firmas.firma1) || reporte.firma1 || reporte.firmaDigital1 || reporte.firmaPaciente1 || reporte.firmaDigital || '',
+                        firma2: (reporte.firmas && reporte.firmas.firma2) || reporte.firma2 || reporte.firmaDigital2 || reporte.firmaPaciente2 || reporte.firmaDigital || ''
                     };
                 }
 
@@ -258,12 +260,26 @@
                 // Paciente 1
                 document.getElementById('nombreTit1').textContent = `Paciente 1: ${(p1.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo1').innerHTML = buildDemoHTML(p1);
-                if (firmas.firma1) document.getElementById('firma1').src = firmas.firma1;
+                const imgFirma1 = document.getElementById('firma1');
+                if (firmas.firma1) {
+                    imgFirma1.src = firmas.firma1;
+                    imgFirma1.style.display = 'block';
+                } else {
+                    imgFirma1.style.display = 'none';
+                    if (!document.getElementById('errFirma1')) imgFirma1.insertAdjacentHTML('afterend', '<p id="errFirma1" class="text-sm text-gray-400 italic mt-4">Firma no disponible en registro histórico</p>');
+                }
 
                 // Paciente 2
                 document.getElementById('nombreTit2').textContent = `Paciente 2: ${(p2.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo2').innerHTML = buildDemoHTML(p2);
-                if (firmas.firma2) document.getElementById('firma2').src = firmas.firma2;
+                const imgFirma2 = document.getElementById('firma2');
+                if (firmas.firma2) {
+                    imgFirma2.src = firmas.firma2;
+                    imgFirma2.style.display = 'block';
+                } else {
+                    imgFirma2.style.display = 'none';
+                    if (!document.getElementById('errFirma2')) imgFirma2.insertAdjacentHTML('afterend', '<p id="errFirma2" class="text-sm text-gray-400 italic mt-4">Firma no disponible en registro histórico</p>');
+                }
 
             } else {
                 // ==========================================
@@ -274,7 +290,16 @@
                 document.getElementById('vistaIndividual').classList.remove('hidden');
 
                 document.getElementById('demographicsContent').innerHTML = buildDemoHTML(demo);
-                document.getElementById('signatureImage').src = reporte.firmaDigital;
+                
+                const imgFirmaInd = document.getElementById('signatureImage');
+                const firmaIndividual = reporte.firmaDigital || reporte.firma || '';
+                if (firmaIndividual) {
+                    imgFirmaInd.src = firmaIndividual;
+                    imgFirmaInd.style.display = 'block';
+                } else {
+                    imgFirmaInd.style.display = 'none';
+                    if (!document.getElementById('errFirmaInd')) imgFirmaInd.insertAdjacentHTML('afterend', '<p id="errFirmaInd" class="text-sm text-gray-400 italic mt-4">Firma no disponible en el registro</p>');
+                }
 
                 // Lógica Acudiente / Menores
                 const esMenor = parseInt(demo.edad, 10) < 18;
