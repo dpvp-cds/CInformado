@@ -21,7 +21,7 @@
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-2 flex justify-between items-center">
             <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0"><img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10"></a>
-            <a href="individual.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
         </div>
     </header>
     <main class="container mx-auto px-6 py-12">
@@ -43,7 +43,8 @@
     </main>
     <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
         <div class="container mx-auto text-center space-y-2">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
+            <div class="mt-4"><a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a></div>
         </div>
     </footer>
 
@@ -51,7 +52,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const sessionData = sessionStorage.getItem('consentimiento_demograficos');
         if (!sessionData) {
-            window.location.href = 'individual.html';
+            window.location.href = 'index.html';
             return;
         }
 
@@ -114,9 +115,6 @@
                 const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
 
-                // --- INICIO DE LA CORRECCIÓN ---
-                // Reconstruimos el objeto 'demograficos' para asegurar que los nombres de los campos
-                // coincidan con lo que el servidor espera, especialmente 'nombre'.
                 const finalData = {
                     demograficos: {
                         nombre: datosCrudos.nombreCompleto,
@@ -128,6 +126,7 @@
                         departamento: datosCrudos.departamento || null,
                         ciudad: datosCrudos.municipio || datosCrudos.ciudad || null,
                         direccion: datosCrudos.direccion,
+                        eps: datosCrudos.eps || null, 
                         tipoDocumento: datosCrudos.tipoDocumento,
                         documentoIdentidad: datosCrudos.documentoIdentidad,
                         telefonoContacto: datosCrudos.telefonoContacto,
@@ -135,8 +134,7 @@
                         contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
                         nombreAcudiente: datosCrudos.nombreAcudiente || null,
                         tipoAcudiente: datosCrudos.tipoAcudiente || null,
-                        documentoAcudiente: datosCrudos.documentoAcudiente || null,
-                        modalidadSesion: datosCrudos.modalidadSesion
+                        documentoAcudiente: datosCrudos.documentoAcudiente || null
                     },
                     consentimiento: {
                         fechaAceptacion: new Date().toISOString(),
@@ -144,8 +142,7 @@
                     },
                     firmaDigital: firmaDigital
                 };
-                // --- FIN DE LA CORRECCIÓN ---
-                
+
                 const response = await fetch('/api/save-consent', {
                     method: 'POST',
                     body: JSON.stringify(finalData),
@@ -174,4 +171,3 @@
     </script>
 </body>
 </html>
-
