@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Firma Digital de Pareja - Caminos del Ser</title>
+    <title>Firma Parejas - Caminos del Ser</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
@@ -20,181 +18,137 @@
 <body class="antialiased">
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-2 flex justify-between items-center">
-            <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0"><img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10"></a>
-            <a href="parejas.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
+            <a href="index.html"><img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10"></a>
+            <a href="parejas.html" class="text-sm text-gray-600 hover:text-[#003366]">Volver al Consentimiento</a>
         </div>
     </header>
-
     <main class="container mx-auto px-6 py-12">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Paso Final: Firma Digital de Pareja</h1>
-            <p class="text-base md:text-lg text-gray-600 text-center mb-8">Por favor, cada uno firme en su recuadro para completar el consentimiento.</p>
+        <div class="max-w-3xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-4">Paso Final: Firmas Digitales</h1>
+            <p class="text-center text-gray-600 mb-8">Ambos deben firmar en sus respectivos recuadros.</p>
             
             <form id="firmaForm" class="space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="card">
-                        <h2 class="text-2xl font-bold mb-4" id="tituloFirma1">Firma del Miembro 1</h2>
-                        <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos.</p>
-                        <canvas id="firma-canvas-1" class="firma-canvas cursor-crosshair"></canvas>
-                        <div class="text-center mt-4"><button type="button" class="limpiarFirma text-sm text-[#003366] hover:underline" data-canvas="firma-canvas-1">Borrar Firma</button></div>
+                    <!-- Firma Paciente 1 -->
+                    <div class="card text-center">
+                        <h2 class="text-xl font-bold mb-2 text-[#003366]" id="nombreFirma1">Paciente 1</h2>
+                        <div class="mb-4"><canvas id="firma-canvas-1" width="300" height="150" class="firma-canvas cursor-crosshair"></canvas></div>
+                        <button type="button" id="limpiarFirma1" class="text-sm text-[#003366] hover:underline">Borrar Firma</button>
                     </div>
-                    <div class="card">
-                        <h2 class="text-2xl font-bold mb-4" id="tituloFirma2">Firma del Miembro 2</h2>
-                        <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos.</p>
-                        <canvas id="firma-canvas-2" class="firma-canvas cursor-crosshair"></canvas>
-                        <div class="text-center mt-4"><button type="button" class="limpiarFirma text-sm text-[#003366] hover:underline" data-canvas="firma-canvas-2">Borrar Firma</button></div>
+                    <!-- Firma Paciente 2 -->
+                    <div class="card text-center">
+                        <h2 class="text-xl font-bold mb-2 text-[#003366]" id="nombreFirma2">Paciente 2</h2>
+                        <div class="mb-4"><canvas id="firma-canvas-2" width="300" height="150" class="firma-canvas cursor-crosshair"></canvas></div>
+                        <button type="button" id="limpiarFirma2" class="text-sm text-[#003366] hover:underline">Borrar Firma</button>
                     </div>
                 </div>
 
-                <div id="server-error-message" class="hidden my-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
-                <div id="success-message" class="hidden my-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center"></div>
-
-                <div class="mt-8 text-center">
-                    <button type="submit" id="submitButton" class="btn-brand text-lg">Firmar y Enviar Consentimiento</button>
-                </div>
+                <div id="server-error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
+                <div id="success-message" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center"></div>
+                <div class="text-center"><button type="submit" id="submitButton" class="btn-brand text-lg">Firmar y Enviar Acuerdo Conjunto</button></div>
             </form>
         </div>
     </main>
 
-    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
-        <div class="container mx-auto text-center"><p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p></div>
-    </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessionData = sessionStorage.getItem('consentimiento_parejas');
+        if (!sessionData) { window.location.href = 'parejas.html'; return; }
+        const datosCrudos = JSON.parse(sessionData);
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const sessionData = sessionStorage.getItem('consentimiento_pareja_demograficos');
-    if (!sessionData) {
-        window.location.href = '/';
-        return;
-    }
+        document.getElementById('nombreFirma1').textContent = `Firma de ${datosCrudos.nombreCompleto1.split(' ')[0]}`;
+        document.getElementById('nombreFirma2').textContent = `Firma de ${datosCrudos.nombreCompleto2.split(' ')[0]}`;
 
-    const datosCrudos = JSON.parse(sessionData);
-    document.getElementById('tituloFirma1').textContent = `Firma de ${datosCrudos.nombreCompleto1}`;
-    document.getElementById('tituloFirma2').textContent = `Firma de ${datosCrudos.nombreCompleto2}`;
+        function setupCanvas(canvasId, clearBtnId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false; let lastX = 0; let lastY = 0;
 
-    const firmaForm = document.getElementById('firmaForm');
-    const submitButton = document.getElementById('submitButton');
-    const serverErrorDiv = document.getElementById('server-error-message');
-    const successDiv = document.getElementById('success-message');
-    
-    const canvases = [ { id: 'firma-canvas-1', ctx: null, isDrawing: false }, { id: 'firma-canvas-2', ctx: null, isDrawing: false } ];
+            const resizeCanvas = () => {
+                const ratio = window.devicePixelRatio || 1;
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                ctx.scale(ratio, ratio);
+                ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = '#003366';
+            };
+            window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
-    function initializeCanvas(canvasConfig) {
-        const canvas = document.getElementById(canvasConfig.id);
-        canvasConfig.ctx = canvas.getContext('2d');
-        let lastX = 0, lastY = 0;
-        
-        const resizeCanvas = () => {
-            const ratio = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvasConfig.ctx.scale(ratio, ratio);
-            canvasConfig.ctx.lineWidth = 2;
-            canvasConfig.ctx.lineJoin = 'round';
-            canvasConfig.ctx.lineCap = 'round';
-            canvasConfig.ctx.strokeStyle = '#003366';
-        };
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+            const getEventPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return e.touches ? { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top } : { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            };
 
-        const getEventPosition = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches ? e.touches[0] : null;
-            return { x: (touch ? touch.clientX : e.clientX) - rect.left, y: (touch ? touch.clientY : e.clientY) - rect.top };
-        };
+            const start = (e) => { isDrawing = true; const pos = getEventPos(e); [lastX, lastY] = [pos.x, pos.y]; };
+            const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getEventPos(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y); ctx.stroke(); [lastX, lastY] = [pos.x, pos.y]; };
+            const stop = () => isDrawing = false;
 
-        const startDrawing = (e) => { canvasConfig.isDrawing = true; const pos = getEventPosition(e); [lastX, lastY] = [pos.x, pos.y]; };
-        const draw = (e) => { if (!canvasConfig.isDrawing) return; e.preventDefault(); const pos = getEventPosition(e); canvasConfig.ctx.beginPath(); canvasConfig.ctx.moveTo(lastX, lastY); canvasConfig.ctx.lineTo(pos.x, pos.y); canvasConfig.ctx.stroke(); [lastX, lastY] = [pos.x, pos.y]; };
-        const stopDrawing = () => { canvasConfig.isDrawing = false; };
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
-    }
-    canvases.forEach(initializeCanvas);
-
-    document.querySelectorAll('.limpiarFirma').forEach(button => {
-        button.onclick = () => {
-            const canvasId = button.dataset.canvas;
-            const canvasConfig = canvases.find(c => c.id === canvasId);
-            if (canvasConfig) {
-                const canvas = document.getElementById(canvasConfig.id);
-                canvasConfig.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                serverErrorDiv.classList.add('hidden');
-            }
-        };
-    });
-    
-    const isCanvasEmpty = (canvasConfig) => {
-        const canvas = document.getElementById(canvasConfig.id);
-        const pixelBuffer = new Uint32Array(canvasConfig.ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
-        return !pixelBuffer.some(color => color !== 0);
-    };
-
-    firmaForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const canvas1Empty = isCanvasEmpty(canvases[0]);
-        const canvas2Empty = isCanvasEmpty(canvases[1]);
-
-        if (canvas1Empty || canvas2Empty) {
-            let errorMsg = 'Por favor, asegúrense de firmar ambos para continuar. Falta la firma de ';
-            if (canvas1Empty && canvas2Empty) errorMsg += `${datosCrudos.nombreCompleto1} y ${datosCrudos.nombreCompleto2}.`;
-            else if (canvas1Empty) errorMsg += `${datosCrudos.nombreCompleto1}.`;
-            else errorMsg += `${datosCrudos.nombreCompleto2}.`;
-            serverErrorDiv.textContent = errorMsg;
-            serverErrorDiv.classList.remove('hidden');
-            return;
+            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
+            canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stop);
+            
+            document.getElementById(clearBtnId).onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            return {
+                canvas: canvas,
+                ctx: ctx,
+                isEmpty: () => !new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer).some(c => c !== 0)
+            };
         }
-        
-        serverErrorDiv.classList.add('hidden');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Enviando...';
 
-        try {
-            const firma1 = document.getElementById('firma-canvas-1').toDataURL('image/png');
-            const firma2 = document.getElementById('firma-canvas-2').toDataURL('image/png');
-            const finalData = { demograficos: datosCrudos, consentimiento: { fechaAceptacion: new Date().toISOString(), userAgent: navigator.userAgent }, firmas: { miembro1: firma1, miembro2: firma2 } };
+        const c1 = setupCanvas('firma-canvas-1', 'limpiarFirma1');
+        const c2 = setupCanvas('firma-canvas-2', 'limpiarFirma2');
 
-            const response = await fetch('/api/save-consent-pareja', {
-                method: 'POST',
-                body: JSON.stringify(finalData),
-                headers: { 'Content-Type': 'application/json' }
-            });
+        document.getElementById('firmaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errDiv = document.getElementById('server-error-message');
+            if (c1.isEmpty() || c2.isEmpty()) { errDiv.textContent = 'Ambos pacientes deben realizar su firma.'; errDiv.classList.remove('hidden'); return; }
+            
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true; submitButton.textContent = 'Enviando...';
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                let errorDetail;
-                try {
-                    const errorData = JSON.parse(errorText);
-                    errorDetail = errorData.detail || errorData.message || errorText;
-                } catch (jsonError) {
-                    console.error("Respuesta no-JSON del servidor:", errorText);
-                    errorDetail = `El servidor respondió con el código ${response.status}. La respuesta no fue un JSON válido.`;
-                }
-                throw new Error(errorDetail);
+            try {
+                // Separamos los datos para enviarlos limpios al backend
+                const finalData = {
+                    tipo: 'pareja',
+                    fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
+                    paciente1: {
+                        nombre: datosCrudos.nombreCompleto1, email: datosCrudos.email1,
+                        fechaNacimiento: datosCrudos.fechaNacimiento1, edad: datosCrudos.edad1,
+                        pais: datosCrudos.pais1, departamento: datosCrudos.departamento1 || null,
+                        ciudad: datosCrudos.municipio1 || datosCrudos.ciudad1 || null,
+                        direccion: datosCrudos.direccion1, eps: datosCrudos.eps1, // <--- EPS Integrada
+                        tipoDocumento: datosCrudos.tipoDocumento1, documentoIdentidad: datosCrudos.documentoIdentidad1,
+                        telefonoContacto: datosCrudos.telefonoContacto1
+                    },
+                    paciente2: {
+                        nombre: datosCrudos.nombreCompleto2, email: datosCrudos.email2,
+                        fechaNacimiento: datosCrudos.fechaNacimiento2, edad: datosCrudos.edad2,
+                        pais: datosCrudos.pais2, departamento: datosCrudos.departamento2 || null,
+                        ciudad: datosCrudos.municipio2 || datosCrudos.ciudad2 || null,
+                        direccion: datosCrudos.direccion2, eps: datosCrudos.eps2, // <--- EPS Integrada
+                        tipoDocumento: datosCrudos.tipoDocumento2, documentoIdentidad: datosCrudos.documentoIdentidad2,
+                        telefonoContacto: datosCrudos.telefonoContacto2
+                    },
+                    consentimiento: { fechaAceptacion: new Date().toISOString(), userAgent: navigator.userAgent },
+                    firmas: { firma1: c1.canvas.toDataURL('image/png'), firma2: c2.canvas.toDataURL('image/png') }
+                };
+
+                const response = await fetch('/api/save-consent-pareja', {
+                    method: 'POST', body: JSON.stringify(finalData), headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    sessionStorage.removeItem('consentimiento_parejas');
+                    document.getElementById('success-message').textContent = '¡Consentimiento de pareja enviado con éxito!';
+                    document.getElementById('success-message').classList.remove('hidden');
+                    errDiv.classList.add('hidden');
+                    submitButton.textContent = 'Enviado Correctamente';
+                } else { throw new Error('Problema en el servidor.'); }
+            } catch (error) {
+                console.error(error); errDiv.textContent = 'Error de conexión. Intenta de nuevo.'; errDiv.classList.remove('hidden');
+                submitButton.disabled = false; submitButton.textContent = 'Firmar y Enviar Acuerdo Conjunto';
             }
-
-            const result = await response.json();
-            sessionStorage.removeItem('consentimiento_pareja_demograficos');
-            successDiv.textContent = '¡Consentimiento de pareja enviado con éxito! Gracias por su confianza.';
-            successDiv.classList.remove('hidden');
-            document.querySelectorAll('.limpiarFirma').forEach(b => b.disabled = true);
-            submitButton.textContent = 'Enviado';
-
-        } catch (error) {
-            console.error("Error detallado en el proceso de envío:", error);
-            serverErrorDiv.textContent = `Error: ${error.message}`;
-            serverErrorDiv.classList.remove('hidden');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Firmar y Enviar Consentimiento';
-        }
+        });
     });
-});
-</script>
+    </script>
 </body>
 </html>
-
