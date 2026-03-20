@@ -149,7 +149,6 @@
             }
 
             try {
-                // NOTA: Se asume que este endpoint devuelve el JSON completo, ya sea individual o de pareja.
                 const response = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -168,7 +167,6 @@
             }
         }
 
-        // Función auxiliar para renderizar los datos demográficos (reutilizable)
         function buildDemoHTML(paciente) {
             const safe = (val) => val || 'No especificado';
             return `
@@ -184,14 +182,46 @@
             `;
         }
 
-        // El "cerebro" que decide qué vista renderizar
         function displayUnifiedReport(reporte) {
-            // Evaluamos si es un reporte de pareja basándonos en su estructura (nueva o antigua)
             const demoAntiguo = reporte.demograficos || {};
             const isPareja = reporte.tipo === 'pareja' || 
                              reporte.paciente1 !== undefined || 
                              demoAntiguo.nombreCompleto1 !== undefined || 
                              demoAntiguo.nombre1 !== undefined;
+
+            // =========================================================
+            // CEREBRO DE EXTRACCIÓN (DEEP SCAN) PARA FIRMAS HISTÓRICAS
+            // =========================================================
+            let allBase64 = [];
+            // Escaneamos todo el objeto JSON sin importar su anidación en busca de imágenes
+            JSON.stringify(reporte, (key, value) => {
+                if (typeof value === 'string' && value.startsWith('data:image/')) {
+                    if(!allBase64.includes(value)) allBase64.push(value);
+                }
+                return value;
+            });
+
+            function getFirmaSegura(num) {
+                // 1. Buscamos en las rutas donde habitualmente se guardaba
+                const explicita = (reporte.firmas && reporte.firmas[`firma${num}`]) || 
+                                  reporte[`firma${num}`] || 
+                                  reporte[`firmaDigital${num}`] || 
+                                  (reporte[`paciente${num}`] && reporte[`paciente${num}`].firma) ||
+                                  (demoAntiguo[`firma${num}`]) ||
+                                  (demoAntiguo[`firmaDigital${num}`]);
+                
+                if (explicita && explicita.startsWith('data:image/')) return explicita;
+                
+                // 2. Si no la halló, usamos lo que atrapó el escaner profundo
+                if (num === 1 && allBase64.length > 0) return allBase64[0];
+                if (num === 2 && allBase64.length > 1) return allBase64[1];
+                
+                // 3. Caso especial: Pareja que firmó en un solo recuadro compartido
+                if (num === 2 && allBase64.length === 1) return allBase64[0]; 
+                
+                // 4. Último recurso histórico genérico
+                return reporte.firmaDigital || '';
+            }
 
             // 1. Renderizar Metadatos (Común)
             const metadataDiv = document.getElementById('metadataContent');
@@ -210,15 +240,12 @@
                 document.getElementById('reportTitle').textContent = `Consentimiento de Pareja`;
                 document.getElementById('vistaParejas').classList.remove('hidden');
 
-                let p1, p2, firmas;
+                let p1, p2;
 
                 if (reporte.paciente1) {
-                    // Formato Nuevo (Limpio)
                     p1 = reporte.paciente1;
                     p2 = reporte.paciente2;
-                    firmas = reporte.firmas || {};
                 } else {
-                    // Adaptador para Formato Histórico/Antiguo de Parejas
                     p1 = {
                         nombre: demoAntiguo.nombreCompleto1 || demoAntiguo.nombre1 || 'Paciente 1',
                         documentoIdentidad: demoAntiguo.documentoIdentidad1 || demoAntiguo.documentoIdentidad,
@@ -247,38 +274,36 @@
                         direccion: demoAntiguo.direccion2 || demoAntiguo.direccion,
                         eps: demoAntiguo.eps2 || demoAntiguo.eps
                     };
-                    
-                    // Ampliamos la red de búsqueda para capturar la firma histórica sin importar cómo se guardó
-                    firmas = {
-                        firma1: (reporte.firmas && reporte.firmas.firma1) || reporte.firma1 || reporte.firmaDigital1 || reporte.firmaPaciente1 || reporte.firmaDigital || '',
-                        firma2: (reporte.firmas && reporte.firmas.firma2) || reporte.firma2 || reporte.firmaDigital2 || reporte.firmaPaciente2 || reporte.firmaDigital || ''
-                    };
                 }
 
                 document.getElementById('consentimientoParejaIntro').textContent = `Nosotros, ${p1.nombre} (Doc: ${p1.documentoIdentidad}) y ${p2.nombre} (Doc: ${p2.documentoIdentidad}), declaramos voluntariamente que:`;
 
-                // Paciente 1
+                // Renderizar Paciente 1 y su firma
                 document.getElementById('nombreTit1').textContent = `Paciente 1: ${(p1.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo1').innerHTML = buildDemoHTML(p1);
                 const imgFirma1 = document.getElementById('firma1');
-                if (firmas.firma1) {
-                    imgFirma1.src = firmas.firma1;
+                const f1Data = getFirmaSegura(1);
+                
+                if (f1Data) {
+                    imgFirma1.src = f1Data;
                     imgFirma1.style.display = 'block';
                 } else {
                     imgFirma1.style.display = 'none';
-                    if (!document.getElementById('errFirma1')) imgFirma1.insertAdjacentHTML('afterend', '<p id="errFirma1" class="text-sm text-gray-400 italic mt-4">Firma no disponible en registro histórico</p>');
+                    if (!document.getElementById('errFirma1')) imgFirma1.insertAdjacentHTML('afterend', '<p id="errFirma1" class="text-sm text-gray-400 italic mt-4">Firma no encontrada</p>');
                 }
 
-                // Paciente 2
+                // Renderizar Paciente 2 y su firma
                 document.getElementById('nombreTit2').textContent = `Paciente 2: ${(p2.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo2').innerHTML = buildDemoHTML(p2);
                 const imgFirma2 = document.getElementById('firma2');
-                if (firmas.firma2) {
-                    imgFirma2.src = firmas.firma2;
+                const f2Data = getFirmaSegura(2);
+                
+                if (f2Data) {
+                    imgFirma2.src = f2Data;
                     imgFirma2.style.display = 'block';
                 } else {
                     imgFirma2.style.display = 'none';
-                    if (!document.getElementById('errFirma2')) imgFirma2.insertAdjacentHTML('afterend', '<p id="errFirma2" class="text-sm text-gray-400 italic mt-4">Firma no disponible en registro histórico</p>');
+                    if (!document.getElementById('errFirma2')) imgFirma2.insertAdjacentHTML('afterend', '<p id="errFirma2" class="text-sm text-gray-400 italic mt-4">Firma no encontrada</p>');
                 }
 
             } else {
@@ -292,13 +317,14 @@
                 document.getElementById('demographicsContent').innerHTML = buildDemoHTML(demo);
                 
                 const imgFirmaInd = document.getElementById('signatureImage');
-                const firmaIndividual = reporte.firmaDigital || reporte.firma || '';
-                if (firmaIndividual) {
-                    imgFirmaInd.src = firmaIndividual;
+                const fIndData = getFirmaSegura(1);
+                
+                if (fIndData) {
+                    imgFirmaInd.src = fIndData;
                     imgFirmaInd.style.display = 'block';
                 } else {
                     imgFirmaInd.style.display = 'none';
-                    if (!document.getElementById('errFirmaInd')) imgFirmaInd.insertAdjacentHTML('afterend', '<p id="errFirmaInd" class="text-sm text-gray-400 italic mt-4">Firma no disponible en el registro</p>');
+                    if (!document.getElementById('errFirmaInd')) imgFirmaInd.insertAdjacentHTML('afterend', '<p id="errFirmaInd" class="text-sm text-gray-400 italic mt-4">Firma no encontrada en el registro</p>');
                 }
 
                 // Lógica Acudiente / Menores
@@ -314,7 +340,6 @@
                     evaluacion.textContent = 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.';
                     costos.textContent = 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
                     
-                    // Mostrar tarjeta del acudiente
                     const acudienteDiv = document.getElementById('acudienteContent');
                     acudienteDiv.innerHTML = `
                         <div class="detail-item"><span class="detail-label">Nombre:</span> ${demo.nombreAcudiente}</div>
