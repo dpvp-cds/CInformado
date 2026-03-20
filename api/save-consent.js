@@ -3,7 +3,6 @@ import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
 
-// --- FUNCIÓN FINAL PARA CREAR EL PDF COMPLETO Y DETALLADO ---
 async function crearPDFConsentimiento(datos) {
     const { demograficos, firmaDigital, fecha } = datos;
     const pdfDoc = await PDFDocument.create();
@@ -55,7 +54,6 @@ async function crearPDFConsentimiento(datos) {
 
     drawWrappedText(textos.intro, { font, size: 10, lineHeight });
 
-    // --- **INICIO DE LA CORRECCIÓN DE ESPACIADO** ---
     y -= 15;
     page.drawText('2.1 Confidencialidad:', { x: margin, y, font: boldFont, size: 10 });
     y -= titleLineHeight;
@@ -85,7 +83,6 @@ async function crearPDFConsentimiento(datos) {
     page.drawText('2.6 Tratamiento de Datos:', { x: margin, y, font: boldFont, size: 10 });
     y -= titleLineHeight;
     drawWrappedText(textos.datos, { font, size: 10, lineHeight });
-    // --- **FIN DE LA CORRECCIÓN DE ESPACIADO** ---
 
     page = pdfDoc.addPage();
     y = height - 40;
@@ -105,6 +102,7 @@ async function crearPDFConsentimiento(datos) {
     drawDetail('Fecha Nacimiento', demograficos.fechaNacimiento);
     drawDetail('Edad', demograficos.edad);
     drawDetail('Email', demograficos.email);
+    drawDetail('EPS / Serv. de Salud', demograficos.eps);
     drawDetail('Teléfono', demograficos.telefonoContacto);
     drawDetail('Dirección', demograficos.direccion);
     drawDetail('Ubicación', `${demograficos.ciudad || ''}, ${demograficos.departamento || ''}, ${demograficos.pais}`);
@@ -134,7 +132,6 @@ async function crearPDFConsentimiento(datos) {
     return pdfBytes;
 }
 
-// --- HANDLER PRINCIPAL ---
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ message: 'Método no permitido.' });
@@ -157,7 +154,7 @@ export default async function handler(request, response) {
               from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
               to: demograficos.email,
               subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
-              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el <strong>Psicólogo Jorge Arango Castaño</strong>.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +57 3233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
+              html: `<p>Estimado/a ${demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Cualquier inquietud puedes hacerla al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
               attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }],
             };
             const mailToTerapeuta = {
@@ -175,6 +172,3 @@ export default async function handler(request, response) {
         response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
-
-
-
