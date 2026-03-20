@@ -170,23 +170,28 @@
 
         // Función auxiliar para renderizar los datos demográficos (reutilizable)
         function buildDemoHTML(paciente) {
+            const safe = (val) => val || 'No especificado';
             return `
-                <div class="detail-item"><span class="detail-label">Nombre Completo:</span> ${paciente.nombre}</div>
-                <div class="detail-item"><span class="detail-label">Documento:</span> ${paciente.documentoIdentidad} (${paciente.tipoDocumento})</div>
-                <div class="detail-item"><span class="detail-label">Fecha de Nacimiento:</span> ${paciente.fechaNacimiento} (Edad: ${paciente.edad})</div>
-                <div class="detail-item"><span class="detail-label text-[#003366]">EPS / Servicio de Salud:</span> <span class="font-bold">${paciente.eps || 'No especificado'}</span></div>
-                <div class="detail-item"><span class="detail-label">Teléfono:</span> ${paciente.telefonoContacto}</div>
-                <div class="detail-item"><span class="detail-label">Email:</span> ${paciente.email}</div>
-                <div class="detail-item"><span class="detail-label">Ubicación:</span> ${paciente.ciudad || ''}${paciente.departamento ? `, ${paciente.departamento}` : ''}, ${paciente.pais}</div>
-                <div class="detail-item"><span class="detail-label">Dirección:</span> ${paciente.direccion}</div>
-                ${paciente.contactoEmergenciaNombre ? `<div class="detail-item"><span class="detail-label">Contacto Emergencia:</span> ${paciente.contactoEmergenciaNombre} (${paciente.contactoEmergenciaTelefono})</div>` : ''}
+                <div class="detail-item"><span class="detail-label">Nombre Completo:</span> ${safe(paciente.nombre)}</div>
+                <div class="detail-item"><span class="detail-label">Documento:</span> ${safe(paciente.documentoIdentidad)} (${safe(paciente.tipoDocumento)})</div>
+                <div class="detail-item"><span class="detail-label">Fecha de Nacimiento:</span> ${safe(paciente.fechaNacimiento)} (Edad: ${safe(paciente.edad)})</div>
+                <div class="detail-item"><span class="detail-label text-[#003366]">EPS / Servicio de Salud:</span> <span class="font-bold">${safe(paciente.eps)}</span></div>
+                <div class="detail-item"><span class="detail-label">Teléfono:</span> ${safe(paciente.telefonoContacto)}</div>
+                <div class="detail-item"><span class="detail-label">Email:</span> ${safe(paciente.email)}</div>
+                <div class="detail-item"><span class="detail-label">Ubicación:</span> ${paciente.ciudad ? paciente.ciudad + ', ' : ''}${paciente.departamento ? paciente.departamento + ', ' : ''}${safe(paciente.pais)}</div>
+                <div class="detail-item"><span class="detail-label">Dirección:</span> ${safe(paciente.direccion)}</div>
+                ${paciente.contactoEmergenciaNombre ? `<div class="detail-item"><span class="detail-label">Contacto Emergencia:</span> ${paciente.contactoEmergenciaNombre} (${safe(paciente.contactoEmergenciaTelefono)})</div>` : ''}
             `;
         }
 
         // El "cerebro" que decide qué vista renderizar
         function displayUnifiedReport(reporte) {
-            // Evaluamos si es un reporte de pareja basándonos en su estructura
-            const isPareja = reporte.tipo === 'pareja' || reporte.paciente1 !== undefined;
+            // Evaluamos si es un reporte de pareja basándonos en su estructura (nueva o antigua)
+            const demoAntiguo = reporte.demograficos || {};
+            const isPareja = reporte.tipo === 'pareja' || 
+                             reporte.paciente1 !== undefined || 
+                             demoAntiguo.nombreCompleto1 !== undefined || 
+                             demoAntiguo.nombre1 !== undefined;
 
             // 1. Renderizar Metadatos (Común)
             const metadataDiv = document.getElementById('metadataContent');
@@ -205,20 +210,60 @@
                 document.getElementById('reportTitle').textContent = `Consentimiento de Pareja`;
                 document.getElementById('vistaParejas').classList.remove('hidden');
 
-                const p1 = reporte.paciente1;
-                const p2 = reporte.paciente2;
+                let p1, p2, firmas;
+
+                if (reporte.paciente1) {
+                    // Formato Nuevo (Limpio)
+                    p1 = reporte.paciente1;
+                    p2 = reporte.paciente2;
+                    firmas = reporte.firmas || {};
+                } else {
+                    // Adaptador para Formato Histórico/Antiguo de Parejas
+                    p1 = {
+                        nombre: demoAntiguo.nombreCompleto1 || demoAntiguo.nombre1 || 'Paciente 1',
+                        documentoIdentidad: demoAntiguo.documentoIdentidad1 || demoAntiguo.documentoIdentidad,
+                        tipoDocumento: demoAntiguo.tipoDocumento1 || demoAntiguo.tipoDocumento,
+                        fechaNacimiento: demoAntiguo.fechaNacimiento1 || demoAntiguo.fechaNacimiento,
+                        edad: demoAntiguo.edad1 || demoAntiguo.edad,
+                        telefonoContacto: demoAntiguo.telefonoContacto1 || demoAntiguo.telefonoContacto,
+                        email: demoAntiguo.email1 || demoAntiguo.email,
+                        pais: demoAntiguo.pais1 || demoAntiguo.pais,
+                        departamento: demoAntiguo.departamento1 || demoAntiguo.departamento,
+                        ciudad: demoAntiguo.municipio1 || demoAntiguo.ciudad1 || demoAntiguo.ciudad,
+                        direccion: demoAntiguo.direccion1 || demoAntiguo.direccion,
+                        eps: demoAntiguo.eps1 || demoAntiguo.eps
+                    };
+                    p2 = {
+                        nombre: demoAntiguo.nombreCompleto2 || demoAntiguo.nombre2 || 'Paciente 2',
+                        documentoIdentidad: demoAntiguo.documentoIdentidad2,
+                        tipoDocumento: demoAntiguo.tipoDocumento2,
+                        fechaNacimiento: demoAntiguo.fechaNacimiento2,
+                        edad: demoAntiguo.edad2,
+                        telefonoContacto: demoAntiguo.telefonoContacto2,
+                        email: demoAntiguo.email2,
+                        pais: demoAntiguo.pais2 || demoAntiguo.pais,
+                        departamento: demoAntiguo.departamento2 || demoAntiguo.departamento,
+                        ciudad: demoAntiguo.municipio2 || demoAntiguo.ciudad2 || demoAntiguo.ciudad,
+                        direccion: demoAntiguo.direccion2 || demoAntiguo.direccion,
+                        eps: demoAntiguo.eps2 || demoAntiguo.eps
+                    };
+                    firmas = reporte.firmas || {
+                        firma1: reporte.firmaDigital1 || reporte.firmaDigital,
+                        firma2: reporte.firmaDigital2 || reporte.firmaDigital
+                    };
+                }
 
                 document.getElementById('consentimientoParejaIntro').textContent = `Nosotros, ${p1.nombre} (Doc: ${p1.documentoIdentidad}) y ${p2.nombre} (Doc: ${p2.documentoIdentidad}), declaramos voluntariamente que:`;
 
                 // Paciente 1
-                document.getElementById('nombreTit1').textContent = `Paciente 1: ${p1.nombre.split(' ')[0]}`;
+                document.getElementById('nombreTit1').textContent = `Paciente 1: ${(p1.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo1').innerHTML = buildDemoHTML(p1);
-                document.getElementById('firma1').src = reporte.firmas.firma1;
+                if (firmas.firma1) document.getElementById('firma1').src = firmas.firma1;
 
                 // Paciente 2
-                document.getElementById('nombreTit2').textContent = `Paciente 2: ${p2.nombre.split(' ')[0]}`;
+                document.getElementById('nombreTit2').textContent = `Paciente 2: ${(p2.nombre || '').split(' ')[0]}`;
                 document.getElementById('demo2').innerHTML = buildDemoHTML(p2);
-                document.getElementById('firma2').src = reporte.firmas.firma2;
+                if (firmas.firma2) document.getElementById('firma2').src = firmas.firma2;
 
             } else {
                 // ==========================================
