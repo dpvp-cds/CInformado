@@ -26,7 +26,6 @@
             border-color: #003366;
             box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
         }
-        /* Estilos para el Banner de Cookies */
         #cookieBanner {
             position: fixed;
             bottom: 0;
@@ -75,7 +74,6 @@
                     <div><label for="telefonoContacto" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto" name="telefonoContacto" class="input-styled" required></div>
                     <div><label for="email" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email" name="email" class="input-styled" required></div>
                     
-                    <!-- NUEVO CAMPO: EPS / SERVICIO DE SALUD -->
                     <div><label id="labelEps" for="eps" class="block mb-2 font-medium">EPS / Servicio de Salud</label><input type="text" id="eps" name="eps" class="input-styled" required></div>
 
                     <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia</h3></div>
@@ -178,17 +176,20 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function poblarPaises() {
         paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
-        const continentes = ['Norteamérica', 'Centroamérica', 'Suramérica'];
+        // CInformado: Obtenemos las categorías directamente del JSON para evitar errores por nombres estáticos
+        const continentes = Object.keys(geodata); 
         continentes.forEach(continente => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = continente;
-            Object.keys(geodata[continente]).sort().forEach(pais => {
-                const option = document.createElement('option');
-                option.value = pais;
-                option.textContent = pais;
-                optgroup.appendChild(option);
-            });
-            paisSelect.appendChild(optgroup);
+            if(geodata[continente]) {
+                Object.keys(geodata[continente]).sort().forEach(pais => {
+                    const option = document.createElement('option');
+                    option.value = pais;
+                    option.textContent = pais;
+                    optgroup.appendChild(option);
+                });
+                paisSelect.appendChild(optgroup);
+            }
         });
     }
 
