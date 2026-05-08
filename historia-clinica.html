@@ -9,11 +9,35 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
         .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .input-styled, .textarea-styled { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 15px; width: 100%; transition: all 0.3s ease; }
-        .input-styled:focus, .textarea-styled:focus { outline: none; border-color: #003366; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
+        
+        /* Estilos para inputs y áreas de texto (scroll asegurado) */
+        .input-styled, .textarea-styled { 
+            border: 1px solid #d1d5db; 
+            border-radius: 8px; 
+            padding: 12px 15px; 
+            width: 100%; 
+            transition: all 0.3s ease; 
+        }
+        .textarea-styled {
+            resize: vertical; /* Permite estirar la caja hacia abajo si se desea */
+            overflow-y: auto; /* Asegura que aparezca el scroll al llenarse */
+            min-height: 80px;
+        }
+        .input-styled:focus, .textarea-styled:focus { 
+            outline: none; 
+            border-color: #003366; 
+            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); 
+        }
+        
         .tab-btn { padding: 10px 20px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
         .tab-btn.active { border-bottom-color: #003366; color: #003366; }
         .tab-btn:hover:not(.active) { color: #003366; background-color: #f3f4f6; border-radius: 8px 8px 0 0; }
+        
+        /* Personalización sutil del scrollbar para las áreas de texto */
+        .textarea-styled::-webkit-scrollbar { width: 8px; }
+        .textarea-styled::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .textarea-styled::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .textarea-styled::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -70,38 +94,91 @@
 
                 <!-- TAB 1: SESIÓN CERO -->
                 <div id="tab-sesion-cero" class="card">
-                    <h3 class="text-xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
+                    <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
                     
-                    <form id="historiaForm" class="space-y-6">
-                        <!-- 1. El Muerto en el Patio -->
-                        <div>
-                            <label class="block mb-2 font-bold text-red-700">1. El "Muerto en el Patio" (Motivo Real de Consulta)</label>
-                            <p class="text-xs text-gray-500 mb-2">Un espacio seguro. Registra el conflicto, dependencia o dolor profundo sin juicios médicos.</p>
-                            <textarea id="motivoReal" rows="4" class="textarea-styled" placeholder="¿Por qué está realmente aquí el paciente?"></textarea>
+                    <form id="historiaForm" class="space-y-8">
+                        
+                        <!-- SECCIÓN 1: CONTEXTO VITAL -->
+                        <div class="space-y-4 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <h4 class="text-lg font-bold text-[#003366] mb-4">Contexto Vital y Antecedentes</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block mb-2 font-semibold text-gray-700">A qué se dedica (Ocupación)</label>
+                                    <input type="text" id="ocupacion" class="input-styled" placeholder="Ej. Ingeniero, Estudiante, etc.">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold text-gray-700">Con quién vive</label>
+                                    <input type="text" id="convivencia" class="input-styled" placeholder="Ej. Pareja, padres, solo...">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold text-gray-700">Hobbies / Pasatiempos</label>
+                                    <textarea id="hobbies" rows="2" class="textarea-styled" placeholder="¿Qué disfruta hacer en su tiempo libre?"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold text-gray-700">No Hobbies (Lo que le desagrada)</label>
+                                    <textarea id="noHobbies" rows="2" class="textarea-styled" placeholder="Actividades o situaciones que prefiere evitar..."></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block mb-2 font-semibold text-gray-700">Antecedentes Médicos</label>
+                                    <textarea id="antecedentesMedicos" rows="2" class="textarea-styled" placeholder="Enfermedades crónicas, operaciones médicas relevantes, etc."></textarea>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- 2. H - Habilidades y Esencia -->
-                        <div>
-                            <label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label>
-                            <p class="text-xs text-gray-500 mb-2">Recursos actuales: tiempo, energía, talentos, "no negociables" de su identidad.</p>
-                            <textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea>
+                        <!-- SECCIÓN 2: MÉTODO HALCÓN -->
+                        <div class="space-y-6">
+                            <h4 class="text-lg font-bold text-[#003366] border-b pb-2">Diagnóstico Existencial (Método HALCÓN)</h4>
+                            
+                            <!-- 1. Motivo de Consulta -->
+                            <div>
+                                <label class="block mb-2 font-bold text-gray-800">1. Motivo de Consulta</label>
+                                <textarea id="motivoConsulta" rows="4" class="textarea-styled" placeholder="Describe el motivo de consulta del paciente..."></textarea>
+                            </div>
+
+                            <!-- 2. H - Habilidades y Esencia -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label>
+                                <p class="text-xs text-gray-500 mb-2">Recursos actuales: tiempo, energía, talentos, "no negociables" de su identidad.</p>
+                                <textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea>
+                            </div>
+
+                            <!-- 3. A - Aspiración / Visión -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label>
+                                <p class="text-xs text-gray-500 mb-2">¿Busca descubrir su propósito inmutable o estructurar un proyecto con fecha de caducidad?</p>
+                                <textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las sesiones..."></textarea>
+                            </div>
+
+                            <!-- 4. L - Lógica y Creencias Limitantes -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label>
+                                <p class="text-xs text-gray-500 mb-2">Identificación de lenguaje limitante: uso de "bueno/malo", "fácil/difícil", o actuar desde el "sacrificio".</p>
+                                <textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea>
+                            </div>
+
+                            <!-- 5. C - Construcción y Concreción -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">5. [C] - Construcción y Concreción</label>
+                                <p class="text-xs text-gray-500 mb-2">Materialización del propósito en proyectos de vida definidos, recursos necesarios y cronograma.</p>
+                                <textarea id="construccion" rows="3" class="textarea-styled" placeholder="Proyectos específicos, pasos a seguir y fechas tentativas..."></textarea>
+                            </div>
+
+                            <!-- 6. O - Orientación y Adaptación -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">6. [O] - Orientación y Adaptación</label>
+                                <p class="text-xs text-gray-500 mb-2">Negociación interna/externa, manejo de obstáculos y reencuadre de desafíos.</p>
+                                <textarea id="orientacion" rows="3" class="textarea-styled" placeholder="Estrategias de afrontamiento, resolución de conflictos..."></textarea>
+                            </div>
+
+                            <!-- 7. N - Nutrición y Trascendencia -->
+                            <div>
+                                <label class="block mb-2 font-bold text-[#003366]">7. [N] - Nutrición y Trascendencia</label>
+                                <p class="text-xs text-gray-500 mb-2">Bienestar continuo, impacto positivo en su entorno y construcción del legado.</p>
+                                <textarea id="nutricion" rows="3" class="textarea-styled" placeholder="Prácticas de autocuidado, contribución al entorno y legado..."></textarea>
+                            </div>
                         </div>
 
-                        <!-- 3. A - Aspiración / Visión -->
-                        <div>
-                            <label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label>
-                            <p class="text-xs text-gray-500 mb-2">¿Busca descubrir su propósito inmutable o estructurar un proyecto con fecha de caducidad?</p>
-                            <textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las 6-7 sesiones..."></textarea>
-                        </div>
-
-                        <!-- 4. L - Lógica y Creencias Limitantes -->
-                        <div>
-                            <label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label>
-                            <p class="text-xs text-gray-500 mb-2">Identificación de lenguaje limitante: uso de "bueno/malo", "fácil/difícil", o acting desde el "sacrificio".</p>
-                            <textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea>
-                        </div>
-
-                        <!-- 5. Compromiso Terapéutico -->
+                        <!-- SECCIÓN 3: Compromiso Terapéutico -->
                         <div class="pt-6 border-t border-gray-200 mt-6">
                             <div class="flex items-start">
                                 <div class="flex items-center h-5">
@@ -114,7 +191,7 @@
                             </div>
                         </div>
 
-                        <div id="form-error" class="hidden text-red-600 font-medium text-sm text-center">Por favor diligencia al menos el Motivo Real.</div>
+                        <div id="form-error" class="hidden text-red-600 font-medium text-sm text-center">Por favor diligencia al menos el Motivo de Consulta.</div>
                         <div id="form-success" class="hidden text-green-600 font-medium text-sm text-center">Sesión Cero guardada exitosamente y firmada con TimeStamp.</div>
 
                         <div class="text-right pt-4">
@@ -125,7 +202,7 @@
                     </form>
                 </div>
 
-                <!-- TAB 2: EVOLUCIÓN (Se construirá en la siguiente fase) -->
+                <!-- TAB 2: EVOLUCIÓN -->
                 <div id="tab-evolucion" class="card hidden text-center py-20">
                     <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     <h3 class="text-lg font-medium text-gray-900">Bitácora de Evolución</h3>
@@ -162,7 +239,7 @@
             // 3. Cargar Datos Básicos del Paciente
             fetchPatientData(patientId);
             
-            // 4. Lógica de Guardado (Simulada por ahora hasta crear el API)
+            // 4. Lógica de Guardado
             document.getElementById('historiaForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 saveSesionCero(patientId);
@@ -197,7 +274,7 @@
                     telefono = demo.telefonoContacto;
                 }
 
-                // Inyectar en el HTML (Cáscara)
+                // Inyectar en el HTML
                 document.getElementById('pacienteNombre').textContent = nombre;
                 document.getElementById('pacienteDoc').textContent = `Doc: ${documento}`;
                 document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
@@ -208,7 +285,7 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
 
-                // TODO: Aquí llamaríamos a fetch(`/api/get-historia?id=${id}`) para ver si ya hay una Sesión Cero guardada y rellenar los textareas.
+                // TODO: Aquí llamaremos a la futura API para precargar la historia clínica si ya existe.
 
             } catch (error) {
                 console.error(error);
@@ -227,9 +304,9 @@
             document.getElementById(tabId).classList.remove('hidden');
         }
 
-        // Lógica de guardado seguro
+        // Lógica de guardado
         async function saveSesionCero(id) {
-            const motivo = document.getElementById('motivoReal').value.trim();
+            const motivo = document.getElementById('motivoConsulta').value.trim();
             const btn = document.getElementById('btnSave');
             
             if (!motivo) {
@@ -243,10 +320,21 @@
 
             const historiaData = {
                 pacienteId: id,
-                motivoReal: motivo,
+                // Contexto Vital
+                ocupacion: document.getElementById('ocupacion').value,
+                convivencia: document.getElementById('convivencia').value,
+                hobbies: document.getElementById('hobbies').value,
+                noHobbies: document.getElementById('noHobbies').value,
+                antecedentesMedicos: document.getElementById('antecedentesMedicos').value,
+                // Método HALCÓN
+                motivoConsulta: motivo,
                 habilidades: document.getElementById('habilidades').value,
                 aspiracion: document.getElementById('aspiracion').value,
                 creencias: document.getElementById('creencias').value,
+                construccion: document.getElementById('construccion').value,
+                orientacion: document.getElementById('orientacion').value,
+                nutricion: document.getElementById('nutricion').value,
+                // Compromiso
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
 
