@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia Clínica - CInformado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
+        .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .input-styled, .textarea-styled { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 15px; width: 100%; transition: all 0.3s ease; }
+        .input-styled:focus, .textarea-styled:focus { outline: none; border-color: #003366; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
+        .tab-btn { padding: 10px 20px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn.active { border-bottom-color: #003366; color: #003366; }
+        .tab-btn:hover:not(.active) { color: #003366; background-color: #f3f4f6; border-radius: 8px 8px 0 0; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="portal-consentimientos.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    Volver al Dashboard
+                </a>
+                <span class="border-l h-6 mx-2 hidden md:block"></span>
+                <h1 class="text-xl font-bold text-[#003366] hidden md:block">Gestión Existencial</h1>
+            </div>
+            <button id="logoutButton" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="max-w-5xl mx-auto space-y-6">
+            
+            <!-- LOADER INICIAL -->
+            <div id="loading" class="text-center py-10">
+                <p class="text-lg animate-pulse text-[#003366] font-semibold">Desencriptando expediente del paciente...</p>
+            </div>
+
+            <!-- CONTENIDO PRINCIPAL (Oculto hasta que cargue la API) -->
+            <div id="mainContent" class="hidden space-y-6">
+                
+                <!-- BANNER DEL PACIENTE -->
+                <div class="card bg-[#003366] text-white">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 id="pacienteNombre" class="text-2xl font-bold">Cargando Nombre...</h2>
+                            <p class="text-sm text-blue-200 mt-1">
+                                <span id="pacienteDoc">Doc: ---</span> | 
+                                <span id="pacienteEdad">Edad: ---</span> | 
+                                <span id="pacienteContacto">Tel: ---</span>
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full">Consentimiento Verificado</span>
+                            <p class="text-xs text-blue-200 mt-2">ID: <span id="pacienteId" class="font-mono">---</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PESTAÑAS (TABS) -->
+                <div class="flex border-b border-gray-200">
+                    <button class="tab-btn active" onclick="switchTab('tab-sesion-cero')">Sesión Cero (HALCÓN)</button>
+                    <button class="tab-btn text-gray-500" onclick="switchTab('tab-evolucion')">Bitácora & Evolución</button>
+                </div>
+
+                <!-- TAB 1: SESIÓN CERO -->
+                <div id="tab-sesion-cero" class="card">
+                    <h3 class="text-xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
+                    
+                    <form id="historiaForm" class="space-y-6">
+                        <!-- 1. El Muerto en el Patio -->
+                        <div>
+                            <label class="block mb-2 font-bold text-red-700">1. El "Muerto en el Patio" (Motivo Real de Consulta)</label>
+                            <p class="text-xs text-gray-500 mb-2">Un espacio seguro. Registra el conflicto, dependencia o dolor profundo sin juicios médicos.</p>
+                            <textarea id="motivoReal" rows="4" class="textarea-styled" placeholder="¿Por qué está realmente aquí el paciente?"></textarea>
+                        </div>
+
+                        <!-- 2. H - Habilidades y Esencia -->
+                        <div>
+                            <label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label>
+                            <p class="text-xs text-gray-500 mb-2">Recursos actuales: tiempo, energía, talentos, "no negociables" de su identidad.</p>
+                            <textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea>
+                        </div>
+
+                        <!-- 3. A - Aspiración / Visión -->
+                        <div>
+                            <label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label>
+                            <p class="text-xs text-gray-500 mb-2">¿Busca descubrir su propósito inmutable o estructurar un proyecto con fecha de caducidad?</p>
+                            <textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las 6-7 sesiones..."></textarea>
+                        </div>
+
+                        <!-- 4. L - Lógica y Creencias Limitantes -->
+                        <div>
+                            <label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label>
+                            <p class="text-xs text-gray-500 mb-2">Identificación de lenguaje limitante: uso de "bueno/malo", "fácil/difícil", o acting desde el "sacrificio".</p>
+                            <textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea>
+                        </div>
+
+                        <!-- 5. Compromiso Terapéutico -->
+                        <div class="pt-6 border-t border-gray-200 mt-6">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="compromisoStrikes" type="checkbox" class="w-5 h-5 text-[#003366] border-gray-300 rounded focus:ring-[#003366]">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="compromisoStrikes" class="font-bold text-gray-800">Acuerdo de la Regla de los "3 Strikes"</label>
+                                    <p class="text-gray-500">El paciente comprende y acepta que el éxito del proyecto depende de su acción, y que al 3er incumplimiento injustificado de tareas, el proceso será finalizado por el terapeuta.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="form-error" class="hidden text-red-600 font-medium text-sm text-center">Por favor diligencia al menos el Motivo Real.</div>
+                        <div id="form-success" class="hidden text-green-600 font-medium text-sm text-center">Sesión Cero guardada exitosamente y firmada con TimeStamp.</div>
+
+                        <div class="text-right pt-4">
+                            <button type="submit" id="btnSave" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">
+                                Guardar y Sellar Sesión Cero
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: EVOLUCIÓN (Se construirá en la siguiente fase) -->
+                <div id="tab-evolucion" class="card hidden text-center py-20">
+                    <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <h3 class="text-lg font-medium text-gray-900">Bitácora de Evolución</h3>
+                    <p class="mt-1 text-sm text-gray-500">Aquí irán las notas de cada sesión y el contador del "Tracker de Voluntad".</p>
+                    <p class="mt-4 text-xs font-mono text-blue-600 bg-blue-50 inline-block px-3 py-1 rounded">Módulo en construcción...</p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Seguridad Básica de Acceso
+            if (sessionStorage.getItem('consultorAuth') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                sessionStorage.removeItem('consultorAuth');
+                window.location.href = 'login.html';
+            });
+
+            // 2. Extraer el ID del paciente de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientId = urlParams.get('id');
+
+            if (!patientId) {
+                document.getElementById('loading').innerHTML = '<span class="text-red-600">Acceso denegado: ID de paciente no proporcionado.</span>';
+                return;
+            }
+
+            // 3. Cargar Datos Básicos del Paciente
+            fetchPatientData(patientId);
+            
+            // 4. Lógica de Guardado (Simulada por ahora hasta crear el API)
+            document.getElementById('historiaForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveSesionCero(patientId);
+            });
+        });
+
+        // ==========================================
+        // CEREBRO DE LA VISTA
+        // ==========================================
+
+        async function fetchPatientData(id) {
+            try {
+                // Reutilizamos la API existente para traer los demográficos
+                const response = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                if (!response.ok) throw new Error('No se encontró el paciente');
+                
+                const data = await response.json();
+                
+                // Determinar si es individual o pareja para extraer el nombre
+                let nombre, documento, edad, telefono;
+                if (data.tipo === 'pareja' || data.paciente1) {
+                    const p1 = data.paciente1 || data.demograficos; 
+                    nombre = "Pareja: " + p1.nombre.split(' ')[0] + " y " + (data.paciente2?.nombre.split(' ')[0] || "Pareja");
+                    documento = "Múltiple";
+                    edad = "N/A";
+                    telefono = p1.telefonoContacto || "N/A";
+                } else {
+                    const demo = data.demograficos;
+                    nombre = demo.nombre;
+                    documento = demo.documentoIdentidad;
+                    edad = demo.edad;
+                    telefono = demo.telefonoContacto;
+                }
+
+                // Inyectar en el HTML (Cáscara)
+                document.getElementById('pacienteNombre').textContent = nombre;
+                document.getElementById('pacienteDoc').textContent = `Doc: ${documento}`;
+                document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
+                document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
+                document.getElementById('pacienteId').textContent = id;
+
+                // Ocultar loader y mostrar interfaz
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+
+                // TODO: Aquí llamaríamos a fetch(`/api/get-historia?id=${id}`) para ver si ya hay una Sesión Cero guardada y rellenar los textareas.
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerHTML = '<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente.</span>';
+            }
+        }
+
+        // Cambio de pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'border-b-[#003366]', 'text-[#003366]'));
+            event.target.classList.add('active', 'border-b-[#003366]', 'text-[#003366]');
+            
+            document.getElementById('tab-sesion-cero').classList.add('hidden');
+            document.getElementById('tab-evolucion').classList.add('hidden');
+            
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        // Lógica de guardado seguro
+        async function saveSesionCero(id) {
+            const motivo = document.getElementById('motivoReal').value.trim();
+            const btn = document.getElementById('btnSave');
+            
+            if (!motivo) {
+                document.getElementById('form-error').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('form-error').classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Encriptando y Guardando...';
+
+            const historiaData = {
+                pacienteId: id,
+                motivoReal: motivo,
+                habilidades: document.getElementById('habilidades').value,
+                aspiracion: document.getElementById('aspiracion').value,
+                creencias: document.getElementById('creencias').value,
+                acuerdoStrikes: document.getElementById('compromisoStrikes').checked
+            };
+
+            // AQUÍ IREMOS CON LA API REAL CUANDO LA CREEMOS
+            console.log("Datos listos para enviar al servidor:", historiaData);
+            
+            setTimeout(() => {
+                document.getElementById('form-success').classList.remove('hidden');
+                btn.textContent = 'Guardado Correctamente';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
