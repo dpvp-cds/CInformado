@@ -57,6 +57,10 @@
     <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
+                <a href="portal-consentimientos.html" class="flex-shrink-0">
+                    <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
+                </a>
+                <span class="border-l h-6 mx-2 hidden md:block"></span>
                 <a href="portal-consentimientos.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     Volver al Dashboard
@@ -99,9 +103,15 @@
                 </div>
 
                 <!-- FICHA CLÍNICA FORMAL (Encabezado para PDF y pantalla) -->
-                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm print:shadow-none print:border-b-2 print:border-gray-800 print:rounded-none">
-                    <h2 class="text-lg font-bold text-[#003366] mb-4 uppercase tracking-wider print:text-black">Ficha de Identificación del Paciente</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-6 text-sm" id="fichaData">
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm print:shadow-none print:border-b-2 print:border-gray-800 print:rounded-none print:pb-6 print:mb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 print:flex-row print:items-center">
+                        <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-12 w-auto print:h-14">
+                        <div class="text-left md:text-right print:text-right">
+                            <h2 class="text-2xl font-bold text-[#003366] uppercase tracking-wider print:text-black">Historia Clínica</h2>
+                            <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider print:text-gray-700 mt-1">Ficha de Identificación</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-6 text-sm border-t border-gray-100 pt-4 print:border-gray-300" id="fichaData">
                         <!-- Inyectado por JS -->
                     </div>
                 </div>
