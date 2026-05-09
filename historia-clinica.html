@@ -347,7 +347,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') { window.location.href = 'login.html'; return; }
-            document.getElementById('logoutButton').addEventListener('click', () => { sessionStorage.removeItem('consultorAuth'); window.location.href = 'login.html'; });
+            document.getElementById('logoutButton').addEventListener('click', () => { 
+                sessionStorage.removeItem('consultorAuth'); 
+                Object.keys(localStorage).forEach(key => { if (key.startsWith('draft_')) localStorage.removeItem(key); });
+                window.location.href = 'login.html'; 
+            });
 
             const urlParams = new URLSearchParams(window.location.search);
             const patientId = urlParams.get('id');
@@ -502,9 +506,25 @@
         // ==========================================
         async function fetchPatientData(id) {
             try {
-                const resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
-                if (!resDemo.ok) throw new Error('No se encontró el paciente');
-                const data = await resDemo.json();
+                let data;
+                
+                // A) Traer Demográficos: Intento 1 (Individuales)
+                let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                
+                if (resDemo.ok) {
+                    data = await resDemo.json();
+                } else {
+                    // Intento 2: Si no está en individuales, buscar en Parejas
+                    resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
+                    
+                    // Fallback de seguridad por si tu API de parejas se llama diferente:
+                    if (!resDemo.ok) {
+                        resDemo = await fetch(`/api/get-consentimiento-pareja-individual?id=${id}`);
+                    }
+                    
+                    if (!resDemo.ok) throw new Error('No se encontró el paciente');
+                    data = await resDemo.json();
+                }
                 
                 let nombre, documento, edad, telefono;
                 if (data.tipo === 'pareja' || data.paciente1) {
