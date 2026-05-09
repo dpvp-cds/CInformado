@@ -474,41 +474,52 @@
                 }
                 
                 let nombre, documento, edad, telefono;
+                
                 if (data.tipo === 'pareja' || data.paciente1) {
-                    const p1 = data.paciente1 || data.demograficos; 
+                    const p1 = data.paciente1 || data.demograficos || {}; 
                     const p2 = data.paciente2 || {};
-                    nombre = "Pareja: " + p1.nombre.split(' ')[0] + " y " + (p2.nombre?.split(' ')[0] || "Pareja");
+                    
+                    // Salvavidas de nombres para pacientes antiguos y nuevos
+                    let n1 = p1.nombre || p1.nombreCompleto || p1.nombreCompleto1 || "Paciente 1";
+                    let n2 = p2.nombre || p2.nombreCompleto || p2.nombreCompleto2 || "Paciente 2";
+                    
+                    nombre = "Pareja: " + n1.split(' ')[0] + " y " + n2.split(' ')[0];
                     documento = "Múltiple"; edad = "N/A"; telefono = p1.telefonoContacto || "N/A";
                     
                     document.getElementById('fichaData').innerHTML = `
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 1</span>
-                            <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${p1.nombre}</span></div>
-                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento || ''} ${p1.documentoIdentidad}</span></div>
-                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p1.telefonoContacto}</span></div>
+                            <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n1}</span></div>
+                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento || ''} ${p1.documentoIdentidad || 'N/A'}</span></div>
+                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad || 'N/A'}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${telefono}</span></div>
                             <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p1.email || 'N/A'}</span></div>
                         </div>
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 2</span>
-                            <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${p2.nombre || 'N/A'}</span></div>
+                            <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n2}</span></div>
                             <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.tipoDocumento || ''} ${p2.documentoIdentidad || 'N/A'}</span></div>
                             <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p2.edad || 'N/A'}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p2.telefonoContacto || 'N/A'}</span></div>
                             <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p2.email || 'N/A'}</span></div>
                         </div>
                     `;
                 } else {
-                    const demo = data.demograficos;
-                    nombre = demo.nombre; documento = demo.documentoIdentidad; edad = demo.edad; telefono = demo.telefonoContacto;
-                    let ubicacion = `${demo.ciudad || ''}, ${demo.departamento || ''}, ${demo.pais || ''}`.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,\s*,/g, ', ');
+                    const demo = data.demograficos || {};
+                    // Salvavidas para nombre individual
+                    nombre = demo.nombre || demo.nombreCompleto || "Paciente Sin Nombre"; 
+                    documento = demo.documentoIdentidad || "N/A"; 
+                    edad = demo.edad || "N/A"; 
+                    telefono = demo.telefonoContacto || "N/A";
+                    
+                    let ubicacion = `${demo.ciudad || demo.municipio || ''}, ${demo.departamento || ''}, ${demo.pais || ''}`.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,\s*,/g, ', ');
                     
                     let fichaHTML = `
-                        <div><span class="font-semibold text-gray-500 block text-xs">Nombre Completo</span> <span class="text-gray-800 font-medium">${demo.nombre}</span></div>
-                        <div><span class="font-semibold text-gray-500 block text-xs">Documento</span> <span class="text-gray-800">${demo.tipoDocumento} ${demo.documentoIdentidad}</span></div>
-                        <div><span class="font-semibold text-gray-500 block text-xs">Edad / Fecha Nac.</span> <span class="text-gray-800">${demo.edad} años (${demo.fechaNacimiento})</span></div>
+                        <div><span class="font-semibold text-gray-500 block text-xs">Nombre Completo</span> <span class="text-gray-800 font-medium">${nombre}</span></div>
+                        <div><span class="font-semibold text-gray-500 block text-xs">Documento</span> <span class="text-gray-800">${demo.tipoDocumento || ''} ${documento}</span></div>
+                        <div><span class="font-semibold text-gray-500 block text-xs">Edad / Fecha Nac.</span> <span class="text-gray-800">${edad} años (${demo.fechaNacimiento || ''})</span></div>
                         <div><span class="font-semibold text-gray-500 block text-xs">EPS / Servicio Salud</span> <span class="text-gray-800 font-medium">${demo.eps || 'N/A'}</span></div>
-                        <div><span class="font-semibold text-gray-500 block text-xs">Teléfono</span> <span class="text-gray-800">${demo.telefonoContacto}</span></div>
-                        <div><span class="font-semibold text-gray-500 block text-xs">Email</span> <span class="text-gray-800">${demo.email}</span></div>
-                        <div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Ubicación y Dirección</span> <span class="text-gray-800">${ubicacion} - ${demo.direccion}</span></div>
+                        <div><span class="font-semibold text-gray-500 block text-xs">Teléfono</span> <span class="text-gray-800">${telefono}</span></div>
+                        <div><span class="font-semibold text-gray-500 block text-xs">Email</span> <span class="text-gray-800">${demo.email || 'N/A'}</span></div>
+                        <div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Ubicación y Dirección</span> <span class="text-gray-800">${ubicacion} - ${demo.direccion || ''}</span></div>
                     `;
                     
                     if (demo.contactoEmergenciaNombre) {
@@ -535,7 +546,10 @@
                 document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
-                document.title = `HC_${nombre.replace(/\s+/g, '_')}_CInformado`;
+                
+                // SALVAVIDAS: Si el nombre es null o undefined, usa una cadena segura para evitar error .replace()
+                let safeName = nombre || "Paciente";
+                document.title = `HC_${safeName.replace(/\s+/g, '_')}_CInformado`;
 
                 const timestampFirm = new Date().toLocaleString('es-CO');
                 const rawString = id + "CInformado" + timestampFirm;
