@@ -50,7 +50,6 @@
             .print-only { display: block !important; }
             textarea { border: none; resize: none; overflow: hidden; height: auto !important; background: transparent; }
             input { border: none; background: transparent; }
-            /* Expande los textareas al imprimir para que se vea todo el texto */
             textarea { white-space: pre-wrap; }
         }
     </style>
@@ -96,7 +95,7 @@
                     <div class="text-right flex flex-col items-end">
                         <span class="px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full mb-2">Consentimiento Verificado</span>
                         <p class="text-xs text-blue-200">ID: <span id="pacienteId" class="font-mono">---</span></p>
-                        <!-- BOTÓN DE DESCARGA PDF (Solo visible en pantalla, no en impresión) -->
+                        <!-- BOTÓN DE DESCARGA PDF -->
                         <button onclick="window.print()" class="no-print mt-3 text-sm flex items-center bg-white text-[#003366] font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Descargar Historial (PDF)
@@ -216,7 +215,6 @@
                 <!-- TAB 2: EVOLUCIÓN Y STRIKES -->
                 <div id="tab-evolucion" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
                     
-                    <!-- CAMBIO: Proporciones Invertidas. Izquierda (Formulario) 66% / Derecha (Timeline) 33% -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         
                         <!-- Panel Izquierdo: Formulario Nueva Evolución (lg:col-span-2) -->
@@ -273,11 +271,23 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="flex items-start mt-4 p-3 bg-red-100 rounded-lg">
-                                        <input id="addStrike" type="checkbox" class="w-4 h-4 mt-1 text-red-600 border-red-300 rounded focus:ring-red-500">
-                                        <label for="addStrike" class="ml-2 text-sm font-bold text-red-800">
-                                            Incumplió tarea anterior (Aplicar Strike)
-                                        </label>
+                                    <!-- GESTIÓN DE STRIKES (Añadir o Remover) -->
+                                    <div class="mt-4 p-4 bg-white rounded-lg border border-gray-200">
+                                        <p class="text-xs font-bold text-gray-500 uppercase mb-3">Gestión de Compromiso (Strikes)</p>
+                                        <div class="flex flex-col sm:flex-row gap-3">
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-gray-50 px-3 py-2 rounded border border-gray-200 flex-1 hover:bg-gray-100 transition">
+                                                <input type="radio" name="strikeAction" value="none" class="w-4 h-4 text-gray-600 focus:ring-gray-500" checked>
+                                                <span class="text-sm font-semibold text-gray-700">Sin cambios</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-red-50 px-3 py-2 rounded border border-red-100 flex-1 hover:bg-red-100 transition">
+                                                <input type="radio" name="strikeAction" value="add" class="w-4 h-4 text-red-600 focus:ring-red-500">
+                                                <span class="text-sm font-semibold text-red-800">Aplicar Strike</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-green-50 px-3 py-2 rounded border border-green-100 flex-1 hover:bg-green-100 transition">
+                                                <input type="radio" name="strikeAction" value="remove" class="w-4 h-4 text-green-600 focus:ring-green-500">
+                                                <span class="text-sm font-semibold text-green-800">Remover Strike</span>
+                                            </label>
+                                        </div>
                                     </div>
 
                                     <button type="submit" class="w-full bg-[#003366] text-white py-3 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4 text-lg">
@@ -291,10 +301,8 @@
                         <div class="lg:col-span-1 border-l pl-0 lg:pl-8 border-gray-200 print:border-none print:pl-0">
                             <h3 class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Historial de Sesiones</h3>
                             
-                            <!-- Timeline rediseñado para columna estrecha (Alineado a la izquierda) -->
                             <div id="timelineContainer" class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-200 print:before:hidden">
                                 
-                                <!-- Estado vacío inicial -->
                                 <div id="emptyTimeline" class="text-center py-10 relative z-10 bg-white rounded-xl border border-dashed border-gray-300 print:hidden">
                                     <p class="text-gray-500 text-sm">Aún no hay notas de evolución registradas.</p>
                                 </div>
@@ -555,17 +563,32 @@
                     </div>
                 ` : '';
 
+                // Determinar el ícono y color basado en la acción de strike
+                let iconBgClass = 'bg-[#003366]';
+                let iconPath = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z';
+                let badgeHTML = '';
+
+                if (evo.strikeAnadido) {
+                    iconBgClass = 'bg-red-500';
+                    iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+                    badgeHTML = '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>';
+                } else if (evo.strikeRemovido) {
+                    iconBgClass = 'bg-green-500';
+                    iconPath = 'M5 13l4 4L19 7'; // Checkmark
+                    badgeHTML = '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Strike Removido</span>';
+                }
+
                 card.innerHTML = `
                     <!-- Ícono de la línea -->
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${evo.strikeAnadido ? 'bg-red-500' : 'bg-[#003366]'} shadow shrink-0 print:hidden">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${evo.strikeAnadido ? 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' : 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'}"></path></svg>
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${iconBgClass} shadow shrink-0 print:hidden">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path></svg>
                     </div>
                     
                     <!-- Tarjeta de Contenido -->
                     <div class="ml-4 w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm print:shadow-none print:border-none print:p-0 print:ml-0">
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-[#003366] text-sm">${evo.fecha}</span>
-                            ${evo.strikeAnadido ? '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>' : ''}
+                            ${badgeHTML}
                         </div>
                         <p class="text-sm text-gray-700 whitespace-pre-wrap">${evo.nota}</p>
                         
@@ -582,15 +605,29 @@
             const fecha = document.getElementById('evoFecha').value;
             const nota = document.getElementById('evoNota').value;
             const tarea = document.getElementById('evoTarea').value;
-            const strikeAnadido = document.getElementById('addStrike').checked;
             
             const hasPrueba = document.getElementById('hasPrueba').checked;
             const pruebaResultados = document.getElementById('pruebaResultados').value;
 
-            if (strikeAnadido) {
+            // Gestión de Strike Actions (Radio buttons)
+            const strikeAction = document.querySelector('input[name="strikeAction"]:checked').value;
+            let strikeAnadido = false;
+            let strikeRemovido = false;
+
+            if (strikeAction === 'add') {
                 currentStrikes++;
-                updateStrikeUI();
+                strikeAnadido = true;
+            } else if (strikeAction === 'remove') {
+                if (currentStrikes > 0) {
+                    currentStrikes--;
+                    strikeRemovido = true;
+                } else {
+                    alert("El paciente actualmente no tiene Strikes para remover.");
+                    return; // Detiene el guardado si se intenta remover un strike inexistente
+                }
             }
+            
+            updateStrikeUI();
 
             const nuevaEvo = { 
                 id: Date.now().toString(), 
@@ -598,6 +635,7 @@
                 nota, 
                 tarea, 
                 strikeAnadido,
+                strikeRemovido,
                 hasPrueba,
                 pruebaResultados
             };
@@ -605,10 +643,11 @@
             evoluciones.push(nuevaEvo);
             renderTimeline();
 
-            // Limpiar formulario y ocultar caja de pruebas
+            // Limpiar formulario y restablecer controles
             document.getElementById('evolucionForm').reset();
             document.getElementById('evoFecha').valueAsDate = new Date();
             document.getElementById('hasPrueba').checked = false;
+            document.querySelector('input[name="strikeAction"][value="none"]').checked = true;
             togglePruebaBox();
 
             // NOTA: Para guardar este array real de evoluciones y el contador de strikes en la BD, 
