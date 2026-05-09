@@ -36,7 +36,6 @@
         /* Reglas mágicas para la exportación a PDF (CInformado Back-Up) */
         @media print {
             body { background-color: white !important; }
-            /* Ocultar elementos de UI interactivos y el banner azul */
             .no-print, header, .tab-btn, button, #evolucionFormBox, #sessionModal, #bannerUI, #toastBorrador { display: none !important; }
             .card { box-shadow: none !important; border: 1px solid #e5e7eb; padding: 1rem !important; margin-bottom: 1rem; }
             
@@ -94,7 +93,6 @@
                     <div class="text-right flex flex-col items-end">
                         <span class="px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full mb-2">Consentimiento Verificado</span>
                         <p class="text-xs text-blue-200">ID: <span id="pacienteId" class="font-mono">---</span></p>
-                        <!-- BOTÓN DE DESCARGA PDF -->
                         <button onclick="window.print()" class="mt-3 text-sm flex items-center bg-white text-[#003366] font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Descargar Historial Completo (PDF)
@@ -122,9 +120,7 @@
                     <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-evolucion')">3. Bitácora & Evolución</button>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 1: SESIÓN CERO                         -->
-                <!-- ========================================== -->
+                <!-- TAB 1: SESIÓN CERO -->
                 <div id="tab-sesion-cero" class="card print:mt-4">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
                     <form id="historiaForm" class="space-y-8">
@@ -163,9 +159,7 @@
                     </form>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 2: PLAN DE TRABAJO INDIVIDUAL          -->
-                <!-- ========================================== -->
+                <!-- TAB 2: PLAN DE TRABAJO -->
                 <div id="tab-plan-trabajo" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Plan de Trabajo Individual</h3>
                     <div id="planContainer" class="space-y-4"></div>
@@ -176,9 +170,7 @@
                     </div>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 3: EVOLUCIÓN Y STRIKES                 -->
-                <!-- ========================================== -->
+                <!-- TAB 3: EVOLUCIÓN -->
                 <div id="tab-evolucion" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         
@@ -241,9 +233,7 @@
                     </div>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- FIRMA PROFESIONAL DEL TERAPEUTA            -->
-                <!-- ========================================== -->
+                <!-- FIRMA PROFESIONAL -->
                 <div class="card mt-8 bg-white border border-gray-200 print-avoid-break print:shadow-none print:border-none print:mt-12">
                     <div class="flex flex-col items-center justify-center text-center max-w-sm mx-auto">
                         <div class="mb-4 text-[#003366] opacity-80">
@@ -265,7 +255,6 @@
             </div>
         </div>
 
-        <!-- NOTIFICACIÓN TOAST DE BORRADOR RESTAURADO -->
         <div id="toastBorrador" class="fixed bottom-5 right-5 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded shadow-lg transition-all duration-500 transform translate-y-20 opacity-0 z-50 flex items-center pointer-events-none">
             <svg class="w-6 h-6 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <div>
@@ -273,10 +262,9 @@
                 <p class="text-xs">Se recuperó información no guardada.</p>
             </div>
         </div>
-
     </main>
 
-    <!-- MODAL DE LECTURA PROFUNDA Y ACTUALIZACIÓN -->
+    <!-- MODAL -->
     <div id="sessionModal" class="fixed inset-0 bg-[#003366] bg-opacity-75 hidden z-50 flex justify-center items-start pt-10 pb-10 px-4 overflow-y-auto backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col relative">
             <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
@@ -297,21 +285,16 @@
                     <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Nota de Evolución Original</h4>
                     <div id="modalNota" class="text-gray-800 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-100 text-[15px] leading-relaxed"></div>
                 </div>
-
                 <div id="modalPruebasContainer" class="hidden">
                     <h4 class="text-sm font-bold text-purple-600 uppercase tracking-wider mb-2">Evaluación / Pruebas</h4>
                     <div id="modalPruebas" class="text-purple-900 whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-100 text-[15px] leading-relaxed"></div>
                 </div>
-
                 <div id="modalTareaContainer" class="hidden">
                     <h4 class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Tarea Asignada</h4>
                     <div id="modalTarea" class="text-blue-900 bg-blue-50 p-4 rounded-lg border border-blue-100 font-medium"></div>
                 </div>
-
                 <div id="modalAnexosContainer" class="space-y-4"></div>
-
                 <hr class="border-gray-200">
-
                 <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
                     <h4 class="text-md font-bold text-gray-800 mb-2 flex items-center">
@@ -319,9 +302,7 @@
                         Agregar Actualización o Anexo
                     </h4>
                     <p class="text-xs text-gray-500 mb-4">Para garantizar la integridad legal del historial, la nota original no puede modificarse. Escribe aquí cualquier actualización. Quedará registrada con fecha y hora actual.</p>
-                    
                     <textarea id="nuevoAnexo" rows="3" class="textarea-styled text-sm bg-white" placeholder="Escribe el anexo o actualización aquí..."></textarea>
-                    
                     <div class="mt-3 flex justify-end">
                         <button onclick="guardarAnexo()" id="btnSaveAnexo" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow-sm">
                             Sellar Anexo a esta Sesión
@@ -334,16 +315,13 @@
     <input type="hidden" id="currentSessionIdModal">
 
     <script>
-        // Variables globales
         let currentStrikes = 0;
         let evoluciones = [];
         let planTrabajo = [];
         
-        // Claves de Local Storage para Autoguardado (Caché)
         let draftCeroKey = '';
         let draftPlanKey = '';
         let draftEvoKey = '';
-        let draftAnexoKey = '';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') { window.location.href = 'login.html'; return; }
@@ -359,7 +337,6 @@
 
             document.getElementById('evoFecha').valueAsDate = new Date();
             
-            // Asignar llaves únicas de caché por paciente
             draftCeroKey = `draft_cero_${patientId}`;
             draftPlanKey = `draft_plan_${patientId}`;
             draftEvoKey = `draft_evo_${patientId}`;
@@ -369,15 +346,10 @@
             document.getElementById('historiaForm').addEventListener('submit', (e) => { e.preventDefault(); saveSesionCero(patientId); });
             document.getElementById('evolucionForm').addEventListener('submit', (e) => { e.preventDefault(); addEvolucion(patientId); });
 
-            // Cerrar modal con tecla ESC
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
         });
 
-        // ==========================================
-        // MOTOR DE AUTOGUARDADO (CACHÉ LOCAL)
-        // ==========================================
         function setupAutoSave() {
-            // Caché Sesión Cero
             const formCero = document.getElementById('historiaForm');
             formCero.addEventListener('input', () => {
                 const data = {
@@ -398,12 +370,10 @@
                 localStorage.setItem(draftCeroKey, JSON.stringify(data));
             });
 
-            // Caché Bitácora (Registrar Sesión)
             const saveEvoDraft = () => {
                 let strikeActionVal = 'none';
                 const strikeChecked = document.querySelector('input[name="strikeAction"]:checked');
                 if (strikeChecked) strikeActionVal = strikeChecked.value;
-
                 const data = {
                     fecha: document.getElementById('evoFecha').value,
                     tarea: document.getElementById('evoTarea').value,
@@ -418,21 +388,16 @@
             formEvo.addEventListener('input', saveEvoDraft);
             formEvo.addEventListener('change', saveEvoDraft);
 
-            // Caché Modal Anexos
             document.getElementById('nuevoAnexo').addEventListener('input', (e) => {
                 const evoId = document.getElementById('currentSessionIdModal').value;
                 if(evoId) localStorage.setItem(`draft_anexo_${evoId}`, e.target.value);
             });
         }
 
-        function saveDraftPlan() {
-            if(draftPlanKey) localStorage.setItem(draftPlanKey, JSON.stringify(planTrabajo));
-        }
+        function saveDraftPlan() { if(draftPlanKey) localStorage.setItem(draftPlanKey, JSON.stringify(planTrabajo)); }
 
         function restoreDrafts() {
             let restored = false;
-
-            // Restaurar Sesión Cero
             const draftCero = localStorage.getItem(draftCeroKey);
             if (draftCero) {
                 try {
@@ -454,17 +419,11 @@
                 } catch(e) {}
             }
 
-            // Restaurar Plan de Trabajo
             const draftPlan = localStorage.getItem(draftPlanKey);
             if (draftPlan) {
-                try {
-                    planTrabajo = JSON.parse(draftPlan);
-                    renderPlan(); 
-                    restored = true;
-                } catch(e) {}
+                try { planTrabajo = JSON.parse(draftPlan); renderPlan(); restored = true; } catch(e) {}
             }
 
-            // Restaurar Bitácora
             const draftEvo = localStorage.getItem(draftEvoKey);
             if (draftEvo) {
                 try {
@@ -472,23 +431,15 @@
                     if(data.fecha) document.getElementById('evoFecha').value = data.fecha;
                     if(data.tarea) document.getElementById('evoTarea').value = data.tarea;
                     if(data.nota) document.getElementById('evoNota').value = data.nota;
-                    if(data.hasPrueba !== undefined) {
-                        document.getElementById('hasPrueba').checked = data.hasPrueba;
-                        togglePruebaBox();
-                    }
+                    if(data.hasPrueba !== undefined) { document.getElementById('hasPrueba').checked = data.hasPrueba; togglePruebaBox(); }
                     if(data.pruebaResultados) document.getElementById('pruebaResultados').value = data.pruebaResultados;
-                    if(data.strikeAction) {
-                        const r = document.querySelector(`input[name="strikeAction"][value="${data.strikeAction}"]`);
-                        if(r) r.checked = true;
-                    }
+                    if(data.strikeAction) { const r = document.querySelector(`input[name="strikeAction"][value="${data.strikeAction}"]`); if(r) r.checked = true; }
                     restored = true;
                 } catch(e) {}
             }
 
             if(restored) {
                 document.querySelectorAll('textarea').forEach(el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; });
-                
-                // Mostrar notificación de Borrador
                 const toast = document.getElementById('toastBorrador');
                 toast.classList.remove('translate-y-20', 'opacity-0');
                 setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 4000);
@@ -508,21 +459,17 @@
             try {
                 let data;
                 
-                // A) Traer Demográficos: Intento 1 (Individuales)
+                // Intento 1: Buscar en Individuales
                 let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
                 } else {
-                    // Intento 2: Si no está en individuales, buscar en Parejas
+                    // Intento 2: Buscar en Parejas
                     resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
-                    
-                    // Fallback de seguridad por si tu API de parejas se llama diferente:
                     if (!resDemo.ok) {
-                        resDemo = await fetch(`/api/get-consentimiento-pareja-individual?id=${id}`);
+                        throw new Error('No se encontró el paciente en ninguna base de datos.');
                     }
-                    
-                    if (!resDemo.ok) throw new Error('No se encontró el paciente');
                     data = await resDemo.json();
                 }
                 
@@ -537,14 +484,14 @@
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 1</span>
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${p1.nombre}</span></div>
-                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.documentoIdentidad}</span></div>
+                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento || ''} ${p1.documentoIdentidad}</span></div>
                             <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p1.telefonoContacto}</span></div>
                             <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p1.email || 'N/A'}</span></div>
                         </div>
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 2</span>
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${p2.nombre || 'N/A'}</span></div>
-                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.documentoIdentidad || 'N/A'}</span></div>
+                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.tipoDocumento || ''} ${p2.documentoIdentidad || 'N/A'}</span></div>
                             <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p2.edad || 'N/A'}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p2.telefonoContacto || 'N/A'}</span></div>
                             <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p2.email || 'N/A'}</span></div>
                         </div>
@@ -595,7 +542,6 @@
                 const hash = btoa(rawString).substring(0, 24).toUpperCase();
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
-                // B) TRAER HISTORIA CLÍNICA (Lectura Base de Datos)
                 try {
                     const resHist = await fetch(`/api/get-historia?id=${id}`);
                     if (resHist.ok) {
@@ -629,14 +575,15 @@
                 } catch(e) { console.log("No hay historia previa registrada."); }
 
                 renderPlan();
-                
-                // Inicializar autoguardado y restaurar borradores post-carga
                 setupAutoSave();
                 restoreDrafts();
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
-            } catch (error) { document.getElementById('loading').innerHTML = '<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente.</span>'; }
+            } catch (error) { 
+                console.error("Error cargando paciente:", error);
+                document.getElementById('loading').innerHTML = `<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente. <br><br><span class="text-sm text-gray-500">Detalle: ${error.message}</span></span>`; 
+            }
         }
 
         function switchTab(tabId) {
@@ -648,9 +595,6 @@
             document.getElementById(tabId).classList.remove('hidden');
         }
 
-        // ==========================================
-        // LÓGICA PLAN DE TRABAJO Y SESION CERO
-        // ==========================================
         function renderPlan() {
             const container = document.getElementById('planContainer'); container.innerHTML = '';
             if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
@@ -664,10 +608,7 @@
             });
             document.querySelectorAll('#planContainer textarea').forEach(el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; });
         }
-        function updatePlan(index, field, value) { 
-            planTrabajo[index][field] = value; 
-            saveDraftPlan();
-        }
+        function updatePlan(index, field, value) { planTrabajo[index][field] = value; saveDraftPlan(); }
         function addPlanRow() { planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '' }); renderPlan(); saveDraftPlan(); }
         function removePlanRow(index) { planTrabajo.splice(index, 1); if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' }); renderPlan(); saveDraftPlan(); }
 
@@ -677,10 +618,7 @@
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
                 const response = await fetch('/api/save-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
-                if (response.ok) { 
-                    localStorage.removeItem(draftPlanKey); // Limpia caché
-                    document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); 
-                } 
+                if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
         }
@@ -696,17 +634,11 @@
             };
             try {
                 const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
-                if (response.ok) { 
-                    localStorage.removeItem(draftCeroKey); // Limpia caché
-                    document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); 
-                } 
+                if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
         }
 
-        // ==========================================
-        // LÓGICA DE BITÁCORA Y STRIKES
-        // ==========================================
         function updateStrikeUI() {
             for(let i=1; i<=3; i++) { let el = document.getElementById(`strike${i}`); el.classList.remove('strike-active', 'text-white'); el.classList.add('bg-white', 'text-red-300'); }
             for(let i=1; i<=currentStrikes; i++) { if(i > 3) break; let el = document.getElementById(`strike${i}`); el.classList.remove('bg-white', 'text-red-300'); el.classList.add('strike-active', 'text-white'); }
@@ -757,9 +689,6 @@
             });
         }
 
-        // ==========================================
-        // LÓGICA DEL MODAL (APERTURA Y ACTUALIZACIÓN)
-        // ==========================================
         function openModal(evoId) {
             const evo = evoluciones.find(e => e.id === evoId);
             if(!evo) return;
@@ -768,15 +697,11 @@
             document.getElementById('modalFecha').textContent = "Fecha: " + evo.fecha;
             document.getElementById('modalNota').textContent = evo.nota;
 
-            if(evo.hasPrueba && evo.pruebaResultados) {
-                document.getElementById('modalPruebasContainer').classList.remove('hidden');
-                document.getElementById('modalPruebas').textContent = evo.pruebaResultados;
-            } else { document.getElementById('modalPruebasContainer').classList.add('hidden'); }
+            if(evo.hasPrueba && evo.pruebaResultados) { document.getElementById('modalPruebasContainer').classList.remove('hidden'); document.getElementById('modalPruebas').textContent = evo.pruebaResultados; } 
+            else { document.getElementById('modalPruebasContainer').classList.add('hidden'); }
 
-            if(evo.tarea) {
-                document.getElementById('modalTareaContainer').classList.remove('hidden');
-                document.getElementById('modalTarea').textContent = evo.tarea;
-            } else { document.getElementById('modalTareaContainer').classList.add('hidden'); }
+            if(evo.tarea) { document.getElementById('modalTareaContainer').classList.remove('hidden'); document.getElementById('modalTarea').textContent = evo.tarea; } 
+            else { document.getElementById('modalTareaContainer').classList.add('hidden'); }
 
             const anexosContainer = document.getElementById('modalAnexosContainer');
             anexosContainer.innerHTML = '';
@@ -790,7 +715,6 @@
                 });
             }
 
-            // Restaurar borrador de anexo si lo hay
             const draftAnexo = localStorage.getItem(`draft_anexo_${evoId}`);
             document.getElementById('nuevoAnexo').value = draftAnexo || '';
             
@@ -798,10 +722,7 @@
             document.body.style.overflow = 'hidden';
         }
 
-        function closeModal() {
-            document.getElementById('sessionModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
+        function closeModal() { document.getElementById('sessionModal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
 
         async function guardarAnexo() {
             const textoAnexo = document.getElementById('nuevoAnexo').value.trim();
@@ -820,25 +741,15 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                const response = await fetch('/api/save-evolucion', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes })
-                });
+                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
-                    localStorage.removeItem(`draft_anexo_${evoId}`); // Limpia caché
-                    renderTimeline(); 
-                    openModal(evoId); 
+                    localStorage.removeItem(`draft_anexo_${evoId}`);
+                    renderTimeline(); openModal(evoId); 
                 } else throw new Error('Error al guardar anexo');
-            } catch (error) {
-                evoluciones[evoIndex].anexos.pop(); 
-                alert("Error al guardar el anexo en la base de datos.");
-            } finally { btn.textContent = originalText; btn.disabled = false; }
+            } catch (error) { evoluciones[evoIndex].anexos.pop(); alert("Error al guardar el anexo."); } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
-        // ==========================================
-        // CREACIÓN DE NUEVA EVOLUCIÓN
-        // ==========================================
         async function addEvolucion(id) {
             const fecha = document.getElementById('evoFecha').value;
             const nota = document.getElementById('evoNota').value;
@@ -849,41 +760,24 @@
             let strikeAnadido = false; let strikeRemovido = false;
 
             if (strikeAction === 'add') { currentStrikes++; strikeAnadido = true; } 
-            else if (strikeAction === 'remove') {
-                if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } 
-                else { alert("El paciente actualmente no tiene Strikes para remover."); return; }
-            }
+            else if (strikeAction === 'remove') { if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } else { alert("No hay Strikes para remover."); return; } }
             updateStrikeUI();
 
             const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
             evoluciones.push(nuevaEvo); renderTimeline();
 
             const btn = document.getElementById('btnSaveEvo');
-            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando en la Nube...';
+            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                const response = await fetch('/api/save-evolucion', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes })
-                });
+                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
-                    localStorage.removeItem(draftEvoKey); // Limpia caché
-                    document.getElementById('evolucionForm').reset();
-                    document.getElementById('evoFecha').valueAsDate = new Date();
-                    document.getElementById('hasPrueba').checked = false;
-                    document.querySelector('input[name="strikeAction"][value="none"]').checked = true;
-                    togglePruebaBox();
-                    btn.textContent = '¡Evolución Guardada!';
-                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
-                } else throw new Error('Error al guardar en el servidor');
-            } catch (error) {
-                alert("Hubo un error al guardar la evolución en la base de datos.");
-                evoluciones.pop();
-                if (strikeAnadido) currentStrikes--; if (strikeRemovido) currentStrikes++;
-                updateStrikeUI(); renderTimeline();
-                btn.textContent = originalText; btn.disabled = false;
-            }
+                    localStorage.removeItem(draftEvoKey);
+                    document.getElementById('evolucionForm').reset(); document.getElementById('evoFecha').valueAsDate = new Date(); document.getElementById('hasPrueba').checked = false; document.querySelector('input[name="strikeAction"][value="none"]').checked = true; togglePruebaBox();
+                    btn.textContent = '¡Guardada!'; setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+                } else throw new Error('Error en el servidor');
+            } catch (error) { alert("Hubo un error al guardar."); evoluciones.pop(); if (strikeAnadido) currentStrikes--; if (strikeRemovido) currentStrikes++; updateStrikeUI(); renderTimeline(); btn.textContent = originalText; btn.disabled = false; }
         }
     </script>
 </body>
