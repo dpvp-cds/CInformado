@@ -458,12 +458,17 @@
         async function fetchPatientData(id) {
             try {
                 let data;
+                let isPareja = false; // NUEVO: Bandera robusta
                 
                 // Intento 1: Buscar en Individuales
                 let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
+                    // NUEVO: Detectar "Parejas Legacy" (las que se guardaron antes de separar las colecciones)
+                    if (data.tipo === 'pareja' || data.paciente1 || (data.demograficos && (data.demograficos.nombreCompleto1 || data.demograficos.nombre1))) {
+                        isPareja = true;
+                    }
                 } else {
                     // Intento 2: Buscar en Parejas
                     resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
@@ -471,17 +476,43 @@
                         throw new Error('No se encontró el paciente en ninguna base de datos.');
                     }
                     data = await resDemo.json();
+                    isPareja = true;
                 }
                 
                 let nombre, documento, edad, telefono;
                 
-                if (data.tipo === 'pareja' || data.paciente1) {
-                    const p1 = data.paciente1 || data.demograficos || {}; 
-                    const p2 = data.paciente2 || {};
+                if (isPareja) {
+                    let p1 = {}; 
+                    let p2 = {};
                     
-                    // Salvavidas de nombres para pacientes antiguos y nuevos
-                    let n1 = p1.nombre || p1.nombreCompleto || p1.nombreCompleto1 || "Paciente 1";
-                    let n2 = p2.nombre || p2.nombreCompleto || p2.nombreCompleto2 || "Paciente 2";
+                    if (data.paciente1) {
+                        p1 = data.paciente1;
+                        p2 = data.paciente2 || {};
+                    } else if (data.demograficos) {
+                        // MAPEO DE PAREJA LEGACY (Aplanada en demograficos)
+                        const d = data.demograficos;
+                        p1 = {
+                            nombre: d.nombreCompleto1 || d.nombre1 || d.nombreCompleto || "Paciente 1",
+                            tipoDocumento: d.tipoDocumento1 || d.tipoDocumento || "",
+                            documentoIdentidad: d.documentoIdentidad1 || d.documentoIdentidad || "N/A",
+                            edad: d.edad1 || d.edad || "N/A",
+                            telefonoContacto: d.telefonoContacto1 || d.telefonoContacto || "N/A",
+                            email: d.email1 || d.email || "N/A",
+                            eps: d.eps1 || d.eps || "N/A"
+                        };
+                        p2 = {
+                            nombre: d.nombreCompleto2 || d.nombre2 || "Paciente 2",
+                            tipoDocumento: d.tipoDocumento2 || "",
+                            documentoIdentidad: d.documentoIdentidad2 || "N/A",
+                            edad: d.edad2 || "N/A",
+                            telefonoContacto: d.telefonoContacto2 || "N/A",
+                            email: d.email2 || "N/A",
+                            eps: d.eps2 || "N/A"
+                        };
+                    }
+                    
+                    let n1 = p1.nombre || "Paciente 1";
+                    let n2 = p2.nombre || "Paciente 2";
                     
                     nombre = "Pareja: " + n1.split(' ')[0] + " y " + n2.split(' ')[0];
                     documento = "Múltiple"; edad = "N/A"; telefono = p1.telefonoContacto || "N/A";
@@ -490,16 +521,16 @@
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 1</span>
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n1}</span></div>
-                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento || ''} ${p1.documentoIdentidad || 'N/A'}</span></div>
-                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad || 'N/A'}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${telefono}</span></div>
-                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p1.email || 'N/A'}</span></div>
+                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento} ${p1.documentoIdentidad}</span></div>
+                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p1.telefonoContacto}</span></div>
+                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p1.email}</span></div>
                         </div>
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 2</span>
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n2}</span></div>
-                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.tipoDocumento || ''} ${p2.documentoIdentidad || 'N/A'}</span></div>
-                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p2.edad || 'N/A'}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p2.telefonoContacto || 'N/A'}</span></div>
-                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p2.email || 'N/A'}</span></div>
+                            <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.tipoDocumento} ${p2.documentoIdentidad}</span></div>
+                            <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p2.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p2.telefonoContacto}</span></div>
+                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p2.email}</span></div>
                         </div>
                     `;
                 } else {
