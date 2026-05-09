@@ -146,8 +146,18 @@
                             <div><label class="block mb-2 font-bold text-[#003366]">7. [N] - Nutrición y Trascendencia</label><textarea id="nutricion" rows="3" class="textarea-styled" placeholder="Prácticas de autocuidado, contribución al entorno y legado..."></textarea></div>
                         </div>
 
-                        <div class="pt-6 border-t border-gray-200 mt-6 no-print">
-                            <div class="flex items-start">
+                        <div class="pt-6 border-t border-gray-200 mt-6 print:mt-4 print:pt-4">
+                            <!-- NUEVO: PREGUNTA DE CIERRE SESIÓN CERO -->
+                            <div class="mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100 print:bg-white print:border-none print:p-0">
+                                <h4 class="text-lg font-bold text-[#003366] mb-2 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                    Cierre de Sesión Inicial
+                                </h4>
+                                <label class="block font-bold text-gray-800 mb-2">¿Cómo te sientes y qué te llevas?</label>
+                                <textarea id="cierreSesionCero" rows="3" class="textarea-styled bg-white" placeholder="Reflexión final del paciente al cerrar la sesión..."></textarea>
+                            </div>
+
+                            <div class="flex items-start no-print">
                                 <div class="flex items-center h-5"><input id="compromisoStrikes" type="checkbox" class="w-5 h-5 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"></div>
                                 <div class="ml-3 text-sm"><label for="compromisoStrikes" class="font-bold text-gray-800">Acuerdo de la Regla de los "3 Strikes"</label><p class="text-gray-500">El paciente comprende y acepta que el éxito del proyecto depende de su acción, y que al 3er incumplimiento injustificado, el proceso será finalizado.</p></div>
                             </div>
@@ -206,6 +216,15 @@
                                             <label class="block text-xs font-semibold mb-1 text-purple-700">Nombre de la prueba y Resultados</label>
                                             <textarea id="pruebaResultados" rows="3" class="textarea-styled text-sm border-purple-200 focus:border-purple-500" placeholder="Resultados..."></textarea>
                                         </div>
+                                    </div>
+
+                                    <!-- NUEVO: PREGUNTA DE CIERRE EVOLUCIÓN -->
+                                    <div class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                                        <label class="block text-sm font-bold mb-2 text-[#003366] flex items-center">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                            Cierre: ¿Cómo te sientes y qué te llevas?
+                                        </label>
+                                        <textarea id="evoCierre" rows="3" class="textarea-styled text-sm bg-white" placeholder="Reflexión final del paciente al terminar la sesión..."></textarea>
                                     </div>
                                     
                                     <div class="mt-4 p-4 bg-white rounded-lg border border-gray-200">
@@ -293,6 +312,13 @@
                     <h4 class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Tarea Asignada</h4>
                     <div id="modalTarea" class="text-blue-900 bg-blue-50 p-4 rounded-lg border border-blue-100 font-medium"></div>
                 </div>
+                
+                <!-- NUEVO: CIERRE EN MODAL -->
+                <div id="modalCierreContainer" class="hidden">
+                    <h4 class="text-sm font-bold text-[#003366] uppercase tracking-wider mb-2">Cierre de Sesión (¿Qué se lleva?)</h4>
+                    <div id="modalCierre" class="text-gray-800 bg-blue-50 p-4 rounded-lg border border-blue-100 font-medium italic text-[15px]"></div>
+                </div>
+
                 <div id="modalAnexosContainer" class="space-y-4"></div>
                 <hr class="border-gray-200">
                 <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden">
@@ -365,6 +391,7 @@
                     construccion: document.getElementById('construccion').value,
                     orientacion: document.getElementById('orientacion').value,
                     nutricion: document.getElementById('nutricion').value,
+                    cierreSesionCero: document.getElementById('cierreSesionCero').value,
                     compromisoStrikes: document.getElementById('compromisoStrikes').checked
                 };
                 localStorage.setItem(draftCeroKey, JSON.stringify(data));
@@ -380,6 +407,7 @@
                     nota: document.getElementById('evoNota').value,
                     hasPrueba: document.getElementById('hasPrueba').checked,
                     pruebaResultados: document.getElementById('pruebaResultados').value,
+                    cierre: document.getElementById('evoCierre').value,
                     strikeAction: strikeActionVal
                 };
                 localStorage.setItem(draftEvoKey, JSON.stringify(data));
@@ -414,6 +442,7 @@
                     document.getElementById('construccion').value = data.construccion || '';
                     document.getElementById('orientacion').value = data.orientacion || '';
                     document.getElementById('nutricion').value = data.nutricion || '';
+                    document.getElementById('cierreSesionCero').value = data.cierreSesionCero || '';
                     document.getElementById('compromisoStrikes').checked = data.compromisoStrikes || false;
                     restored = true;
                 } catch(e) {}
@@ -433,6 +462,7 @@
                     if(data.nota) document.getElementById('evoNota').value = data.nota;
                     if(data.hasPrueba !== undefined) { document.getElementById('hasPrueba').checked = data.hasPrueba; togglePruebaBox(); }
                     if(data.pruebaResultados) document.getElementById('pruebaResultados').value = data.pruebaResultados;
+                    if(data.cierre) document.getElementById('evoCierre').value = data.cierre;
                     if(data.strikeAction) { const r = document.querySelector(`input[name="strikeAction"][value="${data.strikeAction}"]`); if(r) r.checked = true; }
                     restored = true;
                 } catch(e) {}
@@ -458,19 +488,16 @@
         async function fetchPatientData(id) {
             try {
                 let data;
-                let isPareja = false; // NUEVO: Bandera robusta
+                let isPareja = false;
                 
-                // Intento 1: Buscar en Individuales
                 let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
-                    // NUEVO: Detectar "Parejas Legacy" (las que se guardaron antes de separar las colecciones)
                     if (data.tipo === 'pareja' || data.paciente1 || (data.demograficos && (data.demograficos.nombreCompleto1 || data.demograficos.nombre1))) {
                         isPareja = true;
                     }
                 } else {
-                    // Intento 2: Buscar en Parejas
                     resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
                     if (!resDemo.ok) {
                         throw new Error('No se encontró el paciente en ninguna base de datos.');
@@ -489,7 +516,6 @@
                         p1 = data.paciente1;
                         p2 = data.paciente2 || {};
                     } else if (data.demograficos) {
-                        // MAPEO DE PAREJA LEGACY (Aplanada en demograficos)
                         const d = data.demograficos;
                         p1 = {
                             nombre: d.nombreCompleto1 || d.nombre1 || d.nombreCompleto || "Paciente 1",
@@ -535,7 +561,6 @@
                     `;
                 } else {
                     const demo = data.demograficos || {};
-                    // Salvavidas para nombre individual
                     nombre = demo.nombre || demo.nombreCompleto || "Paciente Sin Nombre"; 
                     documento = demo.documentoIdentidad || "N/A"; 
                     edad = demo.edad || "N/A"; 
@@ -578,7 +603,6 @@
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
                 
-                // SALVAVIDAS: Si el nombre es null o undefined, usa una cadena segura para evitar error .replace()
                 let safeName = nombre || "Paciente";
                 document.title = `HC_${safeName.replace(/\s+/g, '_')}_CInformado`;
 
@@ -605,6 +629,8 @@
                             document.getElementById('construccion').value = histData.halcon?.construccion || '';
                             document.getElementById('orientacion').value = histData.halcon?.orientacion || '';
                             document.getElementById('nutricion').value = histData.halcon?.nutricion || '';
+                            
+                            document.getElementById('cierreSesionCero').value = histData.cierreSesionCero || '';
                             
                             document.getElementById('compromisoStrikes').checked = histData.acuerdoStrikes || false;
                             document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
@@ -675,7 +701,9 @@
             document.getElementById('form-error').classList.add('hidden'); btn.disabled = true; btn.textContent = 'Guardando...';
 
             const historiaData = {
-                pacienteId: id, ocupacion: document.getElementById('ocupacion').value, convivencia: document.getElementById('convivencia').value, hobbies: document.getElementById('hobbies').value, noHobbies: document.getElementById('noHobbies').value, antecedentesMedicos: document.getElementById('antecedentesMedicos').value, motivoConsulta: motivo, habilidades: document.getElementById('habilidades').value, aspiracion: document.getElementById('aspiracion').value, creencias: document.getElementById('creencias').value, construccion: document.getElementById('construccion').value, orientacion: document.getElementById('orientacion').value, nutricion: document.getElementById('nutricion').value, acuerdoStrikes: document.getElementById('compromisoStrikes').checked
+                pacienteId: id, ocupacion: document.getElementById('ocupacion').value, convivencia: document.getElementById('convivencia').value, hobbies: document.getElementById('hobbies').value, noHobbies: document.getElementById('noHobbies').value, antecedentesMedicos: document.getElementById('antecedentesMedicos').value, motivoConsulta: motivo, habilidades: document.getElementById('habilidades').value, aspiracion: document.getElementById('aspiracion').value, creencias: document.getElementById('creencias').value, construccion: document.getElementById('construccion').value, orientacion: document.getElementById('orientacion').value, nutricion: document.getElementById('nutricion').value, 
+                cierreSesionCero: document.getElementById('cierreSesionCero').value,
+                acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
                 const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
@@ -728,6 +756,7 @@
                         </div>
                         <p class="text-sm text-gray-700 line-clamp-3 print:hidden">${evo.nota}</p>
                         <p class="text-sm text-gray-700 hidden print-full-text">${evo.nota}</p>
+                        ${evo.cierre ? `<div class="mt-3 pt-2 border-t border-gray-100"><p class="text-xs font-bold text-[#003366]">Cierre (¿Qué se lleva?):</p><p class="text-sm text-gray-700 italic">"${evo.cierre}"</p></div>` : ''}
                         ${anexosPrintHTML}
                     </div>`;
                 container.appendChild(card);
@@ -747,6 +776,13 @@
 
             if(evo.tarea) { document.getElementById('modalTareaContainer').classList.remove('hidden'); document.getElementById('modalTarea').textContent = evo.tarea; } 
             else { document.getElementById('modalTareaContainer').classList.add('hidden'); }
+
+            if(evo.cierre) { 
+                document.getElementById('modalCierreContainer').classList.remove('hidden'); 
+                document.getElementById('modalCierre').textContent = `"${evo.cierre}"`; 
+            } else { 
+                document.getElementById('modalCierreContainer').classList.add('hidden'); 
+            }
 
             const anexosContainer = document.getElementById('modalAnexosContainer');
             anexosContainer.innerHTML = '';
@@ -801,6 +837,7 @@
             const tarea = document.getElementById('evoTarea').value;
             const hasPrueba = document.getElementById('hasPrueba').checked;
             const pruebaResultados = document.getElementById('pruebaResultados').value;
+            const cierre = document.getElementById('evoCierre').value;
             const strikeAction = document.querySelector('input[name="strikeAction"]:checked').value;
             let strikeAnadido = false; let strikeRemovido = false;
 
@@ -808,7 +845,7 @@
             else if (strikeAction === 'remove') { if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } else { alert("No hay Strikes para remover."); return; } }
             updateStrikeUI();
 
-            const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
+            const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, cierre, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
             evoluciones.push(nuevaEvo); renderTimeline();
 
             const btn = document.getElementById('btnSaveEvo');
