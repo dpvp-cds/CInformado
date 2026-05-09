@@ -396,7 +396,7 @@
                     let ubicacion = `${demo.ciudad || ''}, ${demo.departamento || ''}, ${demo.pais || ''}`.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,\s*,/g, ', ');
                     
                     // Rellenar Ficha Clínica Formal Individual
-                    document.getElementById('fichaData').innerHTML = `
+                    let fichaHTML = `
                         <div><span class="font-semibold text-gray-500 block text-xs">Nombre Completo</span> <span class="text-gray-800 font-medium">${demo.nombre}</span></div>
                         <div><span class="font-semibold text-gray-500 block text-xs">Documento</span> <span class="text-gray-800">${demo.tipoDocumento} ${demo.documentoIdentidad}</span></div>
                         <div><span class="font-semibold text-gray-500 block text-xs">Edad / Fecha Nac.</span> <span class="text-gray-800">${demo.edad} años (${demo.fechaNacimiento})</span></div>
@@ -405,6 +405,29 @@
                         <div><span class="font-semibold text-gray-500 block text-xs">Email</span> <span class="text-gray-800">${demo.email}</span></div>
                         <div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Ubicación y Dirección</span> <span class="text-gray-800">${ubicacion} - ${demo.direccion}</span></div>
                     `;
+                    
+                    // Condicional: Contacto de Emergencia
+                    if (demo.contactoEmergenciaNombre) {
+                        fichaHTML += `
+                            <div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Contacto de Emergencia</span> <span class="text-gray-800">${demo.contactoEmergenciaNombre} (Tel: ${demo.contactoEmergenciaTelefono})</span></div>
+                        `;
+                    }
+
+                    // Condicional: Adulto Responsable (Acudiente)
+                    if (demo.nombreAcudiente || parseInt(demo.edad) < 18) {
+                        fichaHTML += `
+                            <div class="md:col-span-2 lg:col-span-4 mt-2 pt-4 border-t border-gray-100 print:border-gray-300">
+                                <span class="font-bold text-red-700 block text-xs uppercase mb-2">Adulto Responsable (Acudiente)</span>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div><span class="font-semibold text-gray-500 block text-xs">Nombre Acudiente</span> <span class="text-gray-800">${demo.nombreAcudiente || 'N/A'}</span></div>
+                                    <div><span class="font-semibold text-gray-500 block text-xs">Relación</span> <span class="text-gray-800">${demo.tipoAcudiente || 'N/A'}</span></div>
+                                    <div><span class="font-semibold text-gray-500 block text-xs">Documento Acudiente</span> <span class="text-gray-800">${demo.documentoAcudiente || 'N/A'}</span></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('fichaData').innerHTML = fichaHTML;
                 }
 
                 // Banner azul UI
