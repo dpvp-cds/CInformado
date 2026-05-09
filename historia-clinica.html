@@ -46,7 +46,8 @@
             body { background-color: white !important; }
             .no-print, header, .tab-btn, button, #evolucionFormBox { display: none !important; }
             .card { box-shadow: none !important; border: 1px solid #e5e7eb; padding: 1rem !important; margin-bottom: 1rem; }
-            #tab-sesion-cero, #tab-evolucion { display: block !important; }
+            /* Mostrar TODOS los tabs en la impresión para el historial completo */
+            #tab-sesion-cero, #tab-plan-trabajo, #tab-evolucion { display: block !important; }
             .print-only { display: block !important; }
             textarea { border: none; resize: none; overflow: hidden; height: auto !important; background: transparent; }
             input { border: none; background: transparent; }
@@ -98,18 +99,21 @@
                         <!-- BOTÓN DE DESCARGA PDF -->
                         <button onclick="window.print()" class="no-print mt-3 text-sm flex items-center bg-white text-[#003366] font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Descargar Historial (PDF)
+                            Descargar Historial Completo (PDF)
                         </button>
                     </div>
                 </div>
 
                 <!-- PESTAÑAS (TABS) -->
-                <div class="flex border-b border-gray-200 no-print">
-                    <button class="tab-btn active" onclick="switchTab('tab-sesion-cero')">Sesión Cero (HALCÓN)</button>
-                    <button class="tab-btn text-gray-500" onclick="switchTab('tab-evolucion')">Bitácora & Evolución</button>
+                <div class="flex border-b border-gray-200 no-print overflow-x-auto">
+                    <button class="tab-btn active whitespace-nowrap" onclick="switchTab('tab-sesion-cero')">1. Sesión Cero (HALCÓN)</button>
+                    <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-plan-trabajo')">2. Plan de Trabajo</button>
+                    <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-evolucion')">3. Bitácora & Evolución</button>
                 </div>
 
-                <!-- TAB 1: SESIÓN CERO -->
+                <!-- ========================================== -->
+                <!-- TAB 1: SESIÓN CERO                         -->
+                <!-- ========================================== -->
                 <div id="tab-sesion-cero" class="card">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
                     
@@ -212,7 +216,33 @@
                     </form>
                 </div>
 
-                <!-- TAB 2: EVOLUCIÓN Y STRIKES -->
+                <!-- ========================================== -->
+                <!-- TAB 2: PLAN DE TRABAJO INDIVIDUAL          -->
+                <!-- ========================================== -->
+                <div id="tab-plan-trabajo" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
+                    <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Plan de Trabajo Individual</h3>
+                    <p class="text-gray-600 text-sm mb-6 no-print">Define la estructura del proyecto terapéutico. Este mapa le dará claridad al paciente sobre las etapas de su proceso.</p>
+                    
+                    <div id="planContainer" class="space-y-4">
+                        <!-- Las filas del plan se renderizan aquí dinámicamente -->
+                    </div>
+
+                    <button onclick="addPlanRow()" class="no-print mt-4 flex items-center text-[#003366] font-bold text-sm hover:underline">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Añadir Nueva Sesión al Plan
+                    </button>
+
+                    <div class="text-right pt-4 no-print border-t border-gray-200 mt-8">
+                        <div id="plan-success" class="hidden text-green-600 font-medium text-sm text-center mb-3">Plan de trabajo guardado exitosamente.</div>
+                        <button onclick="savePlan()" id="btnSavePlan" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">
+                            Guardar Plan de Trabajo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- TAB 3: EVOLUCIÓN Y STRIKES                 -->
+                <!-- ========================================== -->
                 <div id="tab-evolucion" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
                     
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -290,8 +320,8 @@
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="w-full bg-[#003366] text-white py-3 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4 text-lg">
-                                        Agregar a Bitácora
+                                    <button type="submit" id="btnSaveEvo" class="w-full bg-[#003366] text-white py-3 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4 text-lg">
+                                        Guardar en Bitácora
                                     </button>
                                 </form>
                             </div>
@@ -321,6 +351,7 @@
         // Variables globales para la historia
         let currentStrikes = 0;
         let evoluciones = [];
+        let planTrabajo = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') { window.location.href = 'login.html'; return; }
@@ -366,6 +397,95 @@
         }
 
         // ==========================================
+        // LÓGICA DE PLAN DE TRABAJO
+        // ==========================================
+        function renderPlan() {
+            const container = document.getElementById('planContainer');
+            container.innerHTML = '';
+            
+            if (planTrabajo.length === 0) {
+                planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
+            }
+
+            planTrabajo.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="flex flex-col md:flex-row gap-4 items-start bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-white print:p-2 print:border-b print:border-t-0 print:border-x-0 print:rounded-none">
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Nombre / # Sesión</label>
+                            <input type="text" class="input-styled text-sm bg-white" value="${item.sesion}" onchange="updatePlan(${index}, 'sesion', this.value)">
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tema Principal</label>
+                            <input type="text" class="input-styled text-sm bg-white" value="${item.tema}" onchange="updatePlan(${index}, 'tema', this.value)" placeholder="Ej. Creencias Limitantes">
+                        </div>
+                        <div class="w-full md:w-5/12 relative">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Objetivo de la Sesión</label>
+                            <textarea class="textarea-styled text-sm bg-white h-10 min-h-[42px]" onchange="updatePlan(${index}, 'objetivo', this.value)" placeholder="Meta a lograr...">${item.objetivo}</textarea>
+                            <button onclick="removePlanRow(${index})" class="no-print absolute -right-2 top-0 mt-8 mr-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm border border-gray-100" title="Eliminar sesión">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Ajustar altura de textareas tras renderizar
+            document.querySelectorAll('#planContainer textarea').forEach(el => {
+                el.style.height = 'auto';
+                el.style.height = (el.scrollHeight) + 'px';
+            });
+        }
+
+        function updatePlan(index, field, value) {
+            planTrabajo[index][field] = value;
+        }
+
+        function addPlanRow() {
+            planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '' });
+            renderPlan();
+        }
+
+        function removePlanRow(index) {
+            planTrabajo.splice(index, 1);
+            if (planTrabajo.length === 0) {
+                planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
+            }
+            renderPlan();
+        }
+
+        async function savePlan() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const btn = document.getElementById('btnSavePlan');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Guardando Plan...';
+
+            try {
+                const response = await fetch('/api/save-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pacienteId: id,
+                        planTrabajo: planTrabajo
+                    })
+                });
+
+                if (response.ok) {
+                    const successMsg = document.getElementById('plan-success');
+                    successMsg.classList.remove('hidden');
+                    setTimeout(() => successMsg.classList.add('hidden'), 3000);
+                } else {
+                    throw new Error('Error al guardar el plan');
+                }
+            } catch (error) {
+                alert("Error al conectar con la base de datos.");
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
         // CEREBRO DE LA VISTA Y LECTURA
         // ==========================================
 
@@ -392,23 +512,21 @@
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
 
-                // Cambiar el título web para que el PDF se descargue con el nombre del paciente
                 document.title = `HC_${nombre.replace(/\s+/g, '_')}_CInformado`;
 
-                // B) TRAER HISTORIA CLÍNICA (Lectura mediante get-historia.js)
+                // B) TRAER HISTORIA CLÍNICA (Lectura)
                 try {
                     const resHist = await fetch(`/api/get-historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
-                            // Rellenar Contexto Vital
+                            // Rellenar Contexto Vital y HALCÓN
                             document.getElementById('ocupacion').value = histData.contextoVital?.ocupacion || '';
                             document.getElementById('convivencia').value = histData.contextoVital?.convivencia || '';
                             document.getElementById('hobbies').value = histData.contextoVital?.hobbies || '';
                             document.getElementById('noHobbies').value = histData.contextoVital?.noHobbies || '';
                             document.getElementById('antecedentesMedicos').value = histData.contextoVital?.antecedentesMedicos || '';
                             
-                            // Rellenar HALCÓN
                             document.getElementById('motivoConsulta').value = histData.halcon?.motivoConsulta || '';
                             document.getElementById('habilidades').value = histData.halcon?.habilidades || '';
                             document.getElementById('aspiracion').value = histData.halcon?.aspiracion || '';
@@ -420,18 +538,23 @@
                             document.getElementById('compromisoStrikes').checked = histData.acuerdoStrikes || false;
                             document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
 
-                            // Auto-resize de textareas tras cargar datos (para que se vean en impresión)
+                            // Cargar Plan de Trabajo si existe
+                            if (histData.planTrabajo && histData.planTrabajo.length > 0) {
+                                planTrabajo = histData.planTrabajo;
+                            }
+                            
+                            // Auto-resize de textareas
                             document.querySelectorAll('textarea').forEach(el => {
                                 el.style.height = 'auto';
                                 el.style.height = (el.scrollHeight) + 'px';
                             });
 
-                            // Cargar datos de la bitácora si existen
+                            // Cargar Evoluciones
                             if(histData.evoluciones && histData.evoluciones.length > 0) {
                                 evoluciones = histData.evoluciones;
                                 renderTimeline();
                             }
-                            if(histData.strikes) {
+                            if(histData.strikes !== undefined) {
                                 currentStrikes = histData.strikes;
                                 updateStrikeUI();
                             }
@@ -441,7 +564,9 @@
                     console.log("No hay historia previa registrada aún.");
                 }
 
-                // Ocultar loader y mostrar interfaz
+                // Renderizar el Plan
+                renderPlan();
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
 
@@ -450,16 +575,17 @@
             }
         }
 
-        // Cambio de pestañas
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'border-b-[#003366]', 'text-[#003366]'));
             event.target.classList.add('active', 'border-b-[#003366]', 'text-[#003366]');
+            
             document.getElementById('tab-sesion-cero').classList.add('hidden');
+            document.getElementById('tab-plan-trabajo').classList.add('hidden');
             document.getElementById('tab-evolucion').classList.add('hidden');
+            
             document.getElementById(tabId).classList.remove('hidden');
         }
 
-        // Lógica de guardado Sesión Cero (Envía a save-historia.js)
         async function saveSesionCero(id) {
             const motivo = document.getElementById('motivoConsulta').value.trim();
             const btn = document.getElementById('btnSave');
@@ -514,13 +640,11 @@
         // ==========================================
 
         function updateStrikeUI() {
-            // Reiniciar colores
             for(let i=1; i<=3; i++) {
                 let el = document.getElementById(`strike${i}`);
                 el.classList.remove('strike-active', 'text-white');
                 el.classList.add('bg-white', 'text-red-300');
             }
-            // Llenar activos
             for(let i=1; i<=currentStrikes; i++) {
                 if(i > 3) break;
                 let el = document.getElementById(`strike${i}`);
@@ -545,17 +669,14 @@
             
             document.getElementById('emptyTimeline').classList.add('hidden');
             
-            // Limpiar todo excepto el mensaje de vacío
             Array.from(container.children).forEach(child => {
                 if(child.id !== 'emptyTimeline') container.removeChild(child);
             });
 
-            // Renderizar desde la más reciente a la más antigua. Diseño alineado a la izquierda para columnas estrechas.
             [...evoluciones].reverse().forEach((evo) => {
                 const card = document.createElement('div');
                 card.className = `relative z-10 flex items-start group mb-6 print:mb-4 print:border-b print:border-gray-200 print:pb-4`;
                 
-                // Módulo de resultados de prueba si existe
                 const pruebaHTML = evo.hasPrueba && evo.pruebaResultados ? `
                     <div class="mt-3 pt-3 border-t border-purple-100 bg-purple-50 p-3 rounded-lg print:bg-white print:border-purple-200">
                         <p class="text-xs font-bold text-purple-800 mb-1">Resultados de Prueba/Evaluación:</p>
@@ -563,7 +684,6 @@
                     </div>
                 ` : '';
 
-                // Determinar el ícono y color basado en la acción de strike
                 let iconBgClass = 'bg-[#003366]';
                 let iconPath = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z';
                 let badgeHTML = '';
@@ -574,17 +694,15 @@
                     badgeHTML = '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>';
                 } else if (evo.strikeRemovido) {
                     iconBgClass = 'bg-green-500';
-                    iconPath = 'M5 13l4 4L19 7'; // Checkmark
+                    iconPath = 'M5 13l4 4L19 7';
                     badgeHTML = '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Strike Removido</span>';
                 }
 
                 card.innerHTML = `
-                    <!-- Ícono de la línea -->
                     <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${iconBgClass} shadow shrink-0 print:hidden">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path></svg>
                     </div>
                     
-                    <!-- Tarjeta de Contenido -->
                     <div class="ml-4 w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm print:shadow-none print:border-none print:p-0 print:ml-0">
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-[#003366] text-sm">${evo.fecha}</span>
@@ -609,7 +727,6 @@
             const hasPrueba = document.getElementById('hasPrueba').checked;
             const pruebaResultados = document.getElementById('pruebaResultados').value;
 
-            // Gestión de Strike Actions (Radio buttons)
             const strikeAction = document.querySelector('input[name="strikeAction"]:checked').value;
             let strikeAnadido = false;
             let strikeRemovido = false;
@@ -623,7 +740,7 @@
                     strikeRemovido = true;
                 } else {
                     alert("El paciente actualmente no tiene Strikes para remover.");
-                    return; // Detiene el guardado si se intenta remover un strike inexistente
+                    return; 
                 }
             }
             
@@ -643,16 +760,48 @@
             evoluciones.push(nuevaEvo);
             renderTimeline();
 
-            // Limpiar formulario y restablecer controles
-            document.getElementById('evolucionForm').reset();
-            document.getElementById('evoFecha').valueAsDate = new Date();
-            document.getElementById('hasPrueba').checked = false;
-            document.querySelector('input[name="strikeAction"][value="none"]').checked = true;
-            togglePruebaBox();
+            const btn = document.getElementById('btnSaveEvo');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Guardando en la Nube...';
 
-            // NOTA: Para guardar este array real de evoluciones y el contador de strikes en la BD, 
-            // crearemos posteriormente la API "save-evolucion.js". Por ahora funciona en el front visualmente.
-            alert("Evolución y resultados agregados visualmente. (Falta conectar la API de guardado para la bitácora).");
+            try {
+                const response = await fetch('/api/save-evolucion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pacienteId: id,
+                        evoluciones: evoluciones,
+                        strikes: currentStrikes
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('evolucionForm').reset();
+                    document.getElementById('evoFecha').valueAsDate = new Date();
+                    document.getElementById('hasPrueba').checked = false;
+                    document.querySelector('input[name="strikeAction"][value="none"]').checked = true;
+                    togglePruebaBox();
+                    
+                    btn.textContent = '¡Evolución Guardada!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('Error al guardar en el servidor');
+                }
+            } catch (error) {
+                alert("Hubo un error al guardar la evolución en la base de datos.");
+                evoluciones.pop();
+                if (strikeAnadido) currentStrikes--;
+                if (strikeRemovido) currentStrikes++;
+                updateStrikeUI();
+                renderTimeline();
+                
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
