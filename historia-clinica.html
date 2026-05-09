@@ -40,9 +40,26 @@
             #tab-sesion-cero, #tab-plan-trabajo, #tab-evolucion { display: block !important; }
             .print-only { display: block !important; }
             
-            /* Ajuste fundamental: Quitamos el height: auto y forzamos a que respete el estilo en línea generado por JS */
-            textarea { border: none !important; resize: none !important; overflow: visible !important; background: transparent !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
             input { border: none !important; background: transparent !important; }
+            
+            /* Ocultar textareas originales para evitar recortes del navegador */
+            textarea { display: none !important; }
+            
+            /* Mostrar el clon perfecto que crece sin límites */
+            .print-textarea-clone { 
+                display: block !important; 
+                border: none !important; 
+                background: transparent !important; 
+                white-space: pre-wrap !important; 
+                word-wrap: break-word !important; 
+                height: auto !important; 
+                min-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: inherit !important;
+                font-family: inherit !important;
+                font-size: inherit !important;
+            }
             
             .timeline-card { cursor: default; transform: none !important; box-shadow: none !important; border: 1px solid #e5e7eb !important; }
             .timeline-card p.line-clamp-3 { display: none; }
@@ -351,7 +368,7 @@
         let draftPlanKey = '';
         let draftEvoKey = '';
 
-        // FUNCIÓN GLOBAL PARA AUTO-EXPANDIR TEXTAREAS
+        // FUNCIÓN GLOBAL PARA AUTO-EXPANDIR TEXTAREAS EN PANTALLA
         function resizeAllTextareas() {
             document.querySelectorAll('textarea').forEach(el => {
                 el.style.height = 'auto'; // Reset vital para medir correctamente
@@ -367,8 +384,22 @@
             }
         });
 
-        // EL "FLASH FOTOGRÁFICO" DE SEGURIDAD LEGAL ANTES DE IMPRIMIR AL PDF
-        window.addEventListener('beforeprint', resizeAllTextareas);
+        // EL "CLON DE SEGURIDAD" PARA PDF: Convierte textareas en divs para evitar recortes
+        window.addEventListener('beforeprint', () => {
+            document.querySelectorAll('textarea').forEach(el => {
+                const div = document.createElement('div');
+                div.className = el.className + ' print-textarea-clone';
+                div.textContent = el.value || ''; 
+                el.style.display = 'none'; 
+                el.parentNode.insertBefore(div, el.nextSibling); 
+            });
+        });
+
+        // RESTAURAR LA PANTALLA DESPUÉS DEL PDF
+        window.addEventListener('afterprint', () => {
+            document.querySelectorAll('.print-textarea-clone').forEach(el => el.remove());
+            document.querySelectorAll('textarea').forEach(el => el.style.display = ''); 
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') { window.location.href = 'login.html'; return; }
@@ -831,7 +862,6 @@
             document.getElementById('sessionModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             
-            // Reajustar el textarea del anexo en el modal si tiene contenido
             setTimeout(resizeAllTextareas, 50);
         }
 
