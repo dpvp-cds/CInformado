@@ -10,7 +10,6 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
         .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
         
-        /* Estilos para inputs y áreas de texto (scroll asegurado) */
         .input-styled, .textarea-styled { 
             border: 1px solid #d1d5db; 
             border-radius: 8px; 
@@ -19,8 +18,8 @@
             transition: all 0.3s ease; 
         }
         .textarea-styled {
-            resize: vertical; /* Permite estirar la caja hacia abajo si se desea */
-            overflow-y: auto; /* Asegura que aparezca el scroll al llenarse */
+            resize: vertical; 
+            overflow-y: auto; 
             min-height: 80px;
         }
         .input-styled:focus, .textarea-styled:focus { 
@@ -33,11 +32,14 @@
         .tab-btn.active { border-bottom-color: #003366; color: #003366; }
         .tab-btn:hover:not(.active) { color: #003366; background-color: #f3f4f6; border-radius: 8px 8px 0 0; }
         
-        /* Personalización sutil del scrollbar para las áreas de texto */
         .textarea-styled::-webkit-scrollbar { width: 8px; }
         .textarea-styled::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .textarea-styled::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
         .textarea-styled::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* Estilos para el Tracker de Strikes */
+        .strike-indicator { transition: all 0.3s; }
+        .strike-active { background-color: #ef4444; border-color: #ef4444; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -129,48 +131,41 @@
                         <div class="space-y-6">
                             <h4 class="text-lg font-bold text-[#003366] border-b pb-2">Diagnóstico Existencial (Método HALCÓN)</h4>
                             
-                            <!-- 1. Motivo de Consulta -->
                             <div>
                                 <label class="block mb-2 font-bold text-gray-800">1. Motivo de Consulta</label>
                                 <textarea id="motivoConsulta" rows="4" class="textarea-styled" placeholder="Describe el motivo de consulta del paciente..."></textarea>
                             </div>
 
-                            <!-- 2. H - Habilidades y Esencia -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label>
                                 <p class="text-xs text-gray-500 mb-2">Recursos actuales: tiempo, energía, talentos, "no negociables" de su identidad.</p>
                                 <textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea>
                             </div>
 
-                            <!-- 3. A - Aspiración / Visión -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label>
                                 <p class="text-xs text-gray-500 mb-2">¿Busca descubrir su propósito inmutable o estructurar un proyecto con fecha de caducidad?</p>
                                 <textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las sesiones..."></textarea>
                             </div>
 
-                            <!-- 4. L - Lógica y Creencias Limitantes -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label>
                                 <p class="text-xs text-gray-500 mb-2">Identificación de lenguaje limitante: uso de "bueno/malo", "fácil/difícil", o actuar desde el "sacrificio".</p>
                                 <textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea>
                             </div>
 
-                            <!-- 5. C - Construcción y Concreción -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">5. [C] - Construcción y Concreción</label>
                                 <p class="text-xs text-gray-500 mb-2">Materialización del propósito en proyectos de vida definidos, recursos necesarios y cronograma.</p>
                                 <textarea id="construccion" rows="3" class="textarea-styled" placeholder="Proyectos específicos, pasos a seguir y fechas tentativas..."></textarea>
                             </div>
 
-                            <!-- 6. O - Orientación y Adaptación -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">6. [O] - Orientación y Adaptación</label>
                                 <p class="text-xs text-gray-500 mb-2">Negociación interna/externa, manejo de obstáculos y reencuadre de desafíos.</p>
                                 <textarea id="orientacion" rows="3" class="textarea-styled" placeholder="Estrategias de afrontamiento, resolución de conflictos..."></textarea>
                             </div>
 
-                            <!-- 7. N - Nutrición y Trascendencia -->
                             <div>
                                 <label class="block mb-2 font-bold text-[#003366]">7. [N] - Nutrición y Trascendencia</label>
                                 <p class="text-xs text-gray-500 mb-2">Bienestar continuo, impacto positivo en su entorno y construcción del legado.</p>
@@ -202,12 +197,70 @@
                     </form>
                 </div>
 
-                <!-- TAB 2: EVOLUCIÓN -->
-                <div id="tab-evolucion" class="card hidden text-center py-20">
-                    <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    <h3 class="text-lg font-medium text-gray-900">Bitácora de Evolución</h3>
-                    <p class="mt-1 text-sm text-gray-500">Aquí irán las notas de cada sesión y el contador del "Tracker de Voluntad".</p>
-                    <p class="mt-4 text-xs font-mono text-blue-600 bg-blue-50 inline-block px-3 py-1 rounded">Módulo en construcción...</p>
+                <!-- TAB 2: EVOLUCIÓN Y STRIKES -->
+                <div id="tab-evolucion" class="card hidden">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        <!-- Panel Izquierdo: Tracker de Strikes y Nueva Evolución -->
+                        <div class="lg:col-span-1 space-y-6">
+                            <!-- Tracker de Strikes -->
+                            <div class="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
+                                <h3 class="text-lg font-bold text-red-800 mb-2">Tracker de Voluntad</h3>
+                                <p class="text-xs text-red-600 mb-4">Regla de los 3 Strikes (Tareas incumplidas)</p>
+                                <div class="flex justify-center space-x-3 mb-4">
+                                    <div id="strike1" class="strike-indicator w-10 h-10 rounded-full border-2 border-red-300 bg-white flex items-center justify-center font-bold text-red-300">1</div>
+                                    <div id="strike2" class="strike-indicator w-10 h-10 rounded-full border-2 border-red-300 bg-white flex items-center justify-center font-bold text-red-300">2</div>
+                                    <div id="strike3" class="strike-indicator w-10 h-10 rounded-full border-2 border-red-300 bg-white flex items-center justify-center font-bold text-red-300">3</div>
+                                </div>
+                                <p id="strikeMessage" class="text-sm font-semibold text-gray-700">Compromiso estable.</p>
+                            </div>
+
+                            <!-- Formulario Nueva Evolución -->
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                                <h3 class="text-lg font-bold text-[#003366] mb-4 border-b pb-2">Nueva Sesión</h3>
+                                <form id="evolucionForm" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-1">Fecha</label>
+                                        <input type="date" id="evoFecha" class="input-styled text-sm" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-1">Nota de Evolución</label>
+                                        <textarea id="evoNota" rows="4" class="textarea-styled text-sm" placeholder="Resumen de la sesión, técnicas aplicadas, avances..." required></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-1">Tarea Asignada (Para la próxima)</label>
+                                        <input type="text" id="evoTarea" class="input-styled text-sm" placeholder="Ej. Lectura, ejercicio de anclaje...">
+                                    </div>
+                                    
+                                    <div class="flex items-start mt-4 p-3 bg-red-100 rounded-lg">
+                                        <input id="addStrike" type="checkbox" class="w-4 h-4 mt-1 text-red-600 border-red-300 rounded focus:ring-red-500">
+                                        <label for="addStrike" class="ml-2 text-sm font-bold text-red-800">
+                                            Incumplió tarea anterior (Aplicar Strike)
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="w-full bg-[#003366] text-white py-2 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4">
+                                        Agregar a Bitácora
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Panel Derecho: Línea de Tiempo (Historial) -->
+                        <div class="lg:col-span-2">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Historial de Sesiones</h3>
+                            <div id="timelineContainer" class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-300 before:to-transparent">
+                                
+                                <!-- Las notas se inyectarán aquí por JS. Este es un estado vacío inicial -->
+                                <div id="emptyTimeline" class="text-center py-10 relative z-10 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <p class="text-gray-500">Aún no hay notas de evolución registradas para este paciente.</p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -215,19 +268,14 @@
     </main>
 
     <script>
+        // Variables globales para la historia
+        let currentStrikes = 0;
+        let evoluciones = [];
+
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Seguridad Básica de Acceso
-            if (sessionStorage.getItem('consultorAuth') !== 'true') {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (sessionStorage.getItem('consultorAuth') !== 'true') { window.location.href = 'login.html'; return; }
+            document.getElementById('logoutButton').addEventListener('click', () => { sessionStorage.removeItem('consultorAuth'); window.location.href = 'login.html'; });
 
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                sessionStorage.removeItem('consultorAuth');
-                window.location.href = 'login.html';
-            });
-
-            // 2. Extraer el ID del paciente de la URL
             const urlParams = new URLSearchParams(window.location.search);
             const patientId = urlParams.get('id');
 
@@ -236,59 +284,95 @@
                 return;
             }
 
-            // 3. Cargar Datos Básicos del Paciente
+            document.getElementById('evoFecha').valueAsDate = new Date();
+
+            // 1. Cargar Datos Básicos e Historia Clínica
             fetchPatientData(patientId);
             
-            // 4. Lógica de Guardado
+            // 2. Eventos de Guardado
             document.getElementById('historiaForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 saveSesionCero(patientId);
             });
+
+            document.getElementById('evolucionForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                addEvolucion(patientId);
+            });
         });
 
         // ==========================================
-        // CEREBRO DE LA VISTA
+        // CEREBRO DE LA VISTA Y LECTURA
         // ==========================================
 
         async function fetchPatientData(id) {
             try {
-                // Reutilizamos la API existente para traer los demográficos
-                const response = await fetch(`/api/get-consentimiento-individual?id=${id}`);
-                if (!response.ok) throw new Error('No se encontró el paciente');
+                // A) Traer Demográficos
+                const resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                if (!resDemo.ok) throw new Error('No se encontró el paciente');
+                const data = await resDemo.json();
                 
-                const data = await response.json();
-                
-                // Determinar si es individual o pareja para extraer el nombre
                 let nombre, documento, edad, telefono;
                 if (data.tipo === 'pareja' || data.paciente1) {
                     const p1 = data.paciente1 || data.demograficos; 
                     nombre = "Pareja: " + p1.nombre.split(' ')[0] + " y " + (data.paciente2?.nombre.split(' ')[0] || "Pareja");
-                    documento = "Múltiple";
-                    edad = "N/A";
-                    telefono = p1.telefonoContacto || "N/A";
+                    documento = "Múltiple"; edad = "N/A"; telefono = p1.telefonoContacto || "N/A";
                 } else {
                     const demo = data.demograficos;
-                    nombre = demo.nombre;
-                    documento = demo.documentoIdentidad;
-                    edad = demo.edad;
-                    telefono = demo.telefonoContacto;
+                    nombre = demo.nombre; documento = demo.documentoIdentidad; edad = demo.edad; telefono = demo.telefonoContacto;
                 }
 
-                // Inyectar en el HTML
                 document.getElementById('pacienteNombre').textContent = nombre;
                 document.getElementById('pacienteDoc').textContent = `Doc: ${documento}`;
                 document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
 
+                // B) TRAER HISTORIA CLÍNICA (Lectura mediante get-historia.js)
+                try {
+                    const resHist = await fetch(`/api/get-historia?id=${id}`);
+                    if (resHist.ok) {
+                        const histData = await resHist.json();
+                        if (!histData.isNew) {
+                            // Rellenar Contexto Vital
+                            document.getElementById('ocupacion').value = histData.contextoVital?.ocupacion || '';
+                            document.getElementById('convivencia').value = histData.contextoVital?.convivencia || '';
+                            document.getElementById('hobbies').value = histData.contextoVital?.hobbies || '';
+                            document.getElementById('noHobbies').value = histData.contextoVital?.noHobbies || '';
+                            document.getElementById('antecedentesMedicos').value = histData.contextoVital?.antecedentesMedicos || '';
+                            
+                            // Rellenar HALCÓN
+                            document.getElementById('motivoConsulta').value = histData.halcon?.motivoConsulta || '';
+                            document.getElementById('habilidades').value = histData.halcon?.habilidades || '';
+                            document.getElementById('aspiracion').value = histData.halcon?.aspiracion || '';
+                            document.getElementById('creencias').value = histData.halcon?.creencias || '';
+                            document.getElementById('construccion').value = histData.halcon?.construccion || '';
+                            document.getElementById('orientacion').value = histData.halcon?.orientacion || '';
+                            document.getElementById('nutricion').value = histData.halcon?.nutricion || '';
+                            
+                            document.getElementById('compromisoStrikes').checked = histData.acuerdoStrikes || false;
+                            document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
+
+                            // Cargar datos de la bitácora si existen
+                            if(histData.evoluciones && histData.evoluciones.length > 0) {
+                                evoluciones = histData.evoluciones;
+                                renderTimeline();
+                            }
+                            if(histData.strikes) {
+                                currentStrikes = histData.strikes;
+                                updateStrikeUI();
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.log("No hay historia previa registrada aún.");
+                }
+
                 // Ocultar loader y mostrar interfaz
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
 
-                // TODO: Aquí llamaremos a la futura API para precargar la historia clínica si ya existe.
-
             } catch (error) {
-                console.error(error);
                 document.getElementById('loading').innerHTML = '<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente.</span>';
             }
         }
@@ -297,36 +381,30 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'border-b-[#003366]', 'text-[#003366]'));
             event.target.classList.add('active', 'border-b-[#003366]', 'text-[#003366]');
-            
             document.getElementById('tab-sesion-cero').classList.add('hidden');
             document.getElementById('tab-evolucion').classList.add('hidden');
-            
             document.getElementById(tabId).classList.remove('hidden');
         }
 
-        // Lógica de guardado
+        // Lógica de guardado Sesión Cero (Envía a save-historia.js)
         async function saveSesionCero(id) {
             const motivo = document.getElementById('motivoConsulta').value.trim();
             const btn = document.getElementById('btnSave');
             
             if (!motivo) {
-                document.getElementById('form-error').classList.remove('hidden');
-                return;
+                document.getElementById('form-error').classList.remove('hidden'); return;
             }
             
             document.getElementById('form-error').classList.add('hidden');
-            btn.disabled = true;
-            btn.textContent = 'Encriptando y Guardando...';
+            btn.disabled = true; btn.textContent = 'Guardando...';
 
             const historiaData = {
                 pacienteId: id,
-                // Contexto Vital
                 ocupacion: document.getElementById('ocupacion').value,
                 convivencia: document.getElementById('convivencia').value,
                 hobbies: document.getElementById('hobbies').value,
                 noHobbies: document.getElementById('noHobbies').value,
                 antecedentesMedicos: document.getElementById('antecedentesMedicos').value,
-                // Método HALCÓN
                 motivoConsulta: motivo,
                 habilidades: document.getElementById('habilidades').value,
                 aspiracion: document.getElementById('aspiracion').value,
@@ -334,17 +412,120 @@
                 construccion: document.getElementById('construccion').value,
                 orientacion: document.getElementById('orientacion').value,
                 nutricion: document.getElementById('nutricion').value,
-                // Compromiso
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
 
-            // AQUÍ IREMOS CON LA API REAL CUANDO LA CREEMOS
-            console.log("Datos listos para enviar al servidor:", historiaData);
+            try {
+                const response = await fetch('/api/save-historia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(historiaData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('form-success').classList.remove('hidden');
+                    btn.textContent = 'Actualizar Sesión Cero';
+                    btn.disabled = false;
+                    setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000);
+                } else {
+                    throw new Error('Error al guardar');
+                }
+            } catch (error) {
+                alert("Hubo un error al conectar con la base de datos.");
+                btn.disabled = false; btn.textContent = 'Intentar de nuevo';
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE BITÁCORA Y STRIKES
+        // ==========================================
+
+        function updateStrikeUI() {
+            // Reiniciar colores
+            for(let i=1; i<=3; i++) {
+                let el = document.getElementById(`strike${i}`);
+                el.classList.remove('strike-active', 'text-white');
+                el.classList.add('bg-white', 'text-red-300');
+            }
+            // Llenar activos
+            for(let i=1; i<=currentStrikes; i++) {
+                if(i > 3) break;
+                let el = document.getElementById(`strike${i}`);
+                el.classList.remove('bg-white', 'text-red-300');
+                el.classList.add('strike-active', 'text-white');
+            }
+
+            const msgLabel = document.getElementById('strikeMessage');
+            if (currentStrikes === 0) msgLabel.textContent = "Compromiso estable.";
+            else if (currentStrikes === 1) msgLabel.textContent = "Atención: 1 falta registrada.";
+            else if (currentStrikes === 2) msgLabel.textContent = "Alerta: 2 faltas. En riesgo de cierre.";
+            else if (currentStrikes >= 3) msgLabel.textContent = "LÍMITE ALCANZADO. Evaluar cierre ético del proceso.";
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
             
-            setTimeout(() => {
-                document.getElementById('form-success').classList.remove('hidden');
-                btn.textContent = 'Guardado Correctamente';
-            }, 1000);
+            if (evoluciones.length === 0) {
+                document.getElementById('emptyTimeline').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('emptyTimeline').classList.add('hidden');
+            
+            // Limpiar todo excepto el mensaje de vacío
+            Array.from(container.children).forEach(child => {
+                if(child.id !== 'emptyTimeline') container.removeChild(child);
+            });
+
+            // Renderizar desde la más reciente a la más antigua
+            [...evoluciones].reverse().forEach((evo, index) => {
+                const isLeft = index % 2 === 0;
+                
+                const card = document.createElement('div');
+                card.className = `relative z-10 flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active`;
+                
+                card.innerHTML = `
+                    <!-- Ícono de la línea -->
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${evo.strikeAnadido ? 'bg-red-500' : 'bg-[#003366]'} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${evo.strikeAnadido ? 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' : 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'}"></path></svg>
+                    </div>
+                    
+                    <!-- Tarjeta de Contenido -->
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-gray-800 text-sm">${evo.fecha}</span>
+                            ${evo.strikeAnadido ? '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>' : ''}
+                        </div>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap">${evo.nota}</p>
+                        ${evo.tarea ? `<div class="mt-3 pt-2 border-t border-gray-100"><p class="text-xs font-semibold text-[#003366]">Tarea Asignada:</p><p class="text-xs text-gray-500">${evo.tarea}</p></div>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function addEvolucion(id) {
+            const fecha = document.getElementById('evoFecha').value;
+            const nota = document.getElementById('evoNota').value;
+            const tarea = document.getElementById('evoTarea').value;
+            const strikeAnadido = document.getElementById('addStrike').checked;
+
+            if (strikeAnadido) {
+                currentStrikes++;
+                updateStrikeUI();
+            }
+
+            const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, strikeAnadido };
+            evoluciones.push(nuevaEvo);
+            renderTimeline();
+
+            // Limpiar formulario
+            document.getElementById('evolucionForm').reset();
+            document.getElementById('evoFecha').valueAsDate = new Date();
+
+            // NOTA: Para guardar este array real de evoluciones y el contador de strikes en la BD, 
+            // crearemos posteriormente la API "save-evolucion.js". Por ahora funciona en el front visualmente.
+            alert("Evolución agregada visualmente. (Falta conectar la API de guardado para la bitácora).");
         }
     </script>
 </body>
