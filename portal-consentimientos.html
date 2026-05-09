@@ -75,6 +75,7 @@
 
             document.getElementById('logoutButton').addEventListener('click', () => {
                 sessionStorage.removeItem('consultorAuth');
+                Object.keys(localStorage).forEach(key => { if (key.startsWith('draft_')) localStorage.removeItem(key); });
                 window.location.href = 'login.html';
             });
 
