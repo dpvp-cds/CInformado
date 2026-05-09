@@ -11,22 +11,10 @@
         .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
         
         .input-styled, .textarea-styled { 
-            border: 1px solid #d1d5db; 
-            border-radius: 8px; 
-            padding: 12px 15px; 
-            width: 100%; 
-            transition: all 0.3s ease; 
+            border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 15px; width: 100%; transition: all 0.3s ease; 
         }
-        .textarea-styled {
-            resize: vertical; 
-            overflow-y: auto; 
-            min-height: 80px;
-        }
-        .input-styled:focus, .textarea-styled:focus { 
-            outline: none; 
-            border-color: #003366; 
-            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); 
-        }
+        .textarea-styled { resize: vertical; overflow-y: auto; min-height: 80px; }
+        .input-styled:focus, .textarea-styled:focus { outline: none; border-color: #003366; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
         
         .tab-btn { padding: 10px 20px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
         .tab-btn.active { border-bottom-color: #003366; color: #003366; }
@@ -37,28 +25,33 @@
         .textarea-styled::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
         .textarea-styled::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-        /* Estilos para el Tracker de Strikes */
         .strike-indicator { transition: all 0.3s; }
         .strike-active { background-color: #ef4444; border-color: #ef4444; }
+
+        /* Clases para el Modal y tarjetas de línea de tiempo */
+        .timeline-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .timeline-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #003366; }
 
         /* Reglas mágicas para la exportación a PDF (CInformado Back-Up) */
         @media print {
             body { background-color: white !important; }
-            .no-print, header, .tab-btn, button, #evolucionFormBox { display: none !important; }
+            .no-print, header, .tab-btn, button, #evolucionFormBox, #sessionModal { display: none !important; }
             .card { box-shadow: none !important; border: 1px solid #e5e7eb; padding: 1rem !important; margin-bottom: 1rem; }
-            /* Mostrar TODOS los tabs en la impresión para el historial completo */
             #tab-sesion-cero, #tab-plan-trabajo, #tab-evolucion { display: block !important; }
             .print-only { display: block !important; }
             textarea { border: none; resize: none; overflow: hidden; height: auto !important; background: transparent; }
             input { border: none; background: transparent; }
             textarea { white-space: pre-wrap; }
+            /* Expandir el timeline en impresión */
+            .timeline-card { cursor: default; transform: none !important; box-shadow: none !important; }
+            .timeline-card p.line-clamp-3 { display: none; }
+            .timeline-card p.print-full-text { display: block !important; white-space: pre-wrap; }
         }
     </style>
 </head>
 <body class="bg-gray-50">
 
-    <!-- HEADER -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
+    <header class="bg-white shadow-sm sticky top-0 z-40">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <a href="portal-consentimientos.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center">
@@ -75,15 +68,12 @@
     <main class="container mx-auto px-6 py-8">
         <div class="max-w-6xl mx-auto space-y-6">
             
-            <!-- LOADER INICIAL -->
             <div id="loading" class="text-center py-10">
                 <p class="text-lg animate-pulse text-[#003366] font-semibold">Desencriptando expediente del paciente...</p>
             </div>
 
-            <!-- CONTENIDO PRINCIPAL (Oculto hasta que cargue la API) -->
             <div id="mainContent" class="hidden space-y-6">
                 
-                <!-- BANNER DEL PACIENTE -->
                 <div class="card bg-[#003366] text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 id="pacienteNombre" class="text-2xl font-bold">Cargando Nombre...</h2>
@@ -96,7 +86,6 @@
                     <div class="text-right flex flex-col items-end">
                         <span class="px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full mb-2">Consentimiento Verificado</span>
                         <p class="text-xs text-blue-200">ID: <span id="pacienteId" class="font-mono">---</span></p>
-                        <!-- BOTÓN DE DESCARGA PDF -->
                         <button onclick="window.print()" class="no-print mt-3 text-sm flex items-center bg-white text-[#003366] font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Descargar Historial Completo (PDF)
@@ -104,158 +93,66 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑAS (TABS) -->
                 <div class="flex border-b border-gray-200 no-print overflow-x-auto">
                     <button class="tab-btn active whitespace-nowrap" onclick="switchTab('tab-sesion-cero')">1. Sesión Cero (HALCÓN)</button>
                     <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-plan-trabajo')">2. Plan de Trabajo</button>
                     <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-evolucion')">3. Bitácora & Evolución</button>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 1: SESIÓN CERO                         -->
-                <!-- ========================================== -->
                 <div id="tab-sesion-cero" class="card">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Diagnóstico y Encuadre Inicial</h3>
-                    
                     <form id="historiaForm" class="space-y-8">
-                        
-                        <!-- SECCIÓN 1: CONTEXTO VITAL -->
                         <div class="space-y-4 bg-gray-50 p-6 rounded-xl border border-gray-200 print:bg-white print:border-none print:p-0">
                             <h4 class="text-lg font-bold text-[#003366] mb-4">Contexto Vital y Antecedentes</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block mb-2 font-semibold text-gray-700">A qué se dedica (Ocupación)</label>
-                                    <input type="text" id="ocupacion" class="input-styled" placeholder="Ej. Ingeniero, Estudiante, etc.">
-                                </div>
-                                <div>
-                                    <label class="block mb-2 font-semibold text-gray-700">Con quién vive</label>
-                                    <input type="text" id="convivencia" class="input-styled" placeholder="Ej. Pareja, padres, solo...">
-                                </div>
-                                <div>
-                                    <label class="block mb-2 font-semibold text-gray-700">Hobbies / Pasatiempos</label>
-                                    <textarea id="hobbies" rows="2" class="textarea-styled" placeholder="¿Qué disfruta hacer en su tiempo libre?"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block mb-2 font-semibold text-gray-700">No Hobbies (Lo que le desagrada)</label>
-                                    <textarea id="noHobbies" rows="2" class="textarea-styled" placeholder="Actividades o situaciones que prefiere evitar..."></textarea>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block mb-2 font-semibold text-gray-700">Antecedentes Médicos</label>
-                                    <textarea id="antecedentesMedicos" rows="2" class="textarea-styled" placeholder="Enfermedades crónicas, operaciones médicas relevantes, etc."></textarea>
-                                </div>
+                                <div><label class="block mb-2 font-semibold text-gray-700">A qué se dedica (Ocupación)</label><input type="text" id="ocupacion" class="input-styled" placeholder="Ej. Ingeniero, Estudiante, etc."></div>
+                                <div><label class="block mb-2 font-semibold text-gray-700">Con quién vive</label><input type="text" id="convivencia" class="input-styled" placeholder="Ej. Pareja, padres, solo..."></div>
+                                <div><label class="block mb-2 font-semibold text-gray-700">Hobbies / Pasatiempos</label><textarea id="hobbies" rows="2" class="textarea-styled" placeholder="¿Qué disfruta hacer en su tiempo libre?"></textarea></div>
+                                <div><label class="block mb-2 font-semibold text-gray-700">No Hobbies (Lo que le desagrada)</label><textarea id="noHobbies" rows="2" class="textarea-styled" placeholder="Actividades o situaciones que prefiere evitar..."></textarea></div>
+                                <div class="md:col-span-2"><label class="block mb-2 font-semibold text-gray-700">Antecedentes Médicos</label><textarea id="antecedentesMedicos" rows="2" class="textarea-styled" placeholder="Enfermedades crónicas, operaciones médicas relevantes, etc."></textarea></div>
                             </div>
                         </div>
 
-                        <!-- SECCIÓN 2: MÉTODO HALCÓN -->
                         <div class="space-y-6">
                             <h4 class="text-lg font-bold text-[#003366] border-b pb-2">Diagnóstico Existencial (Método HALCÓN)</h4>
-                            
-                            <div>
-                                <label class="block mb-2 font-bold text-gray-800">1. Motivo de Consulta</label>
-                                <textarea id="motivoConsulta" rows="4" class="textarea-styled" placeholder="Describe el motivo de consulta del paciente..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">Recursos actuales: tiempo, energía, talentos, "no negociables" de su identidad.</p>
-                                <textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">¿Busca descubrir su propósito inmutable o estructurar un proyecto con fecha de caducidad?</p>
-                                <textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las sesiones..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">Identificación de lenguaje limitante: uso de "bueno/malo", "fácil/difícil", o actuar desde el "sacrificio".</p>
-                                <textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">5. [C] - Construcción y Concreción</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">Materialización del propósito en proyectos de vida definidos, recursos necesarios y cronograma.</p>
-                                <textarea id="construccion" rows="3" class="textarea-styled" placeholder="Proyectos específicos, pasos a seguir y fechas tentativas..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">6. [O] - Orientación y Adaptación</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">Negociación interna/externa, manejo de obstáculos y reencuadre de desafíos.</p>
-                                <textarea id="orientacion" rows="3" class="textarea-styled" placeholder="Estrategias de afrontamiento, resolución de conflictos..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block mb-2 font-bold text-[#003366]">7. [N] - Nutrición y Trascendencia</label>
-                                <p class="text-xs text-gray-500 mb-2 no-print">Bienestar continuo, impacto positivo en su entorno y construcción del legado.</p>
-                                <textarea id="nutricion" rows="3" class="textarea-styled" placeholder="Prácticas de autocuidado, contribución al entorno y legado..."></textarea>
-                            </div>
+                            <div><label class="block mb-2 font-bold text-gray-800">1. Motivo de Consulta</label><textarea id="motivoConsulta" rows="4" class="textarea-styled" placeholder="Describe el motivo de consulta del paciente..."></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">2. [H] - Habilidades y Esencia</label><textarea id="habilidades" rows="3" class="textarea-styled" placeholder="¿Qué herramientas internas posee hoy?"></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">3. [A] - Aspiración / Meta del Proyecto</label><textarea id="aspiracion" rows="3" class="textarea-styled" placeholder="Visión a alcanzar al final de las sesiones..."></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">4. [L] - Lógica (Filtros y Creencias)</label><textarea id="creencias" rows="3" class="textarea-styled" placeholder="¿Qué creencias están bloqueando su proyecto de vida?"></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">5. [C] - Construcción y Concreción</label><textarea id="construccion" rows="3" class="textarea-styled" placeholder="Proyectos específicos, pasos a seguir y fechas tentativas..."></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">6. [O] - Orientación y Adaptación</label><textarea id="orientacion" rows="3" class="textarea-styled" placeholder="Estrategias de afrontamiento, resolución de conflictos..."></textarea></div>
+                            <div><label class="block mb-2 font-bold text-[#003366]">7. [N] - Nutrición y Trascendencia</label><textarea id="nutricion" rows="3" class="textarea-styled" placeholder="Prácticas de autocuidado, contribución al entorno y legado..."></textarea></div>
                         </div>
 
-                        <!-- SECCIÓN 3: Compromiso Terapéutico -->
                         <div class="pt-6 border-t border-gray-200 mt-6 no-print">
                             <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input id="compromisoStrikes" type="checkbox" class="w-5 h-5 text-[#003366] border-gray-300 rounded focus:ring-[#003366]">
-                                </div>
-                                <div class="ml-3 text-sm">
-                                    <label for="compromisoStrikes" class="font-bold text-gray-800">Acuerdo de la Regla de los "3 Strikes"</label>
-                                    <p class="text-gray-500">El paciente comprende y acepta que el éxito del proyecto depende de su acción, y que al 3er incumplimiento injustificado de tareas, el proceso será finalizado por el terapeuta.</p>
-                                </div>
+                                <div class="flex items-center h-5"><input id="compromisoStrikes" type="checkbox" class="w-5 h-5 text-[#003366] border-gray-300 rounded focus:ring-[#003366]"></div>
+                                <div class="ml-3 text-sm"><label for="compromisoStrikes" class="font-bold text-gray-800">Acuerdo de la Regla de los "3 Strikes"</label><p class="text-gray-500">El paciente comprende y acepta que el éxito del proyecto depende de su acción, y que al 3er incumplimiento injustificado, el proceso será finalizado.</p></div>
                             </div>
                         </div>
 
                         <div id="form-error" class="hidden text-red-600 font-medium text-sm text-center no-print">Por favor diligencia al menos el Motivo de Consulta.</div>
                         <div id="form-success" class="hidden text-green-600 font-medium text-sm text-center no-print">Sesión Cero guardada exitosamente y firmada con TimeStamp.</div>
-
-                        <div class="text-right pt-4 no-print">
-                            <button type="submit" id="btnSave" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">
-                                Guardar y Sellar Sesión Cero
-                            </button>
-                        </div>
+                        <div class="text-right pt-4 no-print"><button type="submit" id="btnSave" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">Guardar y Sellar Sesión Cero</button></div>
                     </form>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 2: PLAN DE TRABAJO INDIVIDUAL          -->
-                <!-- ========================================== -->
                 <div id="tab-plan-trabajo" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
                     <h3 class="text-2xl font-bold mb-6 border-b pb-2 text-gray-800">Plan de Trabajo Individual</h3>
-                    <p class="text-gray-600 text-sm mb-6 no-print">Define la estructura del proyecto terapéutico. Este mapa le dará claridad al paciente sobre las etapas de su proceso.</p>
-                    
-                    <div id="planContainer" class="space-y-4">
-                        <!-- Las filas del plan se renderizan aquí dinámicamente -->
-                    </div>
-
-                    <button onclick="addPlanRow()" class="no-print mt-4 flex items-center text-[#003366] font-bold text-sm hover:underline">
-                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        Añadir Nueva Sesión al Plan
-                    </button>
-
+                    <div id="planContainer" class="space-y-4"></div>
+                    <button onclick="addPlanRow()" class="no-print mt-4 flex items-center text-[#003366] font-bold text-sm hover:underline"><svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Añadir Nueva Sesión al Plan</button>
                     <div class="text-right pt-4 no-print border-t border-gray-200 mt-8">
                         <div id="plan-success" class="hidden text-green-600 font-medium text-sm text-center mb-3">Plan de trabajo guardado exitosamente.</div>
-                        <button onclick="savePlan()" id="btnSavePlan" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">
-                            Guardar Plan de Trabajo
-                        </button>
+                        <button onclick="savePlan()" id="btnSavePlan" class="bg-[#003366] text-white px-8 py-3 rounded-full font-bold hover:bg-[#002244] transition-colors shadow-lg">Guardar Plan de Trabajo</button>
                     </div>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- TAB 3: EVOLUCIÓN Y STRIKES                 -->
-                <!-- ========================================== -->
                 <div id="tab-evolucion" class="card hidden print:!block print:!shadow-none print:!border-none print:!p-0 print:!mt-8">
-                    
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         
-                        <!-- Panel Izquierdo: Formulario Nueva Evolución (lg:col-span-2) -->
                         <div class="lg:col-span-2 space-y-6" id="evolucionFormBox">
-                            
-                            <!-- Tracker de Strikes -->
                             <div class="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-bold text-red-800">Tracker de Voluntad</h3>
-                                    <p class="text-xs text-red-600">Regla de los 3 Strikes (Tareas incumplidas)</p>
-                                </div>
+                                <div><h3 class="text-lg font-bold text-red-800">Tracker de Voluntad</h3><p class="text-xs text-red-600">Regla de los 3 Strikes</p></div>
                                 <div class="flex items-center space-x-4 mt-4 sm:mt-0">
                                     <div class="flex space-x-2">
                                         <div id="strike1" class="strike-indicator w-8 h-8 rounded-full border-2 border-red-300 bg-white flex items-center justify-center font-bold text-red-300 text-sm">1</div>
@@ -266,89 +163,118 @@
                             </div>
                             <p id="strikeMessage" class="text-sm font-semibold text-gray-700 text-center sm:text-right mt-[-1rem]">Compromiso estable.</p>
 
-                            <!-- Formulario Nueva Evolución -->
                             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-[#003366] mb-4 border-b pb-2">Registrar Nueva Sesión</h3>
                                 <form id="evolucionForm" class="space-y-5">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-semibold mb-1">Fecha</label>
-                                            <input type="date" id="evoFecha" class="input-styled text-sm" required>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold mb-1">Tarea Asignada (Para la próxima)</label>
-                                            <input type="text" id="evoTarea" class="input-styled text-sm" placeholder="Ej. Lectura, ejercicio de anclaje...">
-                                        </div>
+                                        <div><label class="block text-sm font-semibold mb-1">Fecha</label><input type="date" id="evoFecha" class="input-styled text-sm" required></div>
+                                        <div><label class="block text-sm font-semibold mb-1">Tarea Asignada (Para la próxima)</label><input type="text" id="evoTarea" class="input-styled text-sm" placeholder="Ej. Lectura, ejercicio..."></div>
                                     </div>
                                     
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-1">Nota de Evolución</label>
-                                        <textarea id="evoNota" rows="6" class="textarea-styled text-sm" placeholder="Resumen de la sesión, técnicas aplicadas, avances..." required></textarea>
-                                    </div>
+                                    <div><label class="block text-sm font-semibold mb-1">Nota de Evolución</label><textarea id="evoNota" rows="6" class="textarea-styled text-sm" placeholder="Resumen de la sesión, técnicas aplicadas, avances..." required></textarea></div>
                                     
-                                    <!-- MÓDULO DE PRUEBAS PSICOMÉTRICAS -->
                                     <div class="p-4 bg-white border border-gray-200 rounded-lg">
                                         <div class="flex items-center">
                                             <input id="hasPrueba" type="checkbox" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer" onchange="togglePruebaBox()">
-                                            <label for="hasPrueba" class="ml-2 text-sm font-bold text-purple-800 cursor-pointer">
-                                                Se aplicó Prueba Psicométrica o de Evaluación
-                                            </label>
+                                            <label for="hasPrueba" class="ml-2 text-sm font-bold text-purple-800 cursor-pointer">Se aplicó Prueba Psicométrica</label>
                                         </div>
-                                        
                                         <div id="pruebaBox" class="hidden mt-3 pt-3 border-t border-gray-100">
-                                            <label class="block text-xs font-semibold mb-1 text-purple-700">Nombre de la prueba y Resumen de Resultados</label>
-                                            <textarea id="pruebaResultados" rows="3" class="textarea-styled text-sm border-purple-200 focus:border-purple-500" placeholder="Ej. MMPI-2, Test de Beck... El paciente presenta resultados acordes con..."></textarea>
+                                            <label class="block text-xs font-semibold mb-1 text-purple-700">Nombre de la prueba y Resultados</label>
+                                            <textarea id="pruebaResultados" rows="3" class="textarea-styled text-sm border-purple-200 focus:border-purple-500" placeholder="Resultados..."></textarea>
                                         </div>
                                     </div>
                                     
-                                    <!-- GESTIÓN DE STRIKES (Añadir o Remover) -->
                                     <div class="mt-4 p-4 bg-white rounded-lg border border-gray-200">
                                         <p class="text-xs font-bold text-gray-500 uppercase mb-3">Gestión de Compromiso (Strikes)</p>
                                         <div class="flex flex-col sm:flex-row gap-3">
-                                            <label class="flex items-center space-x-2 cursor-pointer bg-gray-50 px-3 py-2 rounded border border-gray-200 flex-1 hover:bg-gray-100 transition">
-                                                <input type="radio" name="strikeAction" value="none" class="w-4 h-4 text-gray-600 focus:ring-gray-500" checked>
-                                                <span class="text-sm font-semibold text-gray-700">Sin cambios</span>
-                                            </label>
-                                            <label class="flex items-center space-x-2 cursor-pointer bg-red-50 px-3 py-2 rounded border border-red-100 flex-1 hover:bg-red-100 transition">
-                                                <input type="radio" name="strikeAction" value="add" class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                                <span class="text-sm font-semibold text-red-800">Aplicar Strike</span>
-                                            </label>
-                                            <label class="flex items-center space-x-2 cursor-pointer bg-green-50 px-3 py-2 rounded border border-green-100 flex-1 hover:bg-green-100 transition">
-                                                <input type="radio" name="strikeAction" value="remove" class="w-4 h-4 text-green-600 focus:ring-green-500">
-                                                <span class="text-sm font-semibold text-green-800">Remover Strike</span>
-                                            </label>
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-gray-50 px-3 py-2 rounded border border-gray-200 flex-1 hover:bg-gray-100 transition"><input type="radio" name="strikeAction" value="none" class="w-4 h-4 text-gray-600 focus:ring-gray-500" checked><span class="text-sm font-semibold text-gray-700">Sin cambios</span></label>
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-red-50 px-3 py-2 rounded border border-red-100 flex-1 hover:bg-red-100 transition"><input type="radio" name="strikeAction" value="add" class="w-4 h-4 text-red-600 focus:ring-red-500"><span class="text-sm font-semibold text-red-800">Aplicar Strike</span></label>
+                                            <label class="flex items-center space-x-2 cursor-pointer bg-green-50 px-3 py-2 rounded border border-green-100 flex-1 hover:bg-green-100 transition"><input type="radio" name="strikeAction" value="remove" class="w-4 h-4 text-green-600 focus:ring-green-500"><span class="text-sm font-semibold text-green-800">Remover Strike</span></label>
                                         </div>
                                     </div>
 
-                                    <button type="submit" id="btnSaveEvo" class="w-full bg-[#003366] text-white py-3 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4 text-lg">
-                                        Guardar en Bitácora
-                                    </button>
+                                    <button type="submit" id="btnSaveEvo" class="w-full bg-[#003366] text-white py-3 rounded-lg font-bold hover:bg-[#002244] transition-colors mt-4 text-lg">Guardar en Bitácora</button>
                                 </form>
                             </div>
                         </div>
 
-                        <!-- Panel Derecho: Línea de Tiempo (Historial) - lg:col-span-1 -->
                         <div class="lg:col-span-1 border-l pl-0 lg:pl-8 border-gray-200 print:border-none print:pl-0">
                             <h3 class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Historial de Sesiones</h3>
+                            <p class="text-xs text-gray-500 mb-4 no-print flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg> Clic en una sesión para leer detalles o añadir anexos.</p>
                             
-                            <div id="timelineContainer" class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-200 print:before:hidden">
-                                
-                                <div id="emptyTimeline" class="text-center py-10 relative z-10 bg-white rounded-xl border border-dashed border-gray-300 print:hidden">
-                                    <p class="text-gray-500 text-sm">Aún no hay notas de evolución registradas.</p>
-                                </div>
-
+                            <div id="timelineContainer" class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-200 print:before:hidden">
+                                <div id="emptyTimeline" class="text-center py-10 relative z-10 bg-white rounded-xl border border-dashed border-gray-300 print:hidden"><p class="text-gray-500 text-sm">Aún no hay notas de evolución registradas.</p></div>
                             </div>
                         </div>
                     </div>
-
                 </div>
 
             </div>
         </div>
     </main>
 
+    <div id="sessionModal" class="fixed inset-0 bg-[#003366] bg-opacity-75 hidden z-50 flex justify-center items-start pt-10 pb-10 px-4 overflow-y-auto backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col relative">
+            
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-[#003366] flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Expediente de Sesión
+                    </h2>
+                    <p id="modalFecha" class="text-sm font-semibold text-gray-500 mt-1"></p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="px-6 py-6 overflow-y-auto space-y-6">
+                
+                <div>
+                    <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Nota de Evolución Original</h4>
+                    <div id="modalNota" class="text-gray-800 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-100 text-[15px] leading-relaxed"></div>
+                </div>
+
+                <div id="modalPruebasContainer" class="hidden">
+                    <h4 class="text-sm font-bold text-purple-600 uppercase tracking-wider mb-2">Evaluación / Pruebas</h4>
+                    <div id="modalPruebas" class="text-purple-900 whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-100 text-[15px] leading-relaxed"></div>
+                </div>
+
+                <div id="modalTareaContainer" class="hidden">
+                    <h4 class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Tarea Asignada</h4>
+                    <div id="modalTarea" class="text-blue-900 bg-blue-50 p-4 rounded-lg border border-blue-100 font-medium"></div>
+                </div>
+
+                <div id="modalAnexosContainer" class="space-y-4">
+                    </div>
+
+                <hr class="border-gray-200">
+
+                <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
+                    <h4 class="text-md font-bold text-gray-800 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        Agregar Actualización o Anexo
+                    </h4>
+                    <p class="text-xs text-gray-500 mb-4">Para garantizar la integridad legal del historial (Ley 1090), la nota original no puede modificarse. Escribe aquí cualquier actualización, corrección o nueva observación respecto a esta sesión. Quedará registrada con fecha y hora actual.</p>
+                    
+                    <textarea id="nuevoAnexo" rows="3" class="textarea-styled text-sm bg-white" placeholder="Escribe el anexo o actualización aquí..."></textarea>
+                    
+                    <div class="mt-3 flex justify-end">
+                        <button onclick="guardarAnexo()" id="btnSaveAnexo" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow-sm">
+                            Sellar Anexo a esta Sesión
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="currentSessionIdModal">
+
     <script>
-        // Variables globales para la historia
+        // Variables globales
         let currentStrikes = 0;
         let evoluciones = [];
         let planTrabajo = [];
@@ -359,139 +285,29 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const patientId = urlParams.get('id');
-
-            if (!patientId) {
-                document.getElementById('loading').innerHTML = '<span class="text-red-600">Acceso denegado: ID de paciente no proporcionado.</span>';
-                return;
-            }
+            if (!patientId) { document.getElementById('loading').innerHTML = '<span class="text-red-600">Acceso denegado: ID de paciente no proporcionado.</span>'; return; }
 
             document.getElementById('evoFecha').valueAsDate = new Date();
-
-            // 1. Cargar Datos Básicos e Historia Clínica
             fetchPatientData(patientId);
             
-            // 2. Eventos de Guardado
-            document.getElementById('historiaForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                saveSesionCero(patientId);
-            });
+            document.getElementById('historiaForm').addEventListener('submit', (e) => { e.preventDefault(); saveSesionCero(patientId); });
+            document.getElementById('evolucionForm').addEventListener('submit', (e) => { e.preventDefault(); addEvolucion(patientId); });
 
-            document.getElementById('evolucionForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                addEvolucion(patientId);
-            });
+            // Cerrar modal con tecla ESC
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
         });
 
-        // Toggle caja de pruebas
         function togglePruebaBox() {
-            const isChecked = document.getElementById('hasPrueba').checked;
             const box = document.getElementById('pruebaBox');
-            if (isChecked) {
-                box.classList.remove('hidden');
-                document.getElementById('pruebaResultados').required = true;
-            } else {
-                box.classList.add('hidden');
-                document.getElementById('pruebaResultados').required = false;
-                document.getElementById('pruebaResultados').value = '';
-            }
-        }
-
-        // ==========================================
-        // LÓGICA DE PLAN DE TRABAJO
-        // ==========================================
-        function renderPlan() {
-            const container = document.getElementById('planContainer');
-            container.innerHTML = '';
-            
-            if (planTrabajo.length === 0) {
-                planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
-            }
-
-            planTrabajo.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="flex flex-col md:flex-row gap-4 items-start bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-white print:p-2 print:border-b print:border-t-0 print:border-x-0 print:rounded-none">
-                        <div class="w-full md:w-1/4">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">Nombre / # Sesión</label>
-                            <input type="text" class="input-styled text-sm bg-white" value="${item.sesion}" onchange="updatePlan(${index}, 'sesion', this.value)">
-                        </div>
-                        <div class="w-full md:w-1/3">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tema Principal</label>
-                            <input type="text" class="input-styled text-sm bg-white" value="${item.tema}" onchange="updatePlan(${index}, 'tema', this.value)" placeholder="Ej. Creencias Limitantes">
-                        </div>
-                        <div class="w-full md:w-5/12 relative">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">Objetivo de la Sesión</label>
-                            <textarea class="textarea-styled text-sm bg-white h-10 min-h-[42px]" onchange="updatePlan(${index}, 'objetivo', this.value)" placeholder="Meta a lograr...">${item.objetivo}</textarea>
-                            <button onclick="removePlanRow(${index})" class="no-print absolute -right-2 top-0 mt-8 mr-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm border border-gray-100" title="Eliminar sesión">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Ajustar altura de textareas tras renderizar
-            document.querySelectorAll('#planContainer textarea').forEach(el => {
-                el.style.height = 'auto';
-                el.style.height = (el.scrollHeight) + 'px';
-            });
-        }
-
-        function updatePlan(index, field, value) {
-            planTrabajo[index][field] = value;
-        }
-
-        function addPlanRow() {
-            planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '' });
-            renderPlan();
-        }
-
-        function removePlanRow(index) {
-            planTrabajo.splice(index, 1);
-            if (planTrabajo.length === 0) {
-                planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
-            }
-            renderPlan();
-        }
-
-        async function savePlan() {
-            const id = new URLSearchParams(window.location.search).get('id');
-            const btn = document.getElementById('btnSavePlan');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Guardando Plan...';
-
-            try {
-                const response = await fetch('/api/save-plan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        pacienteId: id,
-                        planTrabajo: planTrabajo
-                    })
-                });
-
-                if (response.ok) {
-                    const successMsg = document.getElementById('plan-success');
-                    successMsg.classList.remove('hidden');
-                    setTimeout(() => successMsg.classList.add('hidden'), 3000);
-                } else {
-                    throw new Error('Error al guardar el plan');
-                }
-            } catch (error) {
-                alert("Error al conectar con la base de datos.");
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+            if (document.getElementById('hasPrueba').checked) { box.classList.remove('hidden'); document.getElementById('pruebaResultados').required = true; } 
+            else { box.classList.add('hidden'); document.getElementById('pruebaResultados').required = false; document.getElementById('pruebaResultados').value = ''; }
         }
 
         // ==========================================
         // CEREBRO DE LA VISTA Y LECTURA
         // ==========================================
-
         async function fetchPatientData(id) {
             try {
-                // A) Traer Demográficos
                 const resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 if (!resDemo.ok) throw new Error('No se encontró el paciente');
                 const data = await resDemo.json();
@@ -511,16 +327,13 @@
                 document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
-
                 document.title = `HC_${nombre.replace(/\s+/g, '_')}_CInformado`;
 
-                // B) TRAER HISTORIA CLÍNICA (Lectura)
                 try {
                     const resHist = await fetch(`/api/get-historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
-                            // Rellenar Contexto Vital y HALCÓN
                             document.getElementById('ocupacion').value = histData.contextoVital?.ocupacion || '';
                             document.getElementById('convivencia').value = histData.contextoVital?.convivencia || '';
                             document.getElementById('hobbies').value = histData.contextoVital?.hobbies || '';
@@ -538,242 +351,238 @@
                             document.getElementById('compromisoStrikes').checked = histData.acuerdoStrikes || false;
                             document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
 
-                            // Cargar Plan de Trabajo si existe
-                            if (histData.planTrabajo && histData.planTrabajo.length > 0) {
-                                planTrabajo = histData.planTrabajo;
-                            }
+                            if (histData.planTrabajo && histData.planTrabajo.length > 0) planTrabajo = histData.planTrabajo;
                             
-                            // Auto-resize de textareas
-                            document.querySelectorAll('textarea').forEach(el => {
-                                el.style.height = 'auto';
-                                el.style.height = (el.scrollHeight) + 'px';
-                            });
+                            document.querySelectorAll('textarea').forEach(el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; });
 
-                            // Cargar Evoluciones
-                            if(histData.evoluciones && histData.evoluciones.length > 0) {
-                                evoluciones = histData.evoluciones;
-                                renderTimeline();
-                            }
-                            if(histData.strikes !== undefined) {
-                                currentStrikes = histData.strikes;
-                                updateStrikeUI();
-                            }
+                            if(histData.evoluciones && histData.evoluciones.length > 0) { evoluciones = histData.evoluciones; renderTimeline(); }
+                            if(histData.strikes !== undefined) { currentStrikes = histData.strikes; updateStrikeUI(); }
                         }
                     }
-                } catch(e) {
-                    console.log("No hay historia previa registrada aún.");
-                }
+                } catch(e) { console.log("No hay historia previa registrada."); }
 
-                // Renderizar el Plan
                 renderPlan();
-
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
-
-            } catch (error) {
-                document.getElementById('loading').innerHTML = '<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente.</span>';
-            }
+            } catch (error) { document.getElementById('loading').innerHTML = '<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente.</span>'; }
         }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'border-b-[#003366]', 'text-[#003366]'));
             event.target.classList.add('active', 'border-b-[#003366]', 'text-[#003366]');
-            
             document.getElementById('tab-sesion-cero').classList.add('hidden');
             document.getElementById('tab-plan-trabajo').classList.add('hidden');
             document.getElementById('tab-evolucion').classList.add('hidden');
-            
             document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        // ==========================================
+        // LÓGICA PLAN DE TRABAJO Y SESION CERO
+        // ==========================================
+        function renderPlan() {
+            const container = document.getElementById('planContainer'); container.innerHTML = '';
+            if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' });
+            planTrabajo.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="flex flex-col md:flex-row gap-4 items-start bg-gray-50 p-4 rounded-xl border border-gray-200 print:bg-white print:p-2 print:border-b print:border-t-0 print:border-x-0 print:rounded-none">
+                        <div class="w-full md:w-1/4"><label class="block text-xs font-semibold text-gray-500 mb-1">Nombre / # Sesión</label><input type="text" class="input-styled text-sm bg-white" value="${item.sesion}" onchange="updatePlan(${index}, 'sesion', this.value)"></div>
+                        <div class="w-full md:w-1/3"><label class="block text-xs font-semibold text-gray-500 mb-1">Tema Principal</label><input type="text" class="input-styled text-sm bg-white" value="${item.tema}" onchange="updatePlan(${index}, 'tema', this.value)" placeholder="Ej. Creencias Limitantes"></div>
+                        <div class="w-full md:w-5/12 relative"><label class="block text-xs font-semibold text-gray-500 mb-1">Objetivo de la Sesión</label><textarea class="textarea-styled text-sm bg-white h-10 min-h-[42px]" onchange="updatePlan(${index}, 'objetivo', this.value)" placeholder="Meta a lograr...">${item.objetivo}</textarea><button onclick="removePlanRow(${index})" class="no-print absolute -right-2 top-0 mt-8 mr-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm border border-gray-100" title="Eliminar sesión"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>
+                    </div>`;
+            });
+            document.querySelectorAll('#planContainer textarea').forEach(el => { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; });
+        }
+        function updatePlan(index, field, value) { planTrabajo[index][field] = value; }
+        function addPlanRow() { planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '' }); renderPlan(); }
+        function removePlanRow(index) { planTrabajo.splice(index, 1); if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '' }); renderPlan(); }
+
+        async function savePlan() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const btn = document.getElementById('btnSavePlan');
+            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
+            try {
+                const response = await fetch('/api/save-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                if (response.ok) { document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
+                else throw new Error('Error al guardar');
+            } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
         async function saveSesionCero(id) {
             const motivo = document.getElementById('motivoConsulta').value.trim();
             const btn = document.getElementById('btnSave');
-            
-            if (!motivo) {
-                document.getElementById('form-error').classList.remove('hidden'); return;
-            }
-            
-            document.getElementById('form-error').classList.add('hidden');
-            btn.disabled = true; btn.textContent = 'Guardando...';
+            if (!motivo) { document.getElementById('form-error').classList.remove('hidden'); return; }
+            document.getElementById('form-error').classList.add('hidden'); btn.disabled = true; btn.textContent = 'Guardando...';
 
             const historiaData = {
-                pacienteId: id,
-                ocupacion: document.getElementById('ocupacion').value,
-                convivencia: document.getElementById('convivencia').value,
-                hobbies: document.getElementById('hobbies').value,
-                noHobbies: document.getElementById('noHobbies').value,
-                antecedentesMedicos: document.getElementById('antecedentesMedicos').value,
-                motivoConsulta: motivo,
-                habilidades: document.getElementById('habilidades').value,
-                aspiracion: document.getElementById('aspiracion').value,
-                creencias: document.getElementById('creencias').value,
-                construccion: document.getElementById('construccion').value,
-                orientacion: document.getElementById('orientacion').value,
-                nutricion: document.getElementById('nutricion').value,
-                acuerdoStrikes: document.getElementById('compromisoStrikes').checked
+                pacienteId: id, ocupacion: document.getElementById('ocupacion').value, convivencia: document.getElementById('convivencia').value, hobbies: document.getElementById('hobbies').value, noHobbies: document.getElementById('noHobbies').value, antecedentesMedicos: document.getElementById('antecedentesMedicos').value, motivoConsulta: motivo, habilidades: document.getElementById('habilidades').value, aspiracion: document.getElementById('aspiracion').value, creencias: document.getElementById('creencias').value, construccion: document.getElementById('construccion').value, orientacion: document.getElementById('orientacion').value, nutricion: document.getElementById('nutricion').value, acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
-
             try {
-                const response = await fetch('/api/save-historia', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(historiaData)
-                });
-
-                if (response.ok) {
-                    document.getElementById('form-success').classList.remove('hidden');
-                    btn.textContent = 'Actualizar Sesión Cero';
-                    btn.disabled = false;
-                    setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000);
-                } else {
-                    throw new Error('Error al guardar');
-                }
-            } catch (error) {
-                alert("Hubo un error al conectar con la base de datos.");
-                btn.disabled = false; btn.textContent = 'Intentar de nuevo';
-            }
+                const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                if (response.ok) { document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
+                else throw new Error('Error al guardar');
+            } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
         }
 
         // ==========================================
         // LÓGICA DE BITÁCORA Y STRIKES
         // ==========================================
-
         function updateStrikeUI() {
-            for(let i=1; i<=3; i++) {
-                let el = document.getElementById(`strike${i}`);
-                el.classList.remove('strike-active', 'text-white');
-                el.classList.add('bg-white', 'text-red-300');
-            }
-            for(let i=1; i<=currentStrikes; i++) {
-                if(i > 3) break;
-                let el = document.getElementById(`strike${i}`);
-                el.classList.remove('bg-white', 'text-red-300');
-                el.classList.add('strike-active', 'text-white');
-            }
-
+            for(let i=1; i<=3; i++) { let el = document.getElementById(`strike${i}`); el.classList.remove('strike-active', 'text-white'); el.classList.add('bg-white', 'text-red-300'); }
+            for(let i=1; i<=currentStrikes; i++) { if(i > 3) break; let el = document.getElementById(`strike${i}`); el.classList.remove('bg-white', 'text-red-300'); el.classList.add('strike-active', 'text-white'); }
             const msgLabel = document.getElementById('strikeMessage');
             if (currentStrikes === 0) msgLabel.textContent = "Compromiso estable.";
             else if (currentStrikes === 1) msgLabel.textContent = "Atención: 1 falta registrada.";
-            else if (currentStrikes === 2) msgLabel.textContent = "Alerta: 2 faltas. En riesgo de cierre.";
+            else if (currentStrikes === 2) msgLabel.textContent = "Alerta: 2 faltas. En riesgo.";
             else if (currentStrikes >= 3) msgLabel.textContent = "LÍMITE ALCANZADO. Evaluar cierre ético.";
         }
 
         function renderTimeline() {
             const container = document.getElementById('timelineContainer');
-            
-            if (evoluciones.length === 0) {
-                document.getElementById('emptyTimeline').classList.remove('hidden');
-                return;
-            }
-            
+            if (evoluciones.length === 0) { document.getElementById('emptyTimeline').classList.remove('hidden'); return; }
             document.getElementById('emptyTimeline').classList.add('hidden');
-            
-            Array.from(container.children).forEach(child => {
-                if(child.id !== 'emptyTimeline') container.removeChild(child);
-            });
+            Array.from(container.children).forEach(child => { if(child.id !== 'emptyTimeline') container.removeChild(child); });
 
             [...evoluciones].reverse().forEach((evo) => {
                 const card = document.createElement('div');
-                card.className = `relative z-10 flex items-start group mb-6 print:mb-4 print:border-b print:border-gray-200 print:pb-4`;
+                card.className = `timeline-card relative z-10 flex items-start group mb-4 print:mb-4 print:border-b print:border-gray-200 print:pb-4`;
+                // NUEVO: Evento onClick para abrir el Modal
+                card.onclick = () => openModal(evo.id);
                 
-                const pruebaHTML = evo.hasPrueba && evo.pruebaResultados ? `
-                    <div class="mt-3 pt-3 border-t border-purple-100 bg-purple-50 p-3 rounded-lg print:bg-white print:border-purple-200">
-                        <p class="text-xs font-bold text-purple-800 mb-1">Resultados de Prueba/Evaluación:</p>
-                        <p class="text-xs text-purple-900 whitespace-pre-wrap">${evo.pruebaResultados}</p>
-                    </div>
-                ` : '';
+                let iconBgClass = 'bg-[#003366]'; let iconPath = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'; let badgeHTML = '';
+                if (evo.strikeAnadido) { iconBgClass = 'bg-red-500'; iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'; badgeHTML = '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>'; } 
+                else if (evo.strikeRemovido) { iconBgClass = 'bg-green-500'; iconPath = 'M5 13l4 4L19 7'; badgeHTML = '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Strike Removido</span>'; }
 
-                let iconBgClass = 'bg-[#003366]';
-                let iconPath = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z';
-                let badgeHTML = '';
-
-                if (evo.strikeAnadido) {
-                    iconBgClass = 'bg-red-500';
-                    iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
-                    badgeHTML = '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>';
-                } else if (evo.strikeRemovido) {
-                    iconBgClass = 'bg-green-500';
-                    iconPath = 'M5 13l4 4L19 7';
-                    badgeHTML = '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Strike Removido</span>';
+                // Preparar HTML de Anexos para impresión (ocultos en vista normal, el modal se usa para verlos)
+                let anexosPrintHTML = '';
+                if(evo.anexos && evo.anexos.length > 0) {
+                    anexosPrintHTML = evo.anexos.map(anx => `<div class="mt-2 pt-2 border-t border-yellow-100 bg-yellow-50 p-2 rounded print-only hidden"><p class="text-[10px] font-bold text-yellow-800">Actualización (${anx.fecha}):</p><p class="text-xs text-yellow-900 whitespace-pre-wrap">${anx.texto}</p></div>`).join('');
                 }
 
                 card.innerHTML = `
                     <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white ${iconBgClass} shadow shrink-0 print:hidden">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path></svg>
                     </div>
-                    
-                    <div class="ml-4 w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm print:shadow-none print:border-none print:p-0 print:ml-0">
+                    <div class="ml-4 w-full bg-white p-4 rounded-xl border border-gray-200 print:shadow-none print:border-none print:p-0 print:ml-0 transition-all hover:bg-gray-50">
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-[#003366] text-sm">${evo.fecha}</span>
-                            ${badgeHTML}
+                            <div class="flex items-center space-x-2">
+                                ${badgeHTML}
+                                ${evo.anexos && evo.anexos.length > 0 ? `<span class="text-xs font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded flex items-center print:hidden"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Anexos</span>` : ''}
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-700 whitespace-pre-wrap">${evo.nota}</p>
-                        
-                        ${pruebaHTML}
-
-                        ${evo.tarea ? `<div class="mt-3 pt-2 border-t border-gray-100"><p class="text-xs font-semibold text-[#003366]">Tarea Asignada:</p><p class="text-xs text-gray-500">${evo.tarea}</p></div>` : ''}
-                    </div>
-                `;
+                        <p class="text-sm text-gray-700 line-clamp-3 print:hidden">${evo.nota}</p>
+                        <p class="text-sm text-gray-700 hidden print-full-text">${evo.nota}</p>
+                        ${anexosPrintHTML}
+                    </div>`;
                 container.appendChild(card);
             });
         }
 
+        // ==========================================
+        // LÓGICA DEL MODAL (APERTURA Y ACTUALIZACIÓN)
+        // ==========================================
+        function openModal(evoId) {
+            const evo = evoluciones.find(e => e.id === evoId);
+            if(!evo) return;
+
+            document.getElementById('currentSessionIdModal').value = evoId;
+            document.getElementById('modalFecha').textContent = "Fecha: " + evo.fecha;
+            document.getElementById('modalNota').textContent = evo.nota;
+
+            if(evo.hasPrueba && evo.pruebaResultados) {
+                document.getElementById('modalPruebasContainer').classList.remove('hidden');
+                document.getElementById('modalPruebas').textContent = evo.pruebaResultados;
+            } else { document.getElementById('modalPruebasContainer').classList.add('hidden'); }
+
+            if(evo.tarea) {
+                document.getElementById('modalTareaContainer').classList.remove('hidden');
+                document.getElementById('modalTarea').textContent = evo.tarea;
+            } else { document.getElementById('modalTareaContainer').classList.add('hidden'); }
+
+            // Renderizar anexos existentes en el modal
+            const anexosContainer = document.getElementById('modalAnexosContainer');
+            anexosContainer.innerHTML = '';
+            if(evo.anexos && evo.anexos.length > 0) {
+                evo.anexos.forEach(anx => {
+                    anexosContainer.innerHTML += `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-xs font-bold text-yellow-800 mb-1 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Anexo / Actualización - ${anx.fecha}</p>
+                        <p class="text-sm text-yellow-900 whitespace-pre-wrap">${anx.texto}</p>
+                    </div>`;
+                });
+            }
+
+            document.getElementById('nuevoAnexo').value = '';
+            document.getElementById('sessionModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevenir scroll de fondo
+        }
+
+        function closeModal() {
+            document.getElementById('sessionModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function guardarAnexo() {
+            const textoAnexo = document.getElementById('nuevoAnexo').value.trim();
+            if(!textoAnexo) { alert("Por favor escribe un texto para el anexo."); return; }
+
+            const evoId = document.getElementById('currentSessionIdModal').value;
+            const evoIndex = evoluciones.findIndex(e => e.id === evoId);
+            if(evoIndex === -1) return;
+
+            const btn = document.getElementById('btnSaveAnexo');
+            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Sellando...';
+
+            const fechaHora = new Date().toLocaleString('es-CO');
+            if(!evoluciones[evoIndex].anexos) evoluciones[evoIndex].anexos = [];
+            evoluciones[evoIndex].anexos.push({ fecha: fechaHora, texto: textoAnexo });
+
+            try {
+                const patientId = new URLSearchParams(window.location.search).get('id');
+                const response = await fetch('/api/save-evolucion', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes })
+                });
+
+                if (response.ok) {
+                    renderTimeline(); // Actualizar UI de fondo
+                    openModal(evoId); // Recargar modal para ver el anexo agregado
+                } else throw new Error('Error al guardar anexo');
+            } catch (error) {
+                evoluciones[evoIndex].anexos.pop(); // Revertir si falla
+                alert("Error al guardar el anexo en la base de datos.");
+            } finally { btn.textContent = originalText; btn.disabled = false; }
+        }
+
+        // ==========================================
+        // CREACIÓN DE NUEVA EVOLUCIÓN
+        // ==========================================
         async function addEvolucion(id) {
             const fecha = document.getElementById('evoFecha').value;
             const nota = document.getElementById('evoNota').value;
             const tarea = document.getElementById('evoTarea').value;
-            
             const hasPrueba = document.getElementById('hasPrueba').checked;
             const pruebaResultados = document.getElementById('pruebaResultados').value;
-
             const strikeAction = document.querySelector('input[name="strikeAction"]:checked').value;
-            let strikeAnadido = false;
-            let strikeRemovido = false;
+            let strikeAnadido = false; let strikeRemovido = false;
 
-            if (strikeAction === 'add') {
-                currentStrikes++;
-                strikeAnadido = true;
-            } else if (strikeAction === 'remove') {
-                if (currentStrikes > 0) {
-                    currentStrikes--;
-                    strikeRemovido = true;
-                } else {
-                    alert("El paciente actualmente no tiene Strikes para remover.");
-                    return; 
-                }
+            if (strikeAction === 'add') { currentStrikes++; strikeAnadido = true; } 
+            else if (strikeAction === 'remove') {
+                if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } 
+                else { alert("El paciente actualmente no tiene Strikes para remover."); return; }
             }
-            
             updateStrikeUI();
 
-            const nuevaEvo = { 
-                id: Date.now().toString(), 
-                fecha, 
-                nota, 
-                tarea, 
-                strikeAnadido,
-                strikeRemovido,
-                hasPrueba,
-                pruebaResultados
-            };
-            
-            evoluciones.push(nuevaEvo);
-            renderTimeline();
+            const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
+            evoluciones.push(nuevaEvo); renderTimeline();
 
             const btn = document.getElementById('btnSaveEvo');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Guardando en la Nube...';
+            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando en la Nube...';
 
             try {
                 const response = await fetch('/api/save-evolucion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        pacienteId: id,
-                        evoluciones: evoluciones,
-                        strikes: currentStrikes
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes })
                 });
 
                 if (response.ok) {
@@ -782,25 +591,15 @@
                     document.getElementById('hasPrueba').checked = false;
                     document.querySelector('input[name="strikeAction"][value="none"]').checked = true;
                     togglePruebaBox();
-                    
                     btn.textContent = '¡Evolución Guardada!';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.disabled = false;
-                    }, 2000);
-                } else {
-                    throw new Error('Error al guardar en el servidor');
-                }
+                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+                } else throw new Error('Error al guardar en el servidor');
             } catch (error) {
                 alert("Hubo un error al guardar la evolución en la base de datos.");
                 evoluciones.pop();
-                if (strikeAnadido) currentStrikes--;
-                if (strikeRemovido) currentStrikes++;
-                updateStrikeUI();
-                renderTimeline();
-                
-                btn.textContent = originalText;
-                btn.disabled = false;
+                if (strikeAnadido) currentStrikes--; if (strikeRemovido) currentStrikes++;
+                updateStrikeUI(); renderTimeline();
+                btn.textContent = originalText; btn.disabled = false;
             }
         }
     </script>
