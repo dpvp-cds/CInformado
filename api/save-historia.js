@@ -15,10 +15,9 @@ export default async function handler(request, response) {
         }
 
         // 3. Generación del Sello de Tiempo (Timestamp) en el Servidor
-        // Esto es inmodificable por el cliente y garantiza validez legal/forense.
         const serverTimestamp = new Date().toISOString();
 
-        // 4. Estructuración Limpia de los Datos (Método HALCÓN)
+        // 4. Estructuración Limpia de los Datos
         const historiaData = {
             pacienteId: data.pacienteId,
             
@@ -41,6 +40,9 @@ export default async function handler(request, response) {
                 orientacion: data.orientacion || '',
                 nutricion: data.nutricion || ''
             },
+
+            // NUEVO: Cierre de Sesión Cero
+            cierreSesionCero: data.cierreSesionCero || '',
             
             // Bloque 3: Acuerdos y Seguimiento
             acuerdoStrikes: data.acuerdoStrikes || false,
@@ -51,8 +53,6 @@ export default async function handler(request, response) {
         };
 
         // 5. Guardado en la Base de Datos
-        // Usamos .doc(data.pacienteId) para que la Historia Clínica tenga el mismo ID que el Consentimiento.
-        // El { merge: true } permite que si en el futuro guardas "Evoluciones", no se borre la Sesión Cero.
         await db.collection('historias_clinicas').doc(data.pacienteId).set(historiaData, { merge: true });
 
         // 6. Respuesta de Éxito
