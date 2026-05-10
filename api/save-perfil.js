@@ -6,7 +6,7 @@ export default async function handler(request, response) {
     }
 
     try {
-        const { pacienteId, perfilEjecutivo } = request.body;
+        const { pacienteId, perfilEjecutivo, propositoVida } = request.body;
         
         if (!pacienteId) {
             return response.status(400).json({ message: 'Falta el ID del paciente.' });
@@ -15,19 +15,17 @@ export default async function handler(request, response) {
         // Usamos merge: true para actualizar únicamente el perfil ejecutivo
         // sin borrar ni alterar la Sesión Cero, Plan de Trabajo o Evoluciones.
         const updateData = {
-            perfilEjecutivo: perfilEjecutivo,
+            perfilEjecutivo: perfilEjecutivo || '',
+            propositoVida: propositoVida || '',
             ultimaActualizacionPerfil: new Date().toISOString()
         };
 
         await db.collection('historias_clinicas').doc(pacienteId).set(updateData, { merge: true });
 
-        response.status(200).json({ message: 'Perfil ejecutivo guardado correctamente.' });
+        response.status(200).json({ message: 'Perfil ejecutivo y propósito guardados correctamente.' });
 
     } catch (error) {
-        console.error("Error al guardar el perfil ejecutivo:", error);
-        response.status(500).json({ 
-            message: 'Error interno del servidor al guardar el perfil.', 
-            detail: error.message 
-        });
+        console.error("Error al guardar el perfil:", error);
+        response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
