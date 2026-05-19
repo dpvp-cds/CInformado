@@ -106,7 +106,6 @@
             submitButton.disabled = true; submitButton.textContent = 'Enviando...';
 
             try {
-                // Separamos los datos para enviarlos limpios al backend
                 const finalData = {
                     tipo: 'pareja',
                     fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
@@ -115,7 +114,7 @@
                         fechaNacimiento: datosCrudos.fechaNacimiento1, edad: datosCrudos.edad1,
                         pais: datosCrudos.pais1, departamento: datosCrudos.departamento1 || null,
                         ciudad: datosCrudos.municipio1 || datosCrudos.ciudad1 || null,
-                        direccion: datosCrudos.direccion1, eps: datosCrudos.eps1, // <--- EPS Integrada
+                        direccion: datosCrudos.direccion1, eps: datosCrudos.eps1, 
                         tipoDocumento: datosCrudos.tipoDocumento1, documentoIdentidad: datosCrudos.documentoIdentidad1,
                         telefonoContacto: datosCrudos.telefonoContacto1
                     },
@@ -124,7 +123,7 @@
                         fechaNacimiento: datosCrudos.fechaNacimiento2, edad: datosCrudos.edad2,
                         pais: datosCrudos.pais2, departamento: datosCrudos.departamento2 || null,
                         ciudad: datosCrudos.municipio2 || datosCrudos.ciudad2 || null,
-                        direccion: datosCrudos.direccion2, eps: datosCrudos.eps2, // <--- EPS Integrada
+                        direccion: datosCrudos.direccion2, eps: datosCrudos.eps2, 
                         tipoDocumento: datosCrudos.tipoDocumento2, documentoIdentidad: datosCrudos.documentoIdentidad2,
                         telefonoContacto: datosCrudos.telefonoContacto2
                     },
@@ -132,6 +131,7 @@
                     firmas: { firma1: c1.canvas.toDataURL('image/png'), firma2: c2.canvas.toDataURL('image/png') }
                 };
 
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/consentimientos?action=savePareja)
                 const response = await fetch('/api/consentimientos?action=savePareja', {
                     method: 'POST', body: JSON.stringify(finalData), headers: { 'Content-Type': 'application/json' }
                 });
