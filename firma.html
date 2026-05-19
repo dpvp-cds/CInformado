@@ -114,36 +114,9 @@
             try {
                 const datosCrudos = JSON.parse(sessionData);
                 const firmaDigital = canvas.toDataURL('image/png');
+                // ... líneas de código ...
 
-                const finalData = {
-                    demograficos: {
-                        nombre: datosCrudos.nombreCompleto,
-                        email: datosCrudos.email,
-                        fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
-                        fechaNacimiento: datosCrudos.fechaNacimiento,
-                        edad: datosCrudos.edad,
-                        pais: datosCrudos.pais,
-                        departamento: datosCrudos.departamento || null,
-                        ciudad: datosCrudos.municipio || datosCrudos.ciudad || null,
-                        direccion: datosCrudos.direccion,
-                        eps: datosCrudos.eps || null, 
-                        tipoDocumento: datosCrudos.tipoDocumento,
-                        documentoIdentidad: datosCrudos.documentoIdentidad,
-                        telefonoContacto: datosCrudos.telefonoContacto,
-                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
-                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
-                        nombreAcudiente: datosCrudos.nombreAcudiente || null,
-                        tipoAcudiente: datosCrudos.tipoAcudiente || null,
-                        documentoAcudiente: datosCrudos.documentoAcudiente || null
-                    },
-                    consentimiento: {
-                        fechaAceptacion: new Date().toISOString(),
-                        userAgent: navigator.userAgent
-                    },
-                    firmaDigital: firmaDigital
-                };
-
-                const response = await fetch('/api/save-consent', {
+                const response = await fetch('/api/consentimientos?action=saveIndividual', {
                     method: 'POST',
                     body: JSON.stringify(finalData),
                     headers: { 'Content-Type': 'application/json' }
