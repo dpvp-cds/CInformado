@@ -593,6 +593,7 @@
                     if(data.perfil) document.getElementById('perfilEjecutivo').value = data.perfil;
                     if(data.proposito) document.getElementById('propositoVida').value = data.proposito;
                 } catch(e) {
+                    // Retrocompatibilidad si antes se guardaba solo texto plano
                     document.getElementById('perfilEjecutivo').value = draftPerfil;
                 }
                 restored = true;
@@ -617,7 +618,8 @@
                 let data;
                 let isPareja = false;
                 
-                let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                // --- CAMBIO APLICADO AQUÍ ---
+                let resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
@@ -625,7 +627,8 @@
                         isPareja = true;
                     }
                 } else {
-                    resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
+                    // --- CAMBIO APLICADO AQUÍ ---
+                    resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
                     if (!resDemo.ok) {
                         throw new Error('No se encontró el paciente en ninguna base de datos.');
                     }
@@ -739,7 +742,7 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    // SE ACTUALIZÓ ESTA LÍNEA (GET a /api/historia)
+                    // --- CAMBIO APLICADO AQUÍ (Apunta al nuevo maestro de historia) ---
                     const resHist = await fetch(`/api/historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
@@ -822,6 +825,7 @@
             let pruebasAplicadas = [];
             evoluciones.forEach(evo => {
                 if (evo.hasPrueba && evo.pruebaResultados) {
+                    // Tomamos la primera línea de texto asumiendo que ahí pones el nombre de la prueba
                     let nombrePrueba = evo.pruebaResultados.split('\n')[0].trim();
                     if (nombrePrueba.length > 60) nombrePrueba = nombrePrueba.substring(0, 57) + '...';
                     pruebasAplicadas.push(nombrePrueba);
@@ -881,7 +885,7 @@
             btn.disabled = true; btn.textContent = 'Guardando...';
             
             try {
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=savePerfil)
+                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=savePerfil', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
@@ -949,7 +953,7 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=savePlan)
+                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
@@ -971,7 +975,7 @@
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveHistoria)
+                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
@@ -1092,7 +1096,7 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveEvolucion)
+                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
@@ -1123,7 +1127,7 @@
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveEvolucion)
+                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
