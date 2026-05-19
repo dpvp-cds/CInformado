@@ -65,30 +65,32 @@
     </main>
 
     <script>
-        let allPatients = [];
+    document.addEventListener('DOMContentLoaded', () => {
+        if (sessionStorage.getItem('consultorAuth') !== 'true') {
+            window.location.href = 'login.html';
+            return;
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('consultorAuth') !== 'true') {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                sessionStorage.removeItem('consultorAuth');
-                Object.keys(localStorage).forEach(key => { if (key.startsWith('draft_')) localStorage.removeItem(key); });
-                window.location.href = 'login.html';
+        // ⚠️ REEMPLAZA EL BLOQUE DEL BOTÓN DE CERRAR SESIÓN CON ESTE:
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            sessionStorage.removeItem('consultorAuth');
+            
+            // NUEVO: Barrido de seguridad para borrar borradores
+            Object.keys(localStorage).forEach(key => { 
+                if (key.startsWith('draft_')) localStorage.removeItem(key); 
             });
+            
+            window.location.href = 'login.html';
+        });
 
-            document.getElementById('searchBar').addEventListener('input', (e) => {
-                filterPatients(e.target.value);
-            });
+        // (El resto de tu código sigue igual hacia abajo)
 
             fetchConsentimientos();
         });
 
         async function fetchConsentimientos() {
             try {
-                const response = await fetch('/api/get-consentimientos');
+                const response = await fetch('/api/consentimientos?action=getAll');
                 allPatients = await response.json();
                 renderPatients(allPatients);
             } catch (error) {
@@ -157,7 +159,7 @@
         async function deleteConsent(id) {
             if (!confirm('¿Seguro que deseas eliminar este registro? Se perderán el consentimiento y la historia asociada.')) return;
             try {
-                const response = await fetch(`/api/eliminar-consentimiento?id=${id}`, { method: 'DELETE' });
+                const response = await fetch(`/api/consentimientos?action=delete&id=${id}`, { method: 'DELETE' });
                 if (response.ok) fetchConsentimientos();
             } catch (error) { alert('Error al eliminar'); }
         }
