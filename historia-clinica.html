@@ -593,7 +593,6 @@
                     if(data.perfil) document.getElementById('perfilEjecutivo').value = data.perfil;
                     if(data.proposito) document.getElementById('propositoVida').value = data.proposito;
                 } catch(e) {
-                    // Retrocompatibilidad si antes se guardaba solo texto plano
                     document.getElementById('perfilEjecutivo').value = draftPerfil;
                 }
                 restored = true;
@@ -740,7 +739,8 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    const resHist = await fetch(`/api/get-historia?id=${id}`);
+                    // SE ACTUALIZÓ ESTA LÍNEA (GET a /api/historia)
+                    const resHist = await fetch(`/api/historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
@@ -822,7 +822,6 @@
             let pruebasAplicadas = [];
             evoluciones.forEach(evo => {
                 if (evo.hasPrueba && evo.pruebaResultados) {
-                    // Tomamos la primera línea de texto asumiendo que ahí pones el nombre de la prueba
                     let nombrePrueba = evo.pruebaResultados.split('\n')[0].trim();
                     if (nombrePrueba.length > 60) nombrePrueba = nombrePrueba.substring(0, 57) + '...';
                     pruebasAplicadas.push(nombrePrueba);
@@ -882,7 +881,8 @@
             btn.disabled = true; btn.textContent = 'Guardando...';
             
             try {
-                const response = await fetch('/api/save-perfil', { 
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=savePerfil)
+                const response = await fetch('/api/historia?action=savePerfil', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) 
@@ -949,7 +949,8 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/save-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=savePlan)
+                const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
@@ -970,7 +971,8 @@
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveHistoria)
+                const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
@@ -1090,7 +1092,8 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveEvolucion)
+                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(`draft_anexo_${evoId}`);
@@ -1120,7 +1123,8 @@
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
+                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/historia?action=saveEvolucion)
+                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(draftEvoKey);
