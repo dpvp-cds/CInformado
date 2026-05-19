@@ -149,12 +149,21 @@
             }
 
             try {
-                const response = await fetch(`/api/get-consentimiento-individual?id=${id}`);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'No se pudo cargar el consentimiento.');
+                // SE ACTUALIZÓ ESTA LÍNEA (Intenta primero buscarlo como individual)
+                let response = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
+                let reporte;
+                
+                if (response.ok) {
+                    reporte = await response.json();
+                } else {
+                    // Si no lo encuentra como individual, intenta como pareja
+                    response = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'No se pudo cargar el consentimiento.');
+                    }
+                    reporte = await response.json();
                 }
-                const reporte = await response.json();
                 
                 displayUnifiedReport(reporte);
 
@@ -193,7 +202,6 @@
             // CEREBRO DE EXTRACCIÓN (DEEP SCAN) PARA FIRMAS HISTÓRICAS
             // =========================================================
             let allBase64 = [];
-            // Escaneamos todo el objeto JSON sin importar su anidación en busca de imágenes
             JSON.stringify(reporte, (key, value) => {
                 if (typeof value === 'string' && value.startsWith('data:image/')) {
                     if(!allBase64.includes(value)) allBase64.push(value);
@@ -202,7 +210,6 @@
             });
 
             function getFirmaSegura(num) {
-                // 1. Buscamos en las rutas donde habitualmente se guardaba
                 const explicita = (reporte.firmas && reporte.firmas[`firma${num}`]) || 
                                   reporte[`firma${num}`] || 
                                   reporte[`firmaDigital${num}`] || 
@@ -211,15 +218,9 @@
                                   (demoAntiguo[`firmaDigital${num}`]);
                 
                 if (explicita && explicita.startsWith('data:image/')) return explicita;
-                
-                // 2. Si no la halló, usamos lo que atrapó el escaner profundo
                 if (num === 1 && allBase64.length > 0) return allBase64[0];
                 if (num === 2 && allBase64.length > 1) return allBase64[1];
-                
-                // 3. Caso especial: Pareja que firmó en un solo recuadro compartido
                 if (num === 2 && allBase64.length === 1) return allBase64[0]; 
-                
-                // 4. Último recurso histórico genérico
                 return reporte.firmaDigital || '';
             }
 
