@@ -171,11 +171,18 @@
                         </div>
 
                         <div class="space-y-6">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-2 mb-4">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-2 mb-4 gap-4">
                                 <h4 class="text-lg font-bold text-[#003366]">Diagnóstico Existencial (Método HALCÓN)</h4>
-                                <div class="mt-2 md:mt-0 flex items-center">
-                                    <label class="text-sm font-semibold text-gray-600 mr-2">Fecha de Sesión Cero:</label>
-                                    <input type="date" id="fechaSesionCero" class="input-styled text-sm py-1 px-2 w-auto bg-white" required>
+                                <div class="mt-2 md:mt-0 flex flex-wrap gap-4 items-center">
+                                    <!-- AÑADIDO: EL VALOR DE LA SESIÓN CERO ESTÁ OCULTO EN IMPRESIÓN (print:hidden) -->
+                                    <div class="flex items-center print:hidden">
+                                        <label class="text-sm font-semibold text-gray-600 mr-2" title="Valor pagado en esta sesión">Valor ($):</label>
+                                        <input type="number" id="valorSesionCero" class="input-styled text-sm py-1 px-2 w-28 bg-white" placeholder="Ej. 180000" min="0">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label class="text-sm font-semibold text-gray-600 mr-2">Fecha:</label>
+                                        <input type="date" id="fechaSesionCero" class="input-styled text-sm py-1 px-2 w-auto bg-white" required>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -242,9 +249,11 @@
                             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-[#003366] mb-4 border-b pb-2">Registrar Nueva Sesión</h3>
                                 <form id="evolucionForm" class="space-y-5">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- AÑADIDO: Valor de la Sesión en Bitácora (El contenedor de evolución NO se imprime, así que no se verá) -->
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div><label class="block text-sm font-semibold mb-1">Fecha</label><input type="date" id="evoFecha" class="input-styled text-sm" required></div>
-                                        <div><label class="block text-sm font-semibold mb-1">Tarea Asignada (Para la próxima)</label><textarea id="evoTarea" rows="1" class="textarea-styled min-h-input text-sm bg-white" placeholder="Ej. Lectura, ejercicio..."></textarea></div>
+                                        <div><label class="block text-sm font-semibold mb-1" title="Valor pagado en esta sesión">Valor ($)</label><input type="number" id="evoValor" class="input-styled text-sm bg-white" placeholder="Ej. 180000" min="0"></div>
+                                        <div><label class="block text-sm font-semibold mb-1">Tarea Asignada</label><textarea id="evoTarea" rows="1" class="textarea-styled min-h-input text-sm bg-white" placeholder="Ej. Lectura..."></textarea></div>
                                     </div>
                                     
                                     <div><label class="block text-sm font-semibold mb-1">Nota de Evolución</label><textarea id="evoNota" rows="6" class="textarea-styled text-sm" placeholder="Resumen de la sesión, técnicas aplicadas, avances..." required></textarea></div>
@@ -415,6 +424,12 @@
             return fechaStr;
         }
 
+        // Utilidad para mostrar la plata bonita (Ej: $ 180.000)
+        function formatCurrency(value) {
+            if (!value || isNaN(value)) return '';
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+        }
+
         function resizeAllTextareas() {
             document.querySelectorAll('textarea').forEach(el => {
                 el.style.height = 'auto'; 
@@ -437,7 +452,6 @@
                 el.style.display = 'none'; 
                 el.parentNode.insertBefore(div, el.nextSibling); 
             });
-            // Adaptar checkboxes del plan para impresión
             document.querySelectorAll('input[type="checkbox"]').forEach(el => {
                 if(el.closest('#planContainer')) {
                     const ind = document.createElement('span');
@@ -486,6 +500,7 @@
             formCero.addEventListener('input', () => {
                 const data = {
                     fechaSesionCero: document.getElementById('fechaSesionCero').value,
+                    valorSesionCero: document.getElementById('valorSesionCero').value,
                     ocupacion: document.getElementById('ocupacion').value,
                     convivencia: document.getElementById('convivencia').value,
                     hobbies: document.getElementById('hobbies').value,
@@ -510,6 +525,7 @@
                 if (strikeChecked) strikeActionVal = strikeChecked.value;
                 const data = {
                     fecha: document.getElementById('evoFecha').value,
+                    valor: document.getElementById('evoValor').value,
                     tarea: document.getElementById('evoTarea').value,
                     nota: document.getElementById('evoNota').value,
                     hasPrueba: document.getElementById('hasPrueba').checked,
@@ -548,6 +564,7 @@
                 try {
                     const data = JSON.parse(draftCero);
                     if(data.fechaSesionCero) document.getElementById('fechaSesionCero').value = data.fechaSesionCero;
+                    if(data.valorSesionCero) document.getElementById('valorSesionCero').value = data.valorSesionCero;
                     document.getElementById('ocupacion').value = data.ocupacion || '';
                     document.getElementById('convivencia').value = data.convivencia || '';
                     document.getElementById('hobbies').value = data.hobbies || '';
@@ -576,6 +593,7 @@
                 try {
                     const data = JSON.parse(draftEvo);
                     if(data.fecha) document.getElementById('evoFecha').value = data.fecha;
+                    if(data.valor) document.getElementById('evoValor').value = data.valor;
                     if(data.tarea) document.getElementById('evoTarea').value = data.tarea;
                     if(data.nota) document.getElementById('evoNota').value = data.nota;
                     if(data.hasPrueba !== undefined) { document.getElementById('hasPrueba').checked = data.hasPrueba; togglePruebaBox(); }
@@ -592,10 +610,7 @@
                     const data = JSON.parse(draftPerfil);
                     if(data.perfil) document.getElementById('perfilEjecutivo').value = data.perfil;
                     if(data.proposito) document.getElementById('propositoVida').value = data.proposito;
-                } catch(e) {
-                    // Retrocompatibilidad si antes se guardaba solo texto plano
-                    document.getElementById('perfilEjecutivo').value = draftPerfil;
-                }
+                } catch(e) { document.getElementById('perfilEjecutivo').value = draftPerfil; }
                 restored = true;
             }
 
@@ -618,7 +633,6 @@
                 let data;
                 let isPareja = false;
                 
-                // --- CAMBIO APLICADO AQUÍ ---
                 let resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
                 
                 if (resDemo.ok) {
@@ -627,11 +641,8 @@
                         isPareja = true;
                     }
                 } else {
-                    // --- CAMBIO APLICADO AQUÍ ---
                     resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
-                    if (!resDemo.ok) {
-                        throw new Error('No se encontró el paciente en ninguna base de datos.');
-                    }
+                    if (!resDemo.ok) { throw new Error('No se encontró el paciente en ninguna base de datos.'); }
                     data = await resDemo.json();
                     isPareja = true;
                 }
@@ -639,37 +650,14 @@
                 let nombre, documento, edad, telefono;
                 
                 if (isPareja) {
-                    let p1 = {}; 
-                    let p2 = {};
-                    
-                    if (data.paciente1) {
-                        p1 = data.paciente1;
-                        p2 = data.paciente2 || {};
-                    } else if (data.demograficos) {
+                    let p1 = {}; let p2 = {};
+                    if (data.paciente1) { p1 = data.paciente1; p2 = data.paciente2 || {}; } 
+                    else if (data.demograficos) {
                         const d = data.demograficos;
-                        p1 = {
-                            nombre: d.nombreCompleto1 || d.nombre1 || d.nombreCompleto || "Paciente 1",
-                            tipoDocumento: d.tipoDocumento1 || d.tipoDocumento || "",
-                            documentoIdentidad: d.documentoIdentidad1 || d.documentoIdentidad || "N/A",
-                            edad: d.edad1 || d.edad || "N/A",
-                            telefonoContacto: d.telefonoContacto1 || d.telefonoContacto || "N/A",
-                            email: d.email1 || d.email || "N/A",
-                            eps: d.eps1 || d.eps || "N/A"
-                        };
-                        p2 = {
-                            nombre: d.nombreCompleto2 || d.nombre2 || "Paciente 2",
-                            tipoDocumento: d.tipoDocumento2 || "",
-                            documentoIdentidad: d.documentoIdentidad2 || "N/A",
-                            edad: d.edad2 || "N/A",
-                            telefonoContacto: d.telefonoContacto2 || "N/A",
-                            email: d.email2 || "N/A",
-                            eps: d.eps2 || "N/A"
-                        };
+                        p1 = { nombre: d.nombreCompleto1 || d.nombre1 || d.nombreCompleto || "Paciente 1", tipoDocumento: d.tipoDocumento1 || d.tipoDocumento || "", documentoIdentidad: d.documentoIdentidad1 || d.documentoIdentidad || "N/A", edad: d.edad1 || d.edad || "N/A", telefonoContacto: d.telefonoContacto1 || d.telefonoContacto || "N/A", email: d.email1 || d.email || "N/A", eps: d.eps1 || d.eps || "N/A" };
+                        p2 = { nombre: d.nombreCompleto2 || d.nombre2 || "Paciente 2", tipoDocumento: d.tipoDocumento2 || "", documentoIdentidad: d.documentoIdentidad2 || "N/A", edad: d.edad2 || "N/A", telefonoContacto: d.telefonoContacto2 || "N/A", email: d.email2 || "N/A", eps: d.eps2 || "N/A" };
                     }
-                    
-                    let n1 = p1.nombre || "Paciente 1";
-                    let n2 = p2.nombre || "Paciente 2";
-                    
+                    let n1 = p1.nombre || "Paciente 1"; let n2 = p2.nombre || "Paciente 2";
                     nombre = "Pareja: " + n1.split(' ')[0] + " y " + n2.split(' ')[0];
                     documento = "Múltiple"; edad = "N/A"; telefono = p1.telefonoContacto || "N/A";
                     
@@ -679,23 +667,18 @@
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n1}</span></div>
                             <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p1.tipoDocumento} ${p1.documentoIdentidad}</span></div>
                             <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p1.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p1.telefonoContacto}</span></div>
-                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p1.email}</span></div>
                         </div>
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
                             <span class="font-bold text-[#003366] block mb-1 text-xs uppercase print:text-black">Paciente 2</span>
                             <div><span class="font-semibold text-gray-500">Nombre:</span> <span class="text-gray-800">${n2}</span></div>
                             <div><span class="font-semibold text-gray-500">Doc:</span> <span class="text-gray-800">${p2.tipoDocumento} ${p2.documentoIdentidad}</span></div>
                             <div><span class="font-semibold text-gray-500">Edad:</span> <span class="text-gray-800">${p2.edad}</span> | <span class="font-semibold text-gray-500">Tel:</span> <span class="text-gray-800">${p2.telefonoContacto}</span></div>
-                            <div><span class="font-semibold text-gray-500">Email:</span> <span class="text-gray-800">${p2.email}</span></div>
                         </div>
                     `;
                 } else {
                     const demo = data.demograficos || {};
                     nombre = demo.nombre || demo.nombreCompleto || "Paciente Sin Nombre"; 
-                    documento = demo.documentoIdentidad || "N/A"; 
-                    edad = demo.edad || "N/A"; 
-                    telefono = demo.telefonoContacto || "N/A";
-                    
+                    documento = demo.documentoIdentidad || "N/A"; edad = demo.edad || "N/A"; telefono = demo.telefonoContacto || "N/A";
                     let ubicacion = `${demo.ciudad || demo.municipio || ''}, ${demo.departamento || ''}, ${demo.pais || ''}`.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,\s*,/g, ', ');
                     
                     let fichaHTML = `
@@ -707,23 +690,7 @@
                         <div><span class="font-semibold text-gray-500 block text-xs">Email</span> <span class="text-gray-800">${demo.email || 'N/A'}</span></div>
                         <div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Ubicación y Dirección</span> <span class="text-gray-800">${ubicacion} - ${demo.direccion || ''}</span></div>
                     `;
-                    
-                    if (demo.contactoEmergenciaNombre) {
-                        fichaHTML += `<div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Contacto de Emergencia</span> <span class="text-gray-800">${demo.contactoEmergenciaNombre} (Tel: ${demo.contactoEmergenciaTelefono})</span></div>`;
-                    }
-
-                    if (demo.nombreAcudiente || parseInt(demo.edad) < 18) {
-                        fichaHTML += `
-                            <div class="md:col-span-2 lg:col-span-4 mt-2 pt-4 border-t border-gray-100 print:border-gray-300">
-                                <span class="font-bold text-red-700 block text-xs uppercase mb-2">Adulto Responsable (Acudiente)</span>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div><span class="font-semibold text-gray-500 block text-xs">Nombre Acudiente</span> <span class="text-gray-800">${demo.nombreAcudiente || 'N/A'}</span></div>
-                                    <div><span class="font-semibold text-gray-500 block text-xs">Relación</span> <span class="text-gray-800">${demo.tipoAcudiente || 'N/A'}</span></div>
-                                    <div><span class="font-semibold text-gray-500 block text-xs">Documento Acudiente</span> <span class="text-gray-800">${demo.documentoAcudiente || 'N/A'}</span></div>
-                                </div>
-                            </div>
-                        `;
-                    }
+                    if (demo.contactoEmergenciaNombre) { fichaHTML += `<div class="md:col-span-2 lg:col-span-2"><span class="font-semibold text-gray-500 block text-xs">Contacto de Emergencia</span> <span class="text-gray-800">${demo.contactoEmergenciaNombre} (Tel: ${demo.contactoEmergenciaTelefono})</span></div>`; }
                     document.getElementById('fichaData').innerHTML = fichaHTML;
                 }
 
@@ -732,9 +699,7 @@
                 document.getElementById('pacienteEdad').textContent = `Edad: ${edad}`;
                 document.getElementById('pacienteContacto').textContent = `Tel: ${telefono}`;
                 document.getElementById('pacienteId').textContent = id;
-                
-                let safeName = nombre || "Paciente";
-                document.title = `HC_${safeName.replace(/\s+/g, '_')}_CInformado`;
+                document.title = `HC_${(nombre || "Paciente").replace(/\s+/g, '_')}_CInformado`;
 
                 const timestampFirm = new Date().toLocaleString('es-CO');
                 const rawString = id + "CInformado" + timestampFirm;
@@ -742,14 +707,13 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    // --- CAMBIO APLICADO AQUÍ (Apunta al nuevo maestro de historia) ---
                     const resHist = await fetch(`/api/historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
-                            if (histData.fechaSesionCero) {
-                                document.getElementById('fechaSesionCero').value = histData.fechaSesionCero;
-                            }
+                            if (histData.fechaSesionCero) document.getElementById('fechaSesionCero').value = histData.fechaSesionCero;
+                            if (histData.valorSesionCero) document.getElementById('valorSesionCero').value = histData.valorSesionCero;
+                            
                             document.getElementById('ocupacion').value = histData.contextoVital?.ocupacion || '';
                             document.getElementById('convivencia').value = histData.contextoVital?.convivencia || '';
                             document.getElementById('hobbies').value = histData.contextoVital?.hobbies || '';
@@ -772,7 +736,6 @@
                             document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
 
                             if (histData.planTrabajo && histData.planTrabajo.length > 0) planTrabajo = histData.planTrabajo;
-
                             if(histData.evoluciones && histData.evoluciones.length > 0) { evoluciones = histData.evoluciones; renderTimeline(); }
                             if(histData.strikes !== undefined) { currentStrikes = histData.strikes; updateStrikeUI(); }
                             
@@ -787,10 +750,8 @@
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
-                
                 setTimeout(resizeAllTextareas, 200);
             } catch (error) { 
-                console.error("Error cargando paciente:", error);
                 document.getElementById('loading').innerHTML = `<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente. <br><br><span class="text-sm text-gray-500">Detalle: ${error.message}</span></span>`; 
             }
         }
@@ -798,81 +759,46 @@
         function generarPerfilAuto() {
             let edadValue = "N/A";
             const edadTextEl = document.getElementById('edadText');
-            if(edadTextEl) {
-                edadValue = edadTextEl.textContent.split(' ')[0];
-            } else {
-                let ageStr = document.getElementById('pacienteEdad').textContent.replace('Edad: ', '').trim();
-                if(ageStr && ageStr !== 'N/A') edadValue = ageStr;
-            }
+            if(edadTextEl) { edadValue = edadTextEl.textContent.split(' ')[0]; } 
+            else { let ageStr = document.getElementById('pacienteEdad').textContent.replace('Edad: ', '').trim(); if(ageStr && ageStr !== 'N/A') edadValue = ageStr; }
 
             let numSesiones = evoluciones.length;
-            
             let motivoFull = document.getElementById('motivoConsulta').value.trim();
             let motivoCorto = "Por definir";
-            if(motivoFull) {
-                let words = motivoFull.split(/\s+/);
-                motivoCorto = words.slice(0, 20).join(" ") + (words.length > 20 ? "..." : "");
-            }
+            if(motivoFull) { let words = motivoFull.split(/\s+/); motivoCorto = words.slice(0, 20).join(" ") + (words.length > 20 ? "..." : ""); }
             
             let proxTema = "Continuar evolución y seguimiento";
-            if (planTrabajo && planTrabajo.length > numSesiones) {
-                proxTema = planTrabajo[numSesiones].tema || planTrabajo[numSesiones].objetivo || "Tema por definir en el plan";
-            } else if (planTrabajo && planTrabajo.length > 0) {
-                proxTema = planTrabajo[planTrabajo.length-1].tema || "Cierre de proceso";
-            }
+            if (planTrabajo && planTrabajo.length > numSesiones) { proxTema = planTrabajo[numSesiones].tema || planTrabajo[numSesiones].objetivo || "Tema por definir en el plan"; } 
+            else if (planTrabajo && planTrabajo.length > 0) { proxTema = planTrabajo[planTrabajo.length-1].tema || "Cierre de proceso"; }
 
-            // Rastreo de pruebas psicométricas en la bitácora
             let pruebasAplicadas = [];
             evoluciones.forEach(evo => {
                 if (evo.hasPrueba && evo.pruebaResultados) {
-                    // Tomamos la primera línea de texto asumiendo que ahí pones el nombre de la prueba
                     let nombrePrueba = evo.pruebaResultados.split('\n')[0].trim();
                     if (nombrePrueba.length > 60) nombrePrueba = nombrePrueba.substring(0, 57) + '...';
                     pruebasAplicadas.push(nombrePrueba);
                 }
             });
 
-            let texto = `Paciente de ${edadValue === 'N/A' ? 'edad múltiple/no especificada' : edadValue + ' años'}. `;
-            texto += `Motivo de consulta principal: "${motivoCorto}".\n\n`;
+            let texto = `Paciente de ${edadValue === 'N/A' ? 'edad múltiple/no especificada' : edadValue + ' años'}. Motivo de consulta principal: "${motivoCorto}".\n\n`;
 
-            const hab = document.getElementById('habilidades').value.trim();
-            const asp = document.getElementById('aspiracion').value.trim();
-            const cre = document.getElementById('creencias').value.trim();
-            const con = document.getElementById('construccion').value.trim();
-            const ori = document.getElementById('orientacion').value.trim();
-            const nut = document.getElementById('nutricion').value.trim();
-
+            const hab = document.getElementById('habilidades').value.trim(); const asp = document.getElementById('aspiracion').value.trim(); const cre = document.getElementById('creencias').value.trim(); const con = document.getElementById('construccion').value.trim(); const ori = document.getElementById('orientacion').value.trim(); const nut = document.getElementById('nutricion').value.trim();
             if (hab || asp || cre || con || ori || nut) {
                 texto += `--- DIAGNÓSTICO HALCÓN ---\n`;
-                if (hab) texto += `• Sus habilidades y esencia: ${hab}\n`;
-                if (asp) texto += `• Sus aspiraciones/metas: ${asp}\n`;
-                if (cre) texto += `• Su lógica y creencias: ${cre}\n`;
-                if (con) texto += `• Construcción/Concreción: ${con}\n`;
-                if (ori) texto += `• Orientación/Adaptación: ${ori}\n`;
-                if (nut) texto += `• Nutrición y trascendencia: ${nut}\n`;
+                if (hab) texto += `• Sus habilidades y esencia: ${hab}\n`; if (asp) texto += `• Sus aspiraciones/metas: ${asp}\n`; if (cre) texto += `• Su lógica y creencias: ${cre}\n`; if (con) texto += `• Construcción/Concreción: ${con}\n`; if (ori) texto += `• Orientación/Adaptación: ${ori}\n`; if (nut) texto += `• Nutrición y trascendencia: ${nut}\n`;
                 texto += `\n`;
             }
 
             if (pruebasAplicadas.length > 0) {
-                texto += `--- EVALUACIÓN PSICOMÉTRICA ---\n`;
-                texto += `A la fecha se han aplicado ${pruebasAplicadas.length} prueba(s) psicométrica(s):\n`;
-                pruebasAplicadas.forEach(p => texto += `• ${p}\n`);
-                texto += `\n`;
+                texto += `--- EVALUACIÓN PSICOMÉTRICA ---\n`; texto += `A la fecha se han aplicado ${pruebasAplicadas.length} prueba(s) psicométrica(s):\n`; pruebasAplicadas.forEach(p => texto += `• ${p}\n`); texto += `\n`;
             }
 
-            texto += `A la fecha ha completado ${numSesiones} sesión(es) de acompañamiento. `;
-            texto += `Actualmente evolucionando hacia su próximo objetivo: ${proxTema}.`;
-
-            const txtArea = document.getElementById('perfilEjecutivo');
-            txtArea.value = texto;
-            
+            texto += `A la fecha ha completado ${numSesiones} sesión(es) de acompañamiento. Actualmente evolucionando hacia su próximo objetivo: ${proxTema}.`;
+            document.getElementById('perfilEjecutivo').value = texto;
             resizeAllTextareas();
             
-            // Guardar automáticamente en drafts
             const propositotxt = document.getElementById('propositoVida').value;
-            if(typeof draftPerfilKey !== 'undefined') {
-                localStorage.setItem(draftPerfilKey, JSON.stringify({ perfil: texto, proposito: propositotxt }));
-            }
+            localStorage.setItem(draftPerfilKey, JSON.stringify({ perfil: texto, proposito: propositotxt }));
         }
 
         async function savePerfil() {
@@ -881,27 +807,14 @@
             const prop = document.getElementById('propositoVida').value.trim();
             const btn = document.getElementById('btnSavePerfil');
             
-            const originalText = btn.textContent; 
-            btn.disabled = true; btn.textContent = 'Guardando...';
-            
+            const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                // --- CAMBIO APLICADO AQUÍ ---
-                const response = await fetch('/api/historia?action=savePerfil', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) 
-                });
+                const response = await fetch('/api/historia?action=savePerfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
                 if (response.ok) { 
                     localStorage.removeItem(draftPerfilKey); 
-                    const succ = document.getElementById('perfil-success');
-                    succ.classList.remove('hidden'); 
-                    setTimeout(() => succ.classList.add('hidden'), 3000); 
+                    const succ = document.getElementById('perfil-success'); succ.classList.remove('hidden'); setTimeout(() => succ.classList.add('hidden'), 3000); 
                 } else throw new Error('Error al guardar el perfil');
-            } catch (error) { 
-                alert("Error al conectar con la base de datos."); 
-            } finally { 
-                btn.textContent = originalText; btn.disabled = false; 
-            }
+            } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
         function switchTab(tabId) {
@@ -921,15 +834,12 @@
             planTrabajo.forEach((item, index) => {
                 const isChecked = item.completado ? true : false;
                 const bgClass = isChecked ? 'bg-green-50 border-green-300 shadow-sm' : 'bg-gray-50 border-gray-200';
-                
                 container.innerHTML += `
                     <div class="flex flex-col md:flex-row gap-4 items-start ${bgClass} p-4 rounded-xl border print:bg-white print:p-2 print:border-b print:border-t-0 print:border-x-0 print:rounded-none transition-colors duration-300">
-                        
                         <div class="flex items-center space-x-2 pt-1 md:pt-8 print:hidden">
                             <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePlanStatus(${index}, this.checked)" class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer" title="Marcar como completada">
                             <span class="text-xs font-bold md:hidden ${isChecked ? 'text-green-700' : 'text-gray-500'}">${isChecked ? '¡Completado!' : 'Pendiente'}</span>
                         </div>
-
                         <div class="w-full md:w-1/4"><label class="block text-xs font-semibold text-gray-500 mb-1">Nombre / # Sesión</label><textarea rows="1" class="textarea-styled min-h-input text-sm bg-white" oninput="updatePlan(${index}, 'sesion', this.value)">${item.sesion}</textarea></div>
                         <div class="w-full md:w-1/3"><label class="block text-xs font-semibold text-gray-500 mb-1">Tema Principal</label><textarea rows="1" class="textarea-styled min-h-input text-sm bg-white" oninput="updatePlan(${index}, 'tema', this.value)" placeholder="Ej. Creencias Limitantes">${item.tema}</textarea></div>
                         <div class="w-full md:w-5/12 relative"><label class="block text-xs font-semibold text-gray-500 mb-1">Objetivo de la Sesión</label><textarea class="textarea-styled text-sm bg-white h-10 min-h-[48px]" oninput="updatePlan(${index}, 'objetivo', this.value)" placeholder="Meta a lograr...">${item.objetivo}</textarea><button onclick="removePlanRow(${index})" class="no-print absolute -right-2 top-0 mt-8 mr-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm border border-gray-100" title="Eliminar sesión"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div>
@@ -938,12 +848,7 @@
             setTimeout(resizeAllTextareas, 50);
         }
 
-        function togglePlanStatus(index, isChecked) {
-            planTrabajo[index].completado = isChecked;
-            renderPlan();
-            saveDraftPlan();
-        }
-
+        function togglePlanStatus(index, isChecked) { planTrabajo[index].completado = isChecked; renderPlan(); saveDraftPlan(); }
         function updatePlan(index, field, value) { planTrabajo[index][field] = value; saveDraftPlan(); }
         function addPlanRow() { planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '', completado: false }); renderPlan(); saveDraftPlan(); }
         function removePlanRow(index) { planTrabajo.splice(index, 1); if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '', completado: false }); renderPlan(); saveDraftPlan(); }
@@ -953,7 +858,6 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
@@ -970,12 +874,12 @@
             const historiaData = {
                 pacienteId: id,
                 fechaSesionCero: fechaSC,
+                valorSesionCero: document.getElementById('valorSesionCero').value || 0,
                 ocupacion: document.getElementById('ocupacion').value, convivencia: document.getElementById('convivencia').value, hobbies: document.getElementById('hobbies').value, noHobbies: document.getElementById('noHobbies').value, antecedentesMedicos: document.getElementById('antecedentesMedicos').value, motivoConsulta: motivo, habilidades: document.getElementById('habilidades').value, aspiracion: document.getElementById('aspiracion').value, creencias: document.getElementById('creencias').value, construccion: document.getElementById('construccion').value, orientacion: document.getElementById('orientacion').value, nutricion: document.getElementById('nutricion').value, 
                 cierreSesionCero: document.getElementById('cierreSesionCero').value,
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
@@ -1006,8 +910,13 @@
                 const fechaAmigable = formatearFechaAmigable(evo.fecha);
                 
                 let iconBgClass = 'bg-[#003366]'; let iconPath = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'; let badgeHTML = '';
-                if (evo.strikeAnadido) { iconBgClass = 'bg-red-500'; iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'; badgeHTML = '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded">Strike Aplicado</span>'; } 
-                else if (evo.strikeRemovido) { iconBgClass = 'bg-green-500'; iconPath = 'M5 13l4 4L19 7'; badgeHTML = '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">Strike Removido</span>'; }
+                if (evo.strikeAnadido) { iconBgClass = 'bg-red-500'; iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'; badgeHTML += '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded ml-2">Strike Aplicado</span>'; } 
+                else if (evo.strikeRemovido) { iconBgClass = 'bg-green-500'; iconPath = 'M5 13l4 4L19 7'; badgeHTML += '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">Strike Removido</span>'; }
+                
+                // Mostrar el valor en el badge superior si existe, con CLASE DE IMPRESIÓN OCULTA (print:hidden)
+                if (evo.valor && Number(evo.valor) > 0) {
+                    badgeHTML += `<span class="print:hidden text-xs font-bold bg-blue-100 text-[#003366] px-2 py-0.5 rounded ml-2 border border-blue-200 shadow-sm">${formatCurrency(evo.valor)}</span>`;
+                }
 
                 let anexosPrintHTML = '';
                 if(evo.anexos && evo.anexos.length > 0) {
@@ -1019,7 +928,7 @@
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path></svg>
                     </div>
                     <div class="ml-4 w-full bg-white p-4 rounded-xl border border-gray-200 print:shadow-none print:border-none print:p-0 print:ml-0 transition-all hover:bg-gray-50">
-                        <div class="flex justify-between items-center mb-2">
+                        <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
                             <span class="font-bold text-[#003366] text-sm">${fechaAmigable}</span>
                             <div class="flex items-center space-x-2">
                                 ${badgeHTML}
@@ -1040,7 +949,9 @@
             if(!evo) return;
 
             document.getElementById('currentSessionIdModal').value = evoId;
-            document.getElementById('modalFecha').textContent = "Fecha: " + formatearFechaAmigable(evo.fecha);
+            let titleText = "Fecha: " + formatearFechaAmigable(evo.fecha);
+            if (evo.valor && Number(evo.valor) > 0) titleText += ` | Valor pagado: ${formatCurrency(evo.valor)}`;
+            document.getElementById('modalFecha').textContent = titleText;
             document.getElementById('modalNota').textContent = evo.nota;
 
             if(evo.hasPrueba && evo.pruebaResultados) { document.getElementById('modalPruebasContainer').classList.remove('hidden'); document.getElementById('modalPruebas').textContent = evo.pruebaResultados; } 
@@ -1068,12 +979,9 @@
                 });
             }
 
-            const draftAnexo = localStorage.getItem(`draft_anexo_${evoId}`);
-            document.getElementById('nuevoAnexo').value = draftAnexo || '';
-            
+            document.getElementById('nuevoAnexo').value = localStorage.getItem(`draft_anexo_${evoId}`) || '';
             document.getElementById('sessionModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            
             setTimeout(resizeAllTextareas, 50);
         }
 
@@ -1096,7 +1004,6 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
@@ -1108,6 +1015,7 @@
 
         async function addEvolucion(id) {
             const fecha = document.getElementById('evoFecha').value;
+            const valor = document.getElementById('evoValor').value || 0;
             const nota = document.getElementById('evoNota').value;
             const tarea = document.getElementById('evoTarea').value;
             const hasPrueba = document.getElementById('hasPrueba').checked;
@@ -1120,14 +1028,13 @@
             else if (strikeAction === 'remove') { if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } else { alert("No hay Strikes para remover."); return; } }
             updateStrikeUI();
 
-            const nuevaEvo = { id: Date.now().toString(), fecha, nota, tarea, cierre, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
+            const nuevaEvo = { id: Date.now().toString(), fecha, valor, nota, tarea, cierre, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
             evoluciones.push(nuevaEvo); renderTimeline();
 
             const btn = document.getElementById('btnSaveEvo');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                // --- CAMBIO APLICADO AQUÍ ---
                 const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
