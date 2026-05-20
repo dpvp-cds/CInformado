@@ -1,56 +1,87 @@
 import { db } from '../lib/firebaseAdmin.js';
 
 export default async function handler(request, response) {
-    if (request.method !== 'POST') {
-        return response.status(405).json({ message: 'Método no permitido. Solo se aceptan peticiones POST.' });
-    }
+    const { action, id } = request.query;
 
     try {
-        const data = request.body;
-        
-        if (!data.pacienteId || !data.motivoConsulta) {
-            return response.status(400).json({ message: 'Faltan datos críticos.' });
+        if (request.method === 'GET') {
+            if (!id) return response.status(400).json({ message: 'Falta el ID del paciente.' });
+            
+            const doc = await db.collection('historias_clinicas').doc(id).get();
+            if (!doc.exists) {
+                return response.status(200).json({ isNew: true });
+            }
+            return response.status(200).json(doc.data());
         }
 
-        const serverTimestamp = new Date().toISOString();
+        if (request.method === 'POST') {
+            const data = request.body;
 
-        const historiaData = {
-            pacienteId: data.pacienteId,
-            
-            // NUEVO: Guardado del valor de la sesión cero y si ya fue pagado
-            valorSesionCero: data.valorSesionCero || 0,
-            pagadoSesionCero: data.pagadoSesionCero || false,
-            
-            contextoVital: {
-                ocupacion: data.ocupacion || '',
-                convivencia: data.convivencia || '',
-                hobbies: data.hobbies || '',
-                noHobbies: data.noHobbies || '',
-                antecedentesMedicos: data.antecedentesMedicos || ''
-            },
-            
-            halcon: {
-                motivoConsulta: data.motivoConsulta,
-                habilidades: data.habilidades || '',
-                aspiracion: data.aspiracion || '',
-                creencias: data.creencias || '',
-                construccion: data.construccion || '',
-                orientacion: data.orientacion || '',
-                nutricion: data.nutricion || ''
-            },
+            switch (action) {
+                case 'saveHistoria':
+                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
+                    const historiaData = {
+                        fechaSesionCero: data.fechaSesionCero || '',
+                        valorSesionCero: Number(data.valorSesionCero) || 0,
+                        pagadoSesionCero: data.pagadoSesionCero === true,
+                        contextoVital: {
+                            ocupacion: data.ocupacion || '',
+                            convivencia: data.convivencia || '',
+                            hobbies: data.hobbies || '',
+                            noHobbies: data.noHobbies || '',
+                            antecedentesMedicos: data.antecedentesMedicos || ''
+                        },
+                        halcon: {
+                            motivoConsulta: data.motivoConsulta || '',
+                            habilidades: data.habilidades || '',
+                            aspiracion: data.aspiracion || '',
+                            creencias: data.creencias || '',
+                            construccion: data.construccion || '',
+                            orientacion: data.orientacion || '',
+                            nutricion: data.nutricion || ''
+                        },
+                        cierreSesionCero: data.cierreSesionCero || '',
+                        acuerdoStrikes: data.acuerdoStrikes === true,
+                        ultimaActualizacion: new Date().toISOString()
+                    };
+                    await db.collection('historias_clinicas').doc(data.pacienteId).set(historiaData, { merge: true });
+                    return response.status(200).json({ message: 'Sesión Cero guardada.' });
 
-            cierreSesionCero: data.cierreSesionCero || '',
-            acuerdoStrikes: data.acuerdoStrikes || false,
-            fechaCreacionSesionCero: serverTimestamp,
-            ultimaActualizacion: serverTimestamp
-        };
+                case 'savePlan':
+                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
+                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
+                        planTrabajo: data.planTrabajo || [],
+                        ultimaActualizacionPlan: new Date().toISOString()
+                    }, { merge: true });
+                    return response.status(200).json({ message: 'Plan de trabajo guardado.' });
 
-        await db.collection('historias_clinicas').doc(data.pacienteId).set(historiaData, { merge: true });
+                case 'saveEvolucion':
+                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
+                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
+                        evoluciones: data.evoluciones || [],
+                        strikes: data.strikes || 0,
+                        ultimaActualizacionEvo: new Date().toISOString()
+                    }, { merge: true });
+                    return response.status(200).json({ message: 'Bitácora guardada.' });
 
-        response.status(200).json({ message: 'Sesión Cero guardada.', historiaId: data.pacienteId });
+                case 'savePerfil':
+                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
+                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
+                        perfilEjecutivo: data.perfilEjecutivo || '',
+                        propositoVida: data.propositoVida || '',
+                        ultimaActualizacionPerfil: new Date().toISOString()
+                    }, { merge: true });
+                    return response.status(200).json({ message: 'Perfil y propósito guardados.' });
+
+                default:
+                    return response.status(400).json({ message: 'Acción POST no reconocida.' });
+            }
+        }
+
+        return response.status(405).json({ message: 'Método no soportado.' });
 
     } catch (error) {
-        console.error("Error al guardar la historia clínica:", error);
-        response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
+        console.error("Error en controlador de historia:", error);
+        return response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
