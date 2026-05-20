@@ -703,7 +703,7 @@
                 let data;
                 let isPareja = false;
                 
-                // Mantenemos la lógica separada usando los endpoints que subiste
+                // Mantenemos la lógica separada usando los endpoints
                 let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (!resDemo.ok && resDemo.status === 404) {
@@ -865,7 +865,8 @@
             btn.textContent = 'Generando enlace y correos...';
 
             try {
-                const response = await fetch('/api/agendar', { 
+                // APUNTA AL CONTROLADOR MAESTRO DE CITAS (MODO ZEN)
+                const response = await fetch('/api/citas', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ 
