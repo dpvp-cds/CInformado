@@ -4,9 +4,7 @@ import { Buffer } from 'buffer';
 
 // Helper para formatear fechas al estándar iCalendar (UTC)
 function formatICSDate(dateStr, timeStr) {
-    // Asumimos zona horaria de Colombia (UTC-5)
     const localDate = new Date(`${dateStr}T${timeStr}:00-05:00`);
-    // Duración ajustada a 1 hora y 30 minutos (90 minutos)
     const endLocalDate = new Date(localDate.getTime() + 90 * 60 * 1000); 
 
     const toUTC = (d) => {
@@ -24,13 +22,12 @@ function formatICSDate(dateStr, timeStr) {
 export default async function handler(request, response) {
     
     // =======================================================
-    // BLOQUE GET: LECTURA PARA EL CALENDARIO (portal-citas.html)
+    // BLOQUE GET: LECTURA PARA EL CALENDARIO 
     // =======================================================
     if (request.method === 'GET') {
         try {
             const patientsMap = {};
             
-            // Consultar bases de datos simultáneamente
             const [indivSnap, parejaSnap, histSnap] = await Promise.all([
                 db.collection('consents').get(),
                 db.collection('consents_parejas').get(),
@@ -39,14 +36,20 @@ export default async function handler(request, response) {
 
             indivSnap.forEach(doc => {
                 const data = doc.data();
-                patientsMap[doc.id] = data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Paciente';
+                patientsMap[doc.id] = {
+                    nombre: data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Paciente',
+                    email: data.demograficos?.email || ''
+                };
             });
 
             parejaSnap.forEach(doc => {
                 const data = doc.data();
                 const n1 = data.paciente1?.nombreCompleto1 || data.paciente1?.nombre || 'P1';
                 const n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
-                patientsMap[doc.id] = `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`;
+                patientsMap[doc.id] = {
+                    nombre: `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`,
+                    email: data.paciente1?.email1 || data.paciente1?.email || ''
+                };
             });
 
             const eventosCalendario = [];
@@ -54,7 +57,7 @@ export default async function handler(request, response) {
             histSnap.forEach(doc => {
                 const data = doc.data();
                 const pacienteId = doc.id;
-                const nombre = patientsMap[pacienteId] || 'Paciente Sin Nombre';
+                const infoPaciente = patientsMap[pacienteId] || { nombre: 'Paciente Sin Nombre', email: '' };
 
                 // A. Extraer la PRÓXIMA CITA
                 if (data.proximaCita && data.proximaCita.fecha && data.proximaCita.hora) {
@@ -64,12 +67,16 @@ export default async function handler(request, response) {
                     eventosCalendario.push({
                         id: `futura-${pacienteId}`,
                         pacienteId: pacienteId,
-                        title: `🗓️ ${nombre}`,
+                        title: `🗓️ ${infoPaciente.nombre}`,
                         start: startDate.toISOString(),
                         end: endDate.toISOString(),
                         backgroundColor: '#4f46e5',
                         borderColor: '#4338ca',
-                        extendedProps: { tipo: 'Futura', meet: data.enlaceMeet || '' }
+                        extendedProps: { 
+                            tipo: 'Futura', 
+                            meet: data.enlaceMeet || '',
+                            email: infoPaciente.email 
+                        }
                     });
                 }
 
@@ -80,7 +87,7 @@ export default async function handler(request, response) {
                             eventosCalendario.push({
                                 id: `pasada-${pacienteId}-${index}`,
                                 pacienteId: pacienteId,
-                                title: `✅ ${nombre}`,
+                                title: `✅ ${infoPaciente.nombre}`,
                                 start: evo.fecha,
                                 allDay: true,
                                 backgroundColor: evo.pagado ? '#10b981' : '#f59e0b',
@@ -101,7 +108,7 @@ export default async function handler(request, response) {
     }
 
     // =======================================================
-    // BLOQUE POST: MOTOR DE AGENDAMIENTO (Guardar y Enviar Correos)
+    // BLOQUE POST: MOTOR DE AGENDAMIENTO
     // =======================================================
     else if (request.method === 'POST') {
         try {
@@ -111,7 +118,6 @@ export default async function handler(request, response) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
             }
 
-            // Guardar memoria en la historia clínica
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: { fecha, hora },
                 enlaceMeet: enlaceMeet || ''
@@ -206,6 +212,62 @@ END:VCALENDAR`;
             return response.status(500).json({ message: 'Error interno del servidor al agendar.', detail: error.message });
         }
     } 
+
+    // =======================================================
+    // BLOQUE DELETE: CANCELACIÓN DE CITAS
+    // =======================================================
+    else if (request.method === 'DELETE') {
+        try {
+            const { pacienteId, enviarCorreo, emailPaciente, nombrePaciente, fechaStr } = request.body;
+
+            if (!pacienteId) {
+                return response.status(400).json({ message: 'Falta el ID del paciente.' });
+            }
+
+            // Borrar de la BD asignando null a la proximaCita
+            await db.collection('historias_clinicas').doc(pacienteId).set({
+                proximaCita: null
+            }, { merge: true });
+
+            // Enviar correo de cancelación
+            const resendApiKey = process.env.RESEND2_API_KEY;
+            if (resendApiKey && enviarCorreo && emailPaciente) {
+                const resend = new Resend(resendApiKey);
+                const primerNombre = nombrePaciente.split(' ')[0];
+
+                await resend.emails.send({
+                    from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
+                    to: emailPaciente,
+                    subject: `❌ Cita Cancelada - Caminos del Ser`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
+                            <div style="background-color: #e11d48; padding: 20px; text-align: center;">
+                                <h2 style="color: white; margin: 0;">Cita Cancelada</h2>
+                            </div>
+                            <div style="padding: 30px;">
+                                <h3 style="color: #e11d48;">Hola ${primerNombre},</h3>
+                                <p>Te informamos que tu cita de psicología programada para el <strong>${fechaStr}</strong> ha sido cancelada.</p>
+                                <p>Si deseas reprogramarla, por favor ponte en contacto con nosotros.</p>
+                            </div>
+                        </div>
+                    `
+                });
+                
+                await resend.emails.send({
+                    from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
+                    to: 'caminosdelser@emcotic.com',
+                    subject: `❌ CITA CANCELADA: ${primerNombre}`,
+                    html: `<p>Se ha cancelado correctamente la cita de <strong>${nombrePaciente}</strong> programada para el ${fechaStr}.</p>`
+                });
+            }
+
+            return response.status(200).json({ message: 'Cancelación procesada.' });
+
+        } catch (error) {
+            console.error("Error al cancelar cita:", error);
+            return response.status(500).json({ message: 'Error interno del servidor al cancelar.' });
+        }
+    }
     
     else {
         return response.status(405).json({ message: 'Método no soportado.' });
