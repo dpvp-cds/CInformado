@@ -649,13 +649,8 @@
                 let data;
                 let isPareja = false;
                 
-                let resDemo = await fetch(`/api/historia?action=getIndividual&id=${id}`);
-                
-                // Fallback para mantener la compatibilidad del frontend mientras estamos en "Modo Zen"
-                // con el endpoint unificado de Historia que reemplaza a los viejos de Consentimiento si es necesario.
-                if (!resDemo.ok && resDemo.status === 404) {
-                    resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
-                }
+                // 1. OBTENER DEMOGRÁFICOS DIRECTAMENTE DEL MAESTRO
+                let resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
@@ -663,11 +658,8 @@
                         isPareja = true;
                     }
                 } else {
-                    resDemo = await fetch(`/api/historia?action=getPareja&id=${id}`);
-                    if (!resDemo.ok) { 
-                        resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
-                    }
-                    if (!resDemo.ok) { throw new Error('No se encontró el paciente en ninguna base de datos.'); }
+                    resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
+                    if (!resDemo.ok) { throw new Error('No se encontró el paciente en el sistema.'); }
                     data = await resDemo.json();
                     isPareja = true;
                 }
@@ -731,6 +723,7 @@
                 const hash = btoa(rawString).substring(0, 24).toUpperCase();
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
+                // 2. OBTENER HISTORIA DIRECTO DEL MAESTRO
                 try {
                     const resHist = await fetch(`/api/historia?id=${id}`);
                     if (resHist.ok) {
