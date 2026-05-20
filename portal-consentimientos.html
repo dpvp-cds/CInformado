@@ -16,7 +16,13 @@
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
             <div class="flex items-center space-x-6">
-                <!-- NUEVO BOTÓN: Conexión al Portal de Pagos -->
+                <!-- NOVO BOTÃO: Calendário (Agenda) -->
+                <a href="portal-citas.html" class="flex items-center text-indigo-700 font-bold hover:text-indigo-900 transition-colors bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm hidden md:flex">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Agenda
+                </a>
+
+                <!-- BOTÃO EXISTENTE: Conexão ao Portal de Pagamentos -->
                 <a href="portal-pagos.html" class="flex items-center text-green-700 font-bold hover:text-green-900 transition-colors bg-green-50 px-4 py-2 rounded-full border border-green-200 shadow-sm">
                     <span class="text-xl font-bold mr-2">$</span>
                     Control de Pagos
@@ -60,6 +66,7 @@
         let allPatients = [];
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação do usuário
             if (sessionStorage.getItem('consultorAuth') !== 'true') {
                 window.location.href = 'login.html';
                 return;
@@ -70,6 +77,7 @@
                 window.location.href = 'login.html';
             });
 
+            // Lógica de busca de pacientes
             document.getElementById('searchInput').addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const filtered = allPatients.filter(p => p.nombre.toLowerCase().includes(term) || p.email.toLowerCase().includes(term));
@@ -81,6 +89,7 @@
 
         async function fetchConsentimientos() {
             try {
+                // Obter dados da API centralizada
                 const response = await fetch('/api/consentimientos?action=getAll');
                 allPatients = await response.json();
                 
