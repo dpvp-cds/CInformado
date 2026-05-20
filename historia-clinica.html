@@ -383,6 +383,29 @@
 
                 <div id="modalAnexosContainer" class="space-y-4"></div>
                 <hr class="border-gray-200">
+                
+                <!-- NUEVO: SECCIÓN PARA ACTUALIZAR PAGO DESDE LA BITÁCORA DE SESIONES PASADAS -->
+                <div class="bg-green-50 border border-green-200 rounded-xl p-5 relative overflow-hidden print:hidden">
+                    <h4 class="text-md font-bold text-green-800 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Estado Financiero de la Sesión
+                    </h4>
+                    <div class="flex flex-col sm:flex-row gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold mb-1 text-green-700">Valor ($)</label>
+                            <input type="number" id="modalEvoValor" class="input-styled text-sm bg-white w-full border-green-300 focus:border-green-500" placeholder="Ej. 180000" min="0">
+                        </div>
+                        <div class="flex items-center bg-white border border-green-300 rounded-lg px-3 py-2 h-[42px] mb-[1px]">
+                            <input type="checkbox" id="modalEvoPagado" class="w-4 h-4 text-green-600 border-gray-300 rounded cursor-pointer">
+                            <label for="modalEvoPagado" class="ml-2 text-sm font-bold text-gray-700 cursor-pointer">Marcar como Pagado</label>
+                        </div>
+                        <button onclick="actualizarPagoEvolucion()" id="btnUpdatePago" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow-sm h-[42px] mb-[1px]">
+                            Guardar Pago
+                        </button>
+                    </div>
+                    <div id="pagoSuccessMsg" class="hidden text-green-700 text-xs font-bold mt-3">¡Pago actualizado correctamente en la base de datos!</div>
+                </div>
+
                 <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
                     <h4 class="text-md font-bold text-gray-800 mb-2 flex items-center">
@@ -649,8 +672,11 @@
                 let data;
                 let isPareja = false;
                 
-                // 1. OBTENER DEMOGRÁFICOS DIRECTAMENTE DEL MAESTRO
-                let resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
+                let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                
+                if (!resDemo.ok && resDemo.status === 404) {
+                    resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
+                }
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
@@ -658,8 +684,11 @@
                         isPareja = true;
                     }
                 } else {
-                    resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
-                    if (!resDemo.ok) { throw new Error('No se encontró el paciente en el sistema.'); }
+                    resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
+                    if (!resDemo.ok) { 
+                        resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
+                    }
+                    if (!resDemo.ok) { throw new Error('No se encontró el paciente en ninguna base de datos.'); }
                     data = await resDemo.json();
                     isPareja = true;
                 }
@@ -723,9 +752,10 @@
                 const hash = btoa(rawString).substring(0, 24).toUpperCase();
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
-                // 2. OBTENER HISTORIA DIRECTO DEL MAESTRO
                 try {
-                    const resHist = await fetch(`/api/historia?id=${id}`);
+                    let resHist = await fetch(`/api/historia?id=${id}`);
+                    if (!resHist.ok) { resHist = await fetch(`/api/get-historia?id=${id}`); }
+
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
@@ -828,12 +858,18 @@
             
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/historia?action=savePerfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
+                let url = '/api/save-perfil'; 
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
                 if (response.ok) { 
                     localStorage.removeItem(draftPerfilKey); 
                     const succ = document.getElementById('perfil-success'); succ.classList.remove('hidden'); setTimeout(() => succ.classList.add('hidden'), 3000); 
                 } else throw new Error('Error al guardar el perfil');
-            } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
+            } catch (error) { 
+                try {
+                    const response = await fetch('/api/historia?action=savePerfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
+                    if (response.ok) { localStorage.removeItem(draftPerfilKey); document.getElementById('perfil-success').classList.remove('hidden'); setTimeout(() => document.getElementById('perfil-success').classList.add('hidden'), 3000); }
+                } catch(e) { alert("Error al conectar con la base de datos."); }
+            } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
         function switchTab(tabId) {
@@ -877,10 +913,16 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                let url = '/api/save-plan'; 
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
-            } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
+            } catch (error) { 
+                try {
+                    const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                    if(response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); }
+                } catch(e) { alert("Error al conectar con la base de datos."); }
+            } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
         async function saveSesionCero(id) {
@@ -900,10 +942,16 @@
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                let url = '/api/save-historia'; 
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
-            } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
+            } catch (error) { 
+                try {
+                    const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                    if(response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); }
+                } catch(e) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
+            }
         }
 
         function updateStrikeUI() {
@@ -970,13 +1018,7 @@
             if(!evo) return;
 
             document.getElementById('currentSessionIdModal').value = evoId;
-            let titleText = "Fecha: " + formatearFechaAmigable(evo.fecha);
-            
-            if (evo.valor && Number(evo.valor) > 0) {
-                titleText += ` | Valor: ${formatCurrency(evo.valor)} (${evo.pagado ? 'Pagado' : 'Pendiente'})`;
-            }
-            
-            document.getElementById('modalFecha').textContent = titleText;
+            document.getElementById('modalFecha').textContent = "Fecha: " + formatearFechaAmigable(evo.fecha);
             document.getElementById('modalNota').textContent = evo.nota;
 
             if(evo.hasPrueba && evo.pruebaResultados) { document.getElementById('modalPruebasContainer').classList.remove('hidden'); document.getElementById('modalPruebas').textContent = evo.pruebaResultados; } 
@@ -991,6 +1033,11 @@
             } else { 
                 document.getElementById('modalCierreContainer').classList.add('hidden'); 
             }
+
+            // Precargar datos financieros de la sesión
+            document.getElementById('modalEvoValor').value = evo.valor || '';
+            document.getElementById('modalEvoPagado').checked = !!evo.pagado;
+            document.getElementById('pagoSuccessMsg').classList.add('hidden');
 
             const anexosContainer = document.getElementById('modalAnexosContainer');
             anexosContainer.innerHTML = '';
@@ -1029,13 +1076,58 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                let url = '/api/save-evolucion';
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(`draft_anexo_${evoId}`);
                     renderTimeline(); openModal(evoId); 
                 } else throw new Error('Error al guardar anexo');
-            } catch (error) { evoluciones[evoIndex].anexos.pop(); alert("Error al guardar el anexo."); } finally { btn.textContent = originalText; btn.disabled = false; }
+            } catch (error) { 
+                try {
+                    const patientId = new URLSearchParams(window.location.search).get('id');
+                    const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                    if(response.ok){ localStorage.removeItem(`draft_anexo_${evoId}`); renderTimeline(); openModal(evoId); }
+                } catch(e) { evoluciones[evoIndex].anexos.pop(); alert("Error al guardar el anexo."); }
+            } finally { btn.textContent = originalText; btn.disabled = false; }
+        }
+
+        async function actualizarPagoEvolucion() {
+            const evoId = document.getElementById('currentSessionIdModal').value;
+            const evoIndex = evoluciones.findIndex(e => e.id === evoId);
+            if(evoIndex === -1) return;
+
+            const nuevoValor = document.getElementById('modalEvoValor').value || 0;
+            const nuevoPagado = document.getElementById('modalEvoPagado').checked;
+
+            evoluciones[evoIndex].valor = nuevoValor;
+            evoluciones[evoIndex].pagado = nuevoPagado;
+
+            const btn = document.getElementById('btnUpdatePago');
+            const originalText = btn.textContent; 
+            btn.disabled = true; btn.textContent = 'Guardando...';
+
+            try {
+                const patientId = new URLSearchParams(window.location.search).get('id');
+                let url = '/api/save-evolucion';
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+
+                if (response.ok) {
+                    renderTimeline(); 
+                    document.getElementById('pagoSuccessMsg').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('pagoSuccessMsg').classList.add('hidden'), 3000);
+                } else throw new Error('Error al actualizar');
+            } catch (error) { 
+                try {
+                    const patientId = new URLSearchParams(window.location.search).get('id');
+                    const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                    if(response.ok){
+                        renderTimeline(); 
+                        document.getElementById('pagoSuccessMsg').classList.remove('hidden');
+                        setTimeout(() => document.getElementById('pagoSuccessMsg').classList.add('hidden'), 3000);
+                    }
+                } catch(e) { alert("Error al actualizar el pago."); }
+            } finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
         async function addEvolucion(id) {
@@ -1061,7 +1153,8 @@
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
+                let url = '/api/save-evolucion';
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(draftEvoKey);
@@ -1073,7 +1166,21 @@
                     btn.textContent = '¡Guardada!'; setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
                     setTimeout(resizeAllTextareas, 50); 
                 } else throw new Error('Error en el servidor');
-            } catch (error) { alert("Hubo un error al guardar."); evoluciones.pop(); if (strikeAnadido) currentStrikes--; if (strikeRemovido) currentStrikes++; updateStrikeUI(); renderTimeline(); btn.textContent = originalText; btn.disabled = false; }
+            } catch (error) { 
+                try {
+                    const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
+                    if (response.ok) {
+                        localStorage.removeItem(draftEvoKey);
+                        document.getElementById('evolucionForm').reset(); 
+                        document.getElementById('evoFecha').valueAsDate = new Date(); 
+                        document.getElementById('hasPrueba').checked = false; 
+                        document.getElementById('evoPagado').checked = false;
+                        document.querySelector('input[name="strikeAction"][value="none"]').checked = true; togglePruebaBox();
+                        btn.textContent = '¡Guardada!'; setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+                        setTimeout(resizeAllTextareas, 50); 
+                    }
+                } catch(e) { alert("Hubo un error al guardar."); evoluciones.pop(); if (strikeAnadido) currentStrikes--; if (strikeRemovido) currentStrikes++; updateStrikeUI(); renderTimeline(); btn.textContent = originalText; btn.disabled = false; }
+            }
         }
     </script>
 </body>
