@@ -3,38 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda y Calendario - CInformado</title>
+    <title>Portal de Consentimientos - CInformado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Librería FullCalendar -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
-        .fc-theme-standard th { background-color: #f8fafc; padding: 10px 0; color: #003366; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
-        .fc-daygrid-day-number { color: #475569; font-weight: 500; text-decoration: none !important; padding: 4px 8px !important;}
-        .fc-event { cursor: pointer; border-radius: 6px; padding: 3px 6px; border: none; font-size: 0.8rem; font-weight: 500; transition: transform 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .fc-event:hover { transform: scale(1.02); z-index: 10; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); }
-        .fc-toolbar-title { color: #003366; font-weight: 700 !important; font-size: 1.5rem !important; text-transform: capitalize; }
-        .fc-button-primary { background-color: white !important; color: #003366 !important; border: 1px solid #cbd5e1 !important; text-transform: capitalize !important; font-weight: 600 !important; transition: all 0.2s !important; border-radius: 8px !important; margin: 0 2px !important; }
-        .fc-button-primary:hover, .fc-button-active { background-color: #f1f5f9 !important; border-color: #003366 !important; color: #003366 !important; }
-        .fc-timegrid-slot { height: 45px !important; }
-        .fc-view-harness { background-color: white; border-radius: 12px; overflow: hidden; }
-        .fc-scrollgrid { border-radius: 12px; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
-    <header class="bg-white shadow-sm sticky top-0 z-40">
+    <header class="bg-white shadow-sm">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="portal-consentimientos.html" class="flex-shrink-0">
-                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
-            </a>
+            <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
             <div class="flex items-center space-x-6">
-                <a href="portal-consentimientos.html" class="flex items-center text-sm font-bold text-[#003366] hover:underline transition-colors">
-                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    Volver al Dashboard
+                <!-- NOVO BOTÃO: Calendário (Agenda) -->
+                <a href="portal-citas.html" class="flex items-center text-indigo-700 font-bold hover:text-indigo-900 transition-colors bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm hidden md:flex">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Agenda
+                </a>
+
+                <!-- BOTÃO EXISTENTE: Conexão ao Portal de Pagamentos -->
+                <a href="portal-pagos.html" class="flex items-center text-green-700 font-bold hover:text-green-900 transition-colors bg-green-50 px-4 py-2 rounded-full border border-green-200 shadow-sm">
+                    <span class="text-xl font-bold mr-2">$</span>
+                    Control de Pagos
                 </a>
                 <span class="border-l h-6 border-gray-300"></span>
                 <button id="logoutButton" class="text-sm font-bold text-red-600 hover:text-red-800 transition-colors">Cerrar Sesión</button>
@@ -42,176 +33,122 @@
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <div class="max-w-7xl mx-auto">
-            
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-[#003366] flex items-center">
-                        <svg class="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Agenda Clínica
-                    </h1>
-                    <p class="text-sm text-gray-500 mt-1">Sincronización de próximas citas y registro histórico de sesiones.</p>
-                </div>
-                
-                <div class="flex space-x-4 bg-white p-3 rounded-xl shadow-sm border border-gray-200 text-sm font-semibold">
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-2 shadow-sm"></span> Futura</div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-2 shadow-sm"></span> Pagada</div>
-                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500 mr-2 shadow-sm"></span> Pendiente</div>
-                </div>
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-[#003366]">Centro de Gestión de Pacientes</h1>
+            <div class="relative w-64">
+                <input type="text" id="searchInput" placeholder="Buscar paciente..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
+        </div>
 
-            <!-- Loading State -->
-            <div id="loading" class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#003366] mb-4"></div>
-                <p class="text-lg text-[#003366] font-semibold">Cargando eventos del calendario...</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-bold">Paciente(s)</th>
+                            <th scope="col" class="px-6 py-4 font-bold">Contacto (Email)</th>
+                            <th scope="col" class="px-6 py-4 font-bold">Tipo</th>
+                            <th scope="col" class="px-6 py-4 font-bold">Fecha de Firma</th>
+                            <th scope="col" class="px-6 py-4 text-center font-bold">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                        <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Cargando pacientes...</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <!-- Contenedor del Calendario -->
-            <div id="calendarContainer" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-200 hidden">
-                <div id="calendar"></div>
-            </div>
-
         </div>
     </main>
 
-    <!-- Modal Detalles de Evento -->
-    <div id="eventModal" class="fixed inset-0 bg-[#003366] bg-opacity-75 hidden z-50 flex justify-center items-center px-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col relative transform transition-all scale-100">
-            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                <h2 class="text-lg font-bold text-[#003366] flex items-center" id="modalTitle">
-                    Detalle de Evento
-                </h2>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div class="px-6 py-6 space-y-4 text-sm" id="modalBody">
-                <!-- Inyectado por JS -->
-            </div>
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex space-x-3">
-                <button onclick="closeModal()" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-4 rounded-lg transition-colors">Cerrar</button>
-                <a href="#" id="modalHistoryBtn" class="flex-1 inline-flex items-center justify-center bg-[#003366] hover:bg-[#002244] text-white font-bold py-2.5 px-4 rounded-lg transition-colors shadow-md">
-                    Abrir Historia
-                </a>
-            </div>
-        </div>
-    </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        let allPatients = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação do usuário
             if (sessionStorage.getItem('consultorAuth') !== 'true') {
-                window.location.href = 'login.html'; return;
+                window.location.href = 'login.html';
+                return;
             }
+            
             document.getElementById('logoutButton').addEventListener('click', () => {
-                sessionStorage.removeItem('consultorAuth'); window.location.href = 'login.html';
+                sessionStorage.removeItem('consultorAuth');
+                window.location.href = 'login.html';
             });
 
-            await initCalendar();
+            // Lógica de busca de pacientes
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allPatients.filter(p => p.nombre.toLowerCase().includes(term) || p.email.toLowerCase().includes(term));
+                renderPatients(filtered);
+            });
+
+            fetchConsentimientos();
         });
 
-        async function initCalendar() {
+        async function fetchConsentimientos() {
             try {
-                // Aquí el calendario se conecta a tu API consolidada
-                const response = await fetch('/api/citas');
-                if (!response.ok) throw new Error('Falló la carga de citas.');
-                const eventos = await response.json();
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('calendarContainer').classList.remove('hidden');
-
-                const calendarEl = document.getElementById('calendar');
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek', // Vistas adaptativas
-                    locale: 'es',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' // Mes, Semana, Día, Agenda
-                    },
-                    buttonText: {
-                        today: 'Hoy',
-                        month: 'Mes',
-                        week: 'Semana',
-                        day: 'Día',
-                        list: 'Agenda'
-                    },
-                    events: eventos,
-                    slotMinTime: '06:00:00',
-                    slotMaxTime: '22:00:00',
-                    allDayText: 'Histórico',
-                    nowIndicator: true,
-                    eventClick: function(info) {
-                        openEventModal(info.event);
-                    }
-                });
-
-                calendar.render();
+                // Obter dados da API centralizada
+                const response = await fetch('/api/consentimientos?action=getAll');
+                allPatients = await response.json();
+                
+                // ORDENAR ALFABÉTICAMENTE DE LA A a la Z
+                allPatients.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                renderPatients(allPatients);
             } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerHTML = '<span class="text-red-500 font-bold">Error de conexión al cargar la agenda.</span>';
+                console.error('Error:', error);
+                document.getElementById('patientsTableBody').innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error al cargar los datos.</td></tr>';
             }
         }
 
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-        }
+        function renderPatients(patients) {
+            const tbody = document.getElementById('patientsTableBody');
+            tbody.innerHTML = '';
 
-        function openEventModal(event) {
-            const props = event.extendedProps;
-            const title = event.title.replace('🗓️ ', '').replace('✅ ', '');
-            
-            document.getElementById('modalTitle').textContent = props.tipo === 'Futura' ? 'Cita Programada' : 'Sesión Histórica';
-            document.getElementById('modalHistoryBtn').href = `historia-clinica.html?id=${props.pacienteId}`;
+            if (patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500 font-medium">No se encontraron pacientes registrados.</td></tr>';
+                return;
+            }
 
-            let bodyHtml = `<div class="mb-3"><span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Paciente</span><span class="text-lg font-bold text-[#003366]">${title}</span></div>`;
-
-            if (props.tipo === 'Futura') {
-                const fecha = event.start.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                const hora = event.start.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            patients.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'bg-white border-b hover:bg-blue-50 transition-colors';
                 
-                bodyHtml += `
-                    <div class="mb-3"><span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fecha y Hora</span><span class="text-gray-800 capitalize font-medium">${fecha} a las ${hora}</span></div>
-                    <div class="mb-3"><span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Duración Reservada</span><span class="text-gray-800 font-medium">1 hora y 30 minutos</span></div>
-                `;
+                const dateObj = new Date(p.fecha);
+                const isPareja = p.tipo === 'pareja';
+                const badgeClass = isPareja ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
                 
-                if (props.meet) {
-                    bodyHtml += `
-                    <div class="mt-5 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                        <span class="block text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2">Sala de Videollamada</span>
-                        <a href="${props.meet}" target="_blank" class="inline-flex items-center text-indigo-700 hover:text-indigo-900 hover:underline break-all font-semibold">
-                            <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            ${props.meet}
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-gray-900">${p.nombre}</td>
+                    <td class="px-6 py-4">${p.email}</td>
+                    <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${badgeClass}">${isPareja ? 'Pareja' : 'Individual'}</span></td>
+                    <td class="px-6 py-4">${dateObj.toLocaleDateString('es-CO')}</td>
+                    <td class="px-6 py-4 text-center space-x-3">
+                        <a href="historia-clinica.html?id=${p.id}" class="inline-flex items-center font-bold text-[#003366] hover:underline" title="Abrir Historia Clínica">
+                            📖 Historia
                         </a>
-                    </div>`;
-                }
-            } else {
-                const fecha = event.start.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                const estadoPago = props.pagado 
-                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">✓ Pagado</span>' 
-                    : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">⏳ Pendiente</span>';
-                
-                bodyHtml += `
-                    <div class="mb-3"><span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fecha de Sesión</span><span class="text-gray-800 capitalize font-medium">${fecha}</span></div>
-                    <div class="flex justify-between items-center mt-5 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                        <div>
-                            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Valor de la Sesión</span>
-                            <span class="text-gray-900 font-bold text-lg">${formatCurrency(props.valor)}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estado Financiero</span>
-                            ${estadoPago}
-                        </div>
-                    </div>
+                        <span class="text-gray-300">|</span>
+                        <a href="detalle-consentimiento.html?id=${p.id}" class="inline-flex items-center font-medium text-blue-600 hover:underline" title="Ver Consentimiento Legal">
+                            Consentimiento
+                        </a>
+                        <span class="text-gray-300">|</span>
+                        <button onclick="deleteConsent('${p.id}')" class="font-medium text-red-600 hover:text-red-800" title="Eliminar definitivamente">
+                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
                 `;
-            }
-
-            document.getElementById('modalBody').innerHTML = bodyHtml;
-            document.getElementById('eventModal').classList.remove('hidden');
+                tbody.appendChild(tr);
+            });
         }
 
-        function closeModal() {
-            document.getElementById('eventModal').classList.add('hidden');
+        async function deleteConsent(id) {
+            if (!confirm('¿Seguro que deseas eliminar este registro? Se perderán el consentimiento y la historia asociada.')) return;
+            try {
+                const response = await fetch(`/api/consentimientos?action=delete&id=${id}`, { method: 'DELETE' });
+                if (response.ok) fetchConsentimientos();
+            } catch (error) { alert('Error al eliminar'); }
         }
     </script>
 </body>
