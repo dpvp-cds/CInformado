@@ -174,10 +174,16 @@
                             <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-2 mb-4 gap-4">
                                 <h4 class="text-lg font-bold text-[#003366]">Diagnóstico Existencial (Método HALCÓN)</h4>
                                 <div class="mt-2 md:mt-0 flex flex-wrap gap-4 items-center">
-                                    <!-- AÑADIDO: EL VALOR DE LA SESIÓN CERO ESTÁ OCULTO EN IMPRESIÓN (print:hidden) -->
-                                    <div class="flex items-center print:hidden">
-                                        <label class="text-sm font-semibold text-gray-600 mr-2" title="Valor pagado en esta sesión">Valor ($):</label>
-                                        <input type="number" id="valorSesionCero" class="input-styled text-sm py-1 px-2 w-28 bg-white" placeholder="Ej. 180000" min="0">
+                                    <!-- AÑADIDO: Valor y Checkbox (Ocultos en impresión) -->
+                                    <div class="flex items-center space-x-3 print:hidden">
+                                        <div class="flex items-center">
+                                            <label class="text-sm font-semibold text-gray-600 mr-2" title="Valor pagado en esta sesión">Valor ($):</label>
+                                            <input type="number" id="valorSesionCero" class="input-styled text-sm py-1 px-2 w-28 bg-white" placeholder="Ej. 180000" min="0">
+                                        </div>
+                                        <div class="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-1">
+                                            <input type="checkbox" id="pagadoSesionCero" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer">
+                                            <label for="pagadoSesionCero" class="ml-2 text-sm font-bold text-gray-700 cursor-pointer">Pagado</label>
+                                        </div>
                                     </div>
                                     <div class="flex items-center">
                                         <label class="text-sm font-semibold text-gray-600 mr-2">Fecha:</label>
@@ -249,10 +255,19 @@
                             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-[#003366] mb-4 border-b pb-2">Registrar Nueva Sesión</h3>
                                 <form id="evolucionForm" class="space-y-5">
-                                    <!-- AÑADIDO: Valor de la Sesión en Bitácora (El contenedor de evolución NO se imprime, así que no se verá) -->
+                                    <!-- AÑADIDO: Valor y Checkbox en Bitácora -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div><label class="block text-sm font-semibold mb-1">Fecha</label><input type="date" id="evoFecha" class="input-styled text-sm" required></div>
-                                        <div><label class="block text-sm font-semibold mb-1" title="Valor pagado en esta sesión">Valor ($)</label><input type="number" id="evoValor" class="input-styled text-sm bg-white" placeholder="Ej. 180000" min="0"></div>
+                                        <div>
+                                            <label class="block text-sm font-semibold mb-1" title="Valor pagado en esta sesión">Valor ($)</label>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="number" id="evoValor" class="input-styled text-sm bg-white w-full" placeholder="Ej. 180000" min="0">
+                                                <div class="flex items-center bg-white border border-gray-300 rounded-lg px-2 py-1 h-[46px]">
+                                                    <input type="checkbox" id="evoPagado" class="w-4 h-4 text-green-600 border-gray-300 rounded cursor-pointer">
+                                                    <label for="evoPagado" class="ml-1 text-xs font-bold text-gray-700 cursor-pointer">Pagado</label>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div><label class="block text-sm font-semibold mb-1">Tarea Asignada</label><textarea id="evoTarea" rows="1" class="textarea-styled min-h-input text-sm bg-white" placeholder="Ej. Lectura..."></textarea></div>
                                     </div>
                                     
@@ -424,7 +439,6 @@
             return fechaStr;
         }
 
-        // Utilidad para mostrar la plata bonita (Ej: $ 180.000)
         function formatCurrency(value) {
             if (!value || isNaN(value)) return '';
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
@@ -501,6 +515,7 @@
                 const data = {
                     fechaSesionCero: document.getElementById('fechaSesionCero').value,
                     valorSesionCero: document.getElementById('valorSesionCero').value,
+                    pagadoSesionCero: document.getElementById('pagadoSesionCero').checked,
                     ocupacion: document.getElementById('ocupacion').value,
                     convivencia: document.getElementById('convivencia').value,
                     hobbies: document.getElementById('hobbies').value,
@@ -526,6 +541,7 @@
                 const data = {
                     fecha: document.getElementById('evoFecha').value,
                     valor: document.getElementById('evoValor').value,
+                    pagado: document.getElementById('evoPagado').checked,
                     tarea: document.getElementById('evoTarea').value,
                     nota: document.getElementById('evoNota').value,
                     hasPrueba: document.getElementById('hasPrueba').checked,
@@ -565,6 +581,7 @@
                     const data = JSON.parse(draftCero);
                     if(data.fechaSesionCero) document.getElementById('fechaSesionCero').value = data.fechaSesionCero;
                     if(data.valorSesionCero) document.getElementById('valorSesionCero').value = data.valorSesionCero;
+                    if(data.pagadoSesionCero !== undefined) document.getElementById('pagadoSesionCero').checked = data.pagadoSesionCero;
                     document.getElementById('ocupacion').value = data.ocupacion || '';
                     document.getElementById('convivencia').value = data.convivencia || '';
                     document.getElementById('hobbies').value = data.hobbies || '';
@@ -594,6 +611,7 @@
                     const data = JSON.parse(draftEvo);
                     if(data.fecha) document.getElementById('evoFecha').value = data.fecha;
                     if(data.valor) document.getElementById('evoValor').value = data.valor;
+                    if(data.pagado !== undefined) document.getElementById('evoPagado').checked = data.pagado;
                     if(data.tarea) document.getElementById('evoTarea').value = data.tarea;
                     if(data.nota) document.getElementById('evoNota').value = data.nota;
                     if(data.hasPrueba !== undefined) { document.getElementById('hasPrueba').checked = data.hasPrueba; togglePruebaBox(); }
@@ -633,7 +651,7 @@
                 let data;
                 let isPareja = false;
                 
-                let resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
+                let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
@@ -641,7 +659,7 @@
                         isPareja = true;
                     }
                 } else {
-                    resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
+                    resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
                     if (!resDemo.ok) { throw new Error('No se encontró el paciente en ninguna base de datos.'); }
                     data = await resDemo.json();
                     isPareja = true;
@@ -707,12 +725,13 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    const resHist = await fetch(`/api/historia?id=${id}`);
+                    const resHist = await fetch(`/api/get-historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
                             if (histData.fechaSesionCero) document.getElementById('fechaSesionCero').value = histData.fechaSesionCero;
                             if (histData.valorSesionCero) document.getElementById('valorSesionCero').value = histData.valorSesionCero;
+                            if (histData.pagadoSesionCero !== undefined) document.getElementById('pagadoSesionCero').checked = histData.pagadoSesionCero;
                             
                             document.getElementById('ocupacion').value = histData.contextoVital?.ocupacion || '';
                             document.getElementById('convivencia').value = histData.contextoVital?.convivencia || '';
@@ -809,7 +828,7 @@
             
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/historia?action=savePerfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
+                const response = await fetch('/api/save-perfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
                 if (response.ok) { 
                     localStorage.removeItem(draftPerfilKey); 
                     const succ = document.getElementById('perfil-success'); succ.classList.remove('hidden'); setTimeout(() => succ.classList.add('hidden'), 3000); 
@@ -858,7 +877,7 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                const response = await fetch('/api/save-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
@@ -875,12 +894,13 @@
                 pacienteId: id,
                 fechaSesionCero: fechaSC,
                 valorSesionCero: document.getElementById('valorSesionCero').value || 0,
+                pagadoSesionCero: document.getElementById('pagadoSesionCero').checked,
                 ocupacion: document.getElementById('ocupacion').value, convivencia: document.getElementById('convivencia').value, hobbies: document.getElementById('hobbies').value, noHobbies: document.getElementById('noHobbies').value, antecedentesMedicos: document.getElementById('antecedentesMedicos').value, motivoConsulta: motivo, habilidades: document.getElementById('habilidades').value, aspiracion: document.getElementById('aspiracion').value, creencias: document.getElementById('creencias').value, construccion: document.getElementById('construccion').value, orientacion: document.getElementById('orientacion').value, nutricion: document.getElementById('nutricion').value, 
                 cierreSesionCero: document.getElementById('cierreSesionCero').value,
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
@@ -913,9 +933,11 @@
                 if (evo.strikeAnadido) { iconBgClass = 'bg-red-500'; iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'; badgeHTML += '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded ml-2">Strike Aplicado</span>'; } 
                 else if (evo.strikeRemovido) { iconBgClass = 'bg-green-500'; iconPath = 'M5 13l4 4L19 7'; badgeHTML += '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">Strike Removido</span>'; }
                 
-                // Mostrar el valor en el badge superior si existe, con CLASE DE IMPRESIÓN OCULTA (print:hidden)
+                // Mostrar el valor y si fue pagado o pendiente (Oculto al imprimir)
                 if (evo.valor && Number(evo.valor) > 0) {
-                    badgeHTML += `<span class="print:hidden text-xs font-bold bg-blue-100 text-[#003366] px-2 py-0.5 rounded ml-2 border border-blue-200 shadow-sm">${formatCurrency(evo.valor)}</span>`;
+                    const pagoColor = evo.pagado ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200';
+                    const pagoIcon = evo.pagado ? '✓ Pagado' : '⏳ Pendiente';
+                    badgeHTML += `<span class="print:hidden text-xs font-bold ${pagoColor} px-2 py-0.5 rounded ml-2 border shadow-sm">${formatCurrency(evo.valor)} - ${pagoIcon}</span>`;
                 }
 
                 let anexosPrintHTML = '';
@@ -950,7 +972,12 @@
 
             document.getElementById('currentSessionIdModal').value = evoId;
             let titleText = "Fecha: " + formatearFechaAmigable(evo.fecha);
-            if (evo.valor && Number(evo.valor) > 0) titleText += ` | Valor pagado: ${formatCurrency(evo.valor)}`;
+            
+            // Mostrar en el Modal si fue pagado o no (Oculto al imprimir no aplica al modal que es dinámico)
+            if (evo.valor && Number(evo.valor) > 0) {
+                titleText += ` | Valor: ${formatCurrency(evo.valor)} (${evo.pagado ? 'Pagado' : 'Pendiente'})`;
+            }
+            
             document.getElementById('modalFecha').textContent = titleText;
             document.getElementById('modalNota').textContent = evo.nota;
 
@@ -1004,7 +1031,7 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(`draft_anexo_${evoId}`);
@@ -1016,6 +1043,7 @@
         async function addEvolucion(id) {
             const fecha = document.getElementById('evoFecha').value;
             const valor = document.getElementById('evoValor').value || 0;
+            const pagado = document.getElementById('evoPagado').checked;
             const nota = document.getElementById('evoNota').value;
             const tarea = document.getElementById('evoTarea').value;
             const hasPrueba = document.getElementById('hasPrueba').checked;
@@ -1028,18 +1056,22 @@
             else if (strikeAction === 'remove') { if (currentStrikes > 0) { currentStrikes--; strikeRemovido = true; } else { alert("No hay Strikes para remover."); return; } }
             updateStrikeUI();
 
-            const nuevaEvo = { id: Date.now().toString(), fecha, valor, nota, tarea, cierre, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
+            const nuevaEvo = { id: Date.now().toString(), fecha, valor, pagado, nota, tarea, cierre, strikeAnadido, strikeRemovido, hasPrueba, pruebaResultados, anexos: [] };
             evoluciones.push(nuevaEvo); renderTimeline();
 
             const btn = document.getElementById('btnSaveEvo');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
+                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(draftEvoKey);
-                    document.getElementById('evolucionForm').reset(); document.getElementById('evoFecha').valueAsDate = new Date(); document.getElementById('hasPrueba').checked = false; document.querySelector('input[name="strikeAction"][value="none"]').checked = true; togglePruebaBox();
+                    document.getElementById('evolucionForm').reset(); 
+                    document.getElementById('evoFecha').valueAsDate = new Date(); 
+                    document.getElementById('hasPrueba').checked = false; 
+                    document.getElementById('evoPagado').checked = false;
+                    document.querySelector('input[name="strikeAction"][value="none"]').checked = true; togglePruebaBox();
                     btn.textContent = '¡Guardada!'; setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
                     setTimeout(resizeAllTextareas, 50); 
                 } else throw new Error('Error en el servidor');
