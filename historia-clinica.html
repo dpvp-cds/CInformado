@@ -96,6 +96,12 @@
                             <span id="pacienteEdad">Edad: ---</span> | 
                             <span id="pacienteContacto">Tel: ---</span>
                         </p>
+                        <!-- Etiqueta de próxima cita -->
+                        <div class="mt-2 text-xs text-white">
+                            <span class="bg-blue-800/80 border border-blue-400/30 px-3 py-1.5 rounded-full inline-flex items-center">
+                                🗓️ Próxima Cita: <strong class="ml-1" id="bannerProximaCita">No agendada</strong>
+                            </span>
+                        </div>
                     </div>
                     <div class="text-right flex flex-col items-end">
                         <span class="px-3 py-1 text-xs font-bold bg-green-500 text-white rounded-full mb-2">Consentimiento Verificado</span>
@@ -305,6 +311,30 @@
                         </div>
 
                         <div class="lg:col-span-1 border-l pl-0 lg:pl-8 border-gray-200 print:border-none print:pl-0">
+                            
+                            <!-- MÓDULO DE AGENDAMIENTO -->
+                            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-8 print:hidden">
+                                <h3 class="text-lg font-bold text-indigo-800 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Agendar Próxima Cita
+                                </h3>
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-xs font-semibold text-indigo-700 mb-1">Fecha</label><input type="date" id="citaFecha" class="input-styled text-sm bg-white border-indigo-200 focus:border-indigo-500"></div>
+                                        <div><label class="block text-xs font-semibold text-indigo-700 mb-1">Hora</label><input type="time" id="citaHora" class="input-styled text-sm bg-white border-indigo-200 focus:border-indigo-500"></div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-indigo-700 mb-1" title="El sistema recordará este enlace para este paciente.">Enlace Google Meet</label>
+                                        <input type="url" id="citaMeet" class="input-styled text-sm bg-white border-indigo-200 focus:border-indigo-500" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+                                    </div>
+                                    <button onclick="agendarCita()" id="btnAgendar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                        Agendar y Enviar Correos
+                                    </button>
+                                    <div id="agendarSuccess" class="hidden text-center text-xs font-bold text-indigo-700 mt-2">¡Cita agendada y correos enviados!</div>
+                                </div>
+                            </div>
+
                             <h3 class="text-xl font-bold text-gray-800 mb-6 border-b pb-2">Historial de Sesiones</h3>
                             <p class="text-xs text-gray-500 mb-4 no-print flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg> Clic en una sesión para leer detalles o añadir anexos.</p>
                             
@@ -384,7 +414,7 @@
                 <div id="modalAnexosContainer" class="space-y-4"></div>
                 <hr class="border-gray-200">
                 
-                <!-- NUEVO: SECCIÓN PARA ACTUALIZAR PAGO DESDE LA BITÁCORA DE SESIONES PASADAS -->
+                <!-- SECCIÓN PARA ACTUALIZAR PAGO DESDE LA BITÁCORA DE SESIONES PASADAS -->
                 <div class="bg-green-50 border border-green-200 rounded-xl p-5 relative overflow-hidden print:hidden">
                     <h4 class="text-md font-bold text-green-800 mb-3 flex items-center">
                         <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -406,7 +436,7 @@
                     <div id="pagoSuccessMsg" class="hidden text-green-700 text-xs font-bold mt-3">¡Pago actualizado correctamente en la base de datos!</div>
                 </div>
 
-                <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden">
+                <div class="bg-[#f8f9fa] border border-[#d1d5db] rounded-xl p-5 relative overflow-hidden mt-6">
                     <div class="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
                     <h4 class="text-md font-bold text-gray-800 mb-2 flex items-center">
                         <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -429,6 +459,7 @@
         let currentStrikes = 0;
         let evoluciones = [];
         let planTrabajo = [];
+        let globalEmailPaciente = '';
         
         let draftCeroKey = '';
         let draftPlanKey = '';
@@ -672,6 +703,7 @@
                 let data;
                 let isPareja = false;
                 
+                // Mantenemos la lógica separada usando los endpoints que subiste
                 let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
                 
                 if (!resDemo.ok && resDemo.status === 404) {
@@ -706,6 +738,7 @@
                     let n1 = p1.nombre || "Paciente 1"; let n2 = p2.nombre || "Paciente 2";
                     nombre = "Pareja: " + n1.split(' ')[0] + " y " + n2.split(' ')[0];
                     documento = "Múltiple"; edad = "N/A"; telefono = p1.telefonoContacto || "N/A";
+                    globalEmailPaciente = p1.email; 
                     
                     document.getElementById('fichaData').innerHTML = `
                         <div class="col-span-1 md:col-span-2 lg:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100 print:bg-white print:border-none print:p-0">
@@ -725,6 +758,7 @@
                     const demo = data.demograficos || {};
                     nombre = demo.nombre || demo.nombreCompleto || "Paciente Sin Nombre"; 
                     documento = demo.documentoIdentidad || "N/A"; edad = demo.edad || "N/A"; telefono = demo.telefonoContacto || "N/A";
+                    globalEmailPaciente = demo.email; 
                     let ubicacion = `${demo.ciudad || demo.municipio || ''}, ${demo.departamento || ''}, ${demo.pais || ''}`.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,\s*,/g, ', ');
                     
                     let fichaHTML = `
@@ -753,8 +787,8 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    let resHist = await fetch(`/api/historia?id=${id}`);
-                    if (!resHist.ok) { resHist = await fetch(`/api/get-historia?id=${id}`); }
+                    let resHist = await fetch(`/api/get-historia?id=${id}`);
+                    if (!resHist.ok) { resHist = await fetch(`/api/historia?id=${id}`); }
 
                     if (resHist.ok) {
                         const histData = await resHist.json();
@@ -784,6 +818,14 @@
                             document.getElementById('compromisoStrikes').checked = histData.acuerdoStrikes || false;
                             document.getElementById('btnSave').textContent = 'Actualizar Sesión Cero';
 
+                            // Lógica de agendamiento previo (Memoria)
+                            if (histData.enlaceMeet) {
+                                document.getElementById('citaMeet').value = histData.enlaceMeet;
+                            }
+                            if (histData.proximaCita && histData.proximaCita.fecha) {
+                                document.getElementById('bannerProximaCita').textContent = `${formatearFechaAmigable(histData.proximaCita.fecha)} a las ${histData.proximaCita.hora}`;
+                            }
+
                             if (histData.planTrabajo && histData.planTrabajo.length > 0) planTrabajo = histData.planTrabajo;
                             if(histData.evoluciones && histData.evoluciones.length > 0) { evoluciones = histData.evoluciones; renderTimeline(); }
                             if(histData.strikes !== undefined) { currentStrikes = histData.strikes; updateStrikeUI(); }
@@ -802,6 +844,53 @@
                 setTimeout(resizeAllTextareas, 200);
             } catch (error) { 
                 document.getElementById('loading').innerHTML = `<span class="text-red-600">Error de seguridad: No se pudo verificar el expediente. <br><br><span class="text-sm text-gray-500">Detalle: ${error.message}</span></span>`; 
+            }
+        }
+
+        async function agendarCita() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const fecha = document.getElementById('citaFecha').value;
+            const hora = document.getElementById('citaHora').value;
+            const enlaceMeet = document.getElementById('citaMeet').value;
+            const nombrePaciente = document.getElementById('pacienteNombre').textContent;
+
+            if (!fecha || !hora) {
+                alert("Por favor, selecciona una fecha y una hora para la cita.");
+                return;
+            }
+
+            const btn = document.getElementById('btnAgendar');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; 
+            btn.textContent = 'Generando enlace y correos...';
+
+            try {
+                const response = await fetch('/api/agendar', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        pacienteId: id, 
+                        emailPaciente: globalEmailPaciente,
+                        nombrePaciente: nombrePaciente,
+                        fecha: fecha,
+                        hora: hora,
+                        enlaceMeet: enlaceMeet
+                    }) 
+                });
+
+                if (response.ok) { 
+                    document.getElementById('bannerProximaCita').textContent = `${formatearFechaAmigable(fecha)} a las ${hora}`;
+                    const successDiv = document.getElementById('agendarSuccess');
+                    successDiv.classList.remove('hidden');
+                    setTimeout(() => successDiv.classList.add('hidden'), 4000);
+                } else {
+                    throw new Error('Error al agendar la cita');
+                }
+            } catch (error) { 
+                alert("Error de conexión al intentar agendar la cita.");
+            } finally { 
+                btn.innerHTML = originalText; 
+                btn.disabled = false; 
             }
         }
 
@@ -1018,7 +1107,13 @@
             if(!evo) return;
 
             document.getElementById('currentSessionIdModal').value = evoId;
-            document.getElementById('modalFecha').textContent = "Fecha: " + formatearFechaAmigable(evo.fecha);
+            let titleText = "Fecha: " + formatearFechaAmigable(evo.fecha);
+            
+            if (evo.valor && Number(evo.valor) > 0) {
+                titleText += ` | Valor: ${formatCurrency(evo.valor)} (${evo.pagado ? 'Pagado' : 'Pendiente'})`;
+            }
+            
+            document.getElementById('modalFecha').textContent = titleText;
             document.getElementById('modalNota').textContent = evo.nota;
 
             if(evo.hasPrueba && evo.pruebaResultados) { document.getElementById('modalPruebasContainer').classList.remove('hidden'); document.getElementById('modalPruebas').textContent = evo.pruebaResultados; } 
@@ -1034,7 +1129,6 @@
                 document.getElementById('modalCierreContainer').classList.add('hidden'); 
             }
 
-            // Precargar datos financieros de la sesión
             document.getElementById('modalEvoValor').value = evo.valor || '';
             document.getElementById('modalEvoPagado').checked = !!evo.pagado;
             document.getElementById('pagoSuccessMsg').classList.add('hidden');
