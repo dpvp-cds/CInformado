@@ -1,86 +1,77 @@
 import { db } from '../lib/firebaseAdmin.js';
 
 export default async function handler(request, response) {
-    const { action, id } = request.query;
+    // Solo permitimos peticiones de lectura (GET)
+    if (request.method !== 'GET') {
+        return response.status(405).json({ message: 'Método no permitido. Solo GET.' });
+    }
 
     try {
-        if (request.method === 'GET') {
-            if (!id) return response.status(400).json({ message: 'Falta el ID del paciente.' });
-            
-            const doc = await db.collection('historias_clinicas').doc(id).get();
-            if (!doc.exists) {
-                return response.status(200).json({ isNew: true });
+        const patientsMap = {};
+        
+        // Ejecutamos las 3 lecturas a la base de datos al mismo tiempo para mayor velocidad
+        const [indivSnap, parejaSnap, histSnap] = await Promise.all([
+            db.collection('consents').get(),
+            db.collection('consents_parejas').get(),
+            db.collection('historias_clinicas').get()
+        ]);
+
+        // 1. Mapear nombres de pacientes individuales
+        indivSnap.forEach(doc => {
+            const data = doc.data();
+            patientsMap[doc.id] = data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Paciente Sin Nombre';
+        });
+
+        // 2. Mapear nombres de pacientes de pareja
+        parejaSnap.forEach(doc => {
+            const data = doc.data();
+            const n1 = data.paciente1?.nombreCompleto1 || data.paciente1?.nombre || 'Paciente 1';
+            const n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'Paciente 2';
+            patientsMap[doc.id] = `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`; // Usamos solo el primer nombre para que no quede tan largo
+        });
+
+        const pagosTotales = [];
+
+        // 3. Extraer los pagos de las Historias Clínicas
+        histSnap.forEach(doc => {
+            const data = doc.data();
+            const pacienteId = doc.id;
+            const nombre = patientsMap[pacienteId] || 'Paciente sin registro demográfico';
+            const pagosPaciente = [];
+
+            // A. Revisar pago de la Sesión Cero (SOLO SI ESTÁ PAGADO)
+            if (data.fechaSesionCero && data.valorSesionCero && Number(data.valorSesionCero) > 0 && data.pagadoSesionCero === true) {
+                pagosPaciente.push({
+                    fecha: data.fechaSesionCero,
+                    valor: Number(data.valorSesionCero),
+                    tipo: 'Sesión Cero'
+                });
             }
-            return response.status(200).json(doc.data());
-        }
 
-        if (request.method === 'POST') {
-            const data = request.body;
-
-            switch (action) {
-                case 'saveHistoria':
-                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
-                    const historiaData = {
-                        fechaSesionCero: data.fechaSesionCero,
-                        valorSesionCero: data.valorSesionCero || 0, // NUEVO: Guardado del valor de la Sesión Cero
-                        contextoVital: {
-                            ocupacion: data.ocupacion,
-                            convivencia: data.convivencia,
-                            hobbies: data.hobbies,
-                            noHobbies: data.noHobbies,
-                            antecedentesMedicos: data.antecedentesMedicos
-                        },
-                        halcon: {
-                            motivoConsulta: data.motivoConsulta,
-                            habilidades: data.habilidades,
-                            aspiracion: data.aspiracion,
-                            creencias: data.creencias,
-                            construccion: data.construccion,
-                            orientacion: data.orientacion,
-                            nutricion: data.nutricion
-                        },
-                        cierreSesionCero: data.cierreSesionCero,
-                        acuerdoStrikes: data.acuerdoStrikes,
-                        ultimaActualizacion: new Date().toISOString()
-                    };
-                    await db.collection('historias_clinicas').doc(data.pacienteId).set(historiaData, { merge: true });
-                    return response.status(200).json({ message: 'Sesión Cero guardada.' });
-
-                case 'savePlan':
-                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
-                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
-                        planTrabajo: data.planTrabajo,
-                        ultimaActualizacionPlan: new Date().toISOString()
-                    }, { merge: true });
-                    return response.status(200).json({ message: 'Plan de trabajo guardado.' });
-
-                case 'saveEvolucion':
-                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
-                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
-                        evoluciones: data.evoluciones, // El valor individual de cada sesión ya va incrustado aquí automáticamente
-                        strikes: data.strikes,
-                        ultimaActualizacionEvo: new Date().toISOString()
-                    }, { merge: true });
-                    return response.status(200).json({ message: 'Bitácora guardada.' });
-
-                case 'savePerfil':
-                    if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
-                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
-                        perfilEjecutivo: data.perfilEjecutivo || '',
-                        propositoVida: data.propositoVida || '',
-                        ultimaActualizacionPerfil: new Date().toISOString()
-                    }, { merge: true });
-                    return response.status(200).json({ message: 'Perfil y propósito guardados.' });
-
-                default:
-                    return response.status(400).json({ message: 'Acción POST no reconocida.' });
+            // B. Revisar pagos de la Bitácora de Evolución (SOLO SI ESTÁ PAGADO)
+            if (data.evoluciones && Array.isArray(data.evoluciones)) {
+                data.evoluciones.forEach(evo => {
+                    if (evo.fecha && evo.valor && Number(evo.valor) > 0 && evo.pagado === true) {
+                        pagosPaciente.push({
+                            fecha: evo.fecha,
+                            valor: Number(evo.valor),
+                            tipo: 'Evolución'
+                        });
+                    }
+                });
             }
-        }
 
-        return response.status(405).json({ message: 'Método no soportado.' });
+            // Si este paciente tiene al menos 1 pago registrado, lo agregamos a la lista maestra
+            if (pagosPaciente.length > 0) {
+                pagosTotales.push({ pacienteId, nombre, pagos: pagosPaciente });
+            }
+        });
+
+        // Enviar la lista maestra al Dashboard (portal-pagos.html)
+        return response.status(200).json(pagosTotales);
 
     } catch (error) {
-        console.error("Error en controlador de historia:", error);
+        console.error("Error en el controlador de pagos:", error);
         return response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
