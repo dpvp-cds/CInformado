@@ -6,7 +6,8 @@ import { Buffer } from 'buffer';
 function formatICSDate(dateStr, timeStr) {
     // Asumimos zona horaria de Colombia (UTC-5)
     const localDate = new Date(`${dateStr}T${timeStr}:00-05:00`);
-    const endLocalDate = new Date(localDate.getTime() + 60 * 60 * 1000); // Duración: 1 hora
+    // CAMBIO: Duración ajustada a 1 hora y 30 minutos (90 minutos)
+    const endLocalDate = new Date(localDate.getTime() + 90 * 60 * 1000); 
 
     const toUTC = (d) => {
         return d.getUTCFullYear() +
@@ -59,7 +60,7 @@ UID:cita-${Date.now()}@caminosdelser.co
 DTSTAMP:${icsDates.stamp}
 DTSTART:${icsDates.start}
 DTEND:${icsDates.end}
-SUMMARY:Sesión de Psicología - Jorge Arango
+SUMMARY:Sesión de Psicología - ${nombrePaciente}
 DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.
 LOCATION:${safeMeet}
 STATUS:CONFIRMED
