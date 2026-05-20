@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 function formatICSDate(dateStr, timeStr) {
     // Asumimos zona horaria de Colombia (UTC-5)
     const localDate = new Date(`${dateStr}T${timeStr}:00-05:00`);
-    // CAMBIO: Duración ajustada a 1 hora y 30 minutos (90 minutos)
+    // Duración ajustada a 1 hora y 30 minutos (90 minutos)
     const endLocalDate = new Date(localDate.getTime() + 90 * 60 * 1000); 
 
     const toUTC = (d) => {
@@ -46,10 +46,14 @@ export default async function handler(request, response) {
 
             // Generar fechas en formato ICS
             const icsDates = formatICSDate(fecha, hora);
-            const safeMeet = enlaceMeet ? enlaceMeet : 'Enlace pendiente';
+            
+            // Separar ubicación física de enlaces virtuales
+            const safeMeet = enlaceMeet ? enlaceMeet : '';
             const meetDescription = enlaceMeet ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${safeMeet}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
+            const locationStr = enlaceMeet ? 'Videollamada (Google Meet)' : 'Consultorio Caminos del Ser';
+            const extraUrlStr = enlaceMeet ? `\nURL:${safeMeet}\nX-GOOGLE-CONFERENCE:${safeMeet}` : '';
 
-            // Construir el archivo iCalendar nativo (.ics)
+            // Construir el archivo iCalendar nativo (.ics) CON INVITADOS Y ORGANIZADOR
             const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//CInformado//Citas//ES
@@ -60,12 +64,14 @@ UID:cita-${Date.now()}@caminosdelser.co
 DTSTAMP:${icsDates.stamp}
 DTSTART:${icsDates.start}
 DTEND:${icsDates.end}
+ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
 SUMMARY:Sesión de Psicología - ${nombrePaciente}
 DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.
-LOCATION:${safeMeet}
+LOCATION:${locationStr}${extraUrlStr}
 STATUS:CONFIRMED
 SEQUENCE:0
-ACTION:DISPLAY
 END:VEVENT
 END:VCALENDAR`;
 
@@ -100,7 +106,7 @@ END:VCALENDAR`;
                             <p>Tu próxima sesión de acompañamiento psicológico con <strong>Jorge Arango Castaño</strong> ha sido agendada exitosamente.</p>
                             <div style="background-color: #f4f6f8; border-left: 4px solid #003366; padding: 15px; margin: 20px 0;">
                                 <p style="margin: 0 0 10px 0;"><strong>🗓️ Fecha y Hora:</strong><br>${fechaBonita}</p>
-                                <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${safeMeet}" target="_blank" style="color: #003366; text-decoration: underline;">${safeMeet}</a></p>
+                                <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${safeMeet || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${safeMeet || 'Presencial'}</a></p>
                             </div>
                             <p style="font-size: 13px; color: #666;"><i>💡 Sugerencia: En la parte superior de este correo o en los archivos adjuntos, encontrarás la opción para <strong>"Añadir a tu Calendario"</strong> (Google Calendar, Outlook, Apple). Haz clic allí para que te recordemos automáticamente.</i></p>
                         </div>
@@ -121,9 +127,9 @@ END:VCALENDAR`;
                         <ul>
                             <li><strong>Paciente:</strong> ${nombrePaciente}</li>
                             <li><strong>Fecha:</strong> ${fechaBonita}</li>
-                            <li><strong>Meet:</strong> <a href="${safeMeet}">${safeMeet}</a></li>
+                            <li><strong>Meet:</strong> <a href="${safeMeet || '#'}">${safeMeet || 'Presencial'}</a></li>
                         </ul>
-                        <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal.</p>
+                        <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                     </div>
                 `,
                 attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
