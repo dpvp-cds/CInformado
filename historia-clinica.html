@@ -174,7 +174,6 @@
                             <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-2 mb-4 gap-4">
                                 <h4 class="text-lg font-bold text-[#003366]">Diagnóstico Existencial (Método HALCÓN)</h4>
                                 <div class="mt-2 md:mt-0 flex flex-wrap gap-4 items-center">
-                                    <!-- AÑADIDO: Valor y Checkbox (Ocultos en impresión) -->
                                     <div class="flex items-center space-x-3 print:hidden">
                                         <div class="flex items-center">
                                             <label class="text-sm font-semibold text-gray-600 mr-2" title="Valor pagado en esta sesión">Valor ($):</label>
@@ -255,7 +254,6 @@
                             <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-[#003366] mb-4 border-b pb-2">Registrar Nueva Sesión</h3>
                                 <form id="evolucionForm" class="space-y-5">
-                                    <!-- AÑADIDO: Valor y Checkbox en Bitácora -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div><label class="block text-sm font-semibold mb-1">Fecha</label><input type="date" id="evoFecha" class="input-styled text-sm" required></div>
                                         <div>
@@ -651,7 +649,13 @@
                 let data;
                 let isPareja = false;
                 
-                let resDemo = await fetch(`/api/get-consentimiento-individual?id=${id}`);
+                let resDemo = await fetch(`/api/historia?action=getIndividual&id=${id}`);
+                
+                // Fallback para mantener la compatibilidad del frontend mientras estamos en "Modo Zen"
+                // con el endpoint unificado de Historia que reemplaza a los viejos de Consentimiento si es necesario.
+                if (!resDemo.ok && resDemo.status === 404) {
+                    resDemo = await fetch(`/api/consentimientos?action=getIndividual&id=${id}`);
+                }
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
@@ -659,7 +663,10 @@
                         isPareja = true;
                     }
                 } else {
-                    resDemo = await fetch(`/api/get-consentimiento-pareja?id=${id}`);
+                    resDemo = await fetch(`/api/historia?action=getPareja&id=${id}`);
+                    if (!resDemo.ok) { 
+                        resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
+                    }
                     if (!resDemo.ok) { throw new Error('No se encontró el paciente en ninguna base de datos.'); }
                     data = await resDemo.json();
                     isPareja = true;
@@ -725,7 +732,7 @@
                 document.getElementById('firmaMetadato').innerHTML = `ID_EXP: ${id}<br>SELLO: ${timestampFirm}<br>HASH_VALIDACION: ${hash}`;
 
                 try {
-                    const resHist = await fetch(`/api/get-historia?id=${id}`);
+                    const resHist = await fetch(`/api/historia?id=${id}`);
                     if (resHist.ok) {
                         const histData = await resHist.json();
                         if (!histData.isNew) {
@@ -828,7 +835,7 @@
             
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/save-perfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
+                const response = await fetch('/api/historia?action=savePerfil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, perfilEjecutivo: txt, propositoVida: prop }) });
                 if (response.ok) { 
                     localStorage.removeItem(draftPerfilKey); 
                     const succ = document.getElementById('perfil-success'); succ.classList.remove('hidden'); setTimeout(() => succ.classList.add('hidden'), 3000); 
@@ -877,7 +884,7 @@
             const btn = document.getElementById('btnSavePlan');
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
             try {
-                const response = await fetch('/api/save-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
+                const response = await fetch('/api/historia?action=savePlan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, planTrabajo: planTrabajo }) });
                 if (response.ok) { localStorage.removeItem(draftPlanKey); document.getElementById('plan-success').classList.remove('hidden'); setTimeout(() => document.getElementById('plan-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Error al conectar con la base de datos."); } finally { btn.textContent = originalText; btn.disabled = false; }
@@ -900,7 +907,7 @@
                 acuerdoStrikes: document.getElementById('compromisoStrikes').checked
             };
             try {
-                const response = await fetch('/api/save-historia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
+                const response = await fetch('/api/historia?action=saveHistoria', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
                 if (response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); } 
                 else throw new Error('Error al guardar');
             } catch (error) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
@@ -933,7 +940,6 @@
                 if (evo.strikeAnadido) { iconBgClass = 'bg-red-500'; iconPath = 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'; badgeHTML += '<span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded ml-2">Strike Aplicado</span>'; } 
                 else if (evo.strikeRemovido) { iconBgClass = 'bg-green-500'; iconPath = 'M5 13l4 4L19 7'; badgeHTML += '<span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">Strike Removido</span>'; }
                 
-                // Mostrar el valor y si fue pagado o pendiente (Oculto al imprimir)
                 if (evo.valor && Number(evo.valor) > 0) {
                     const pagoColor = evo.pagado ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200';
                     const pagoIcon = evo.pagado ? '✓ Pagado' : '⏳ Pendiente';
@@ -973,7 +979,6 @@
             document.getElementById('currentSessionIdModal').value = evoId;
             let titleText = "Fecha: " + formatearFechaAmigable(evo.fecha);
             
-            // Mostrar en el Modal si fue pagado o no (Oculto al imprimir no aplica al modal que es dinámico)
             if (evo.valor && Number(evo.valor) > 0) {
                 titleText += ` | Valor: ${formatCurrency(evo.valor)} (${evo.pagado ? 'Pagado' : 'Pendiente'})`;
             }
@@ -1031,7 +1036,7 @@
 
             try {
                 const patientId = new URLSearchParams(window.location.search).get('id');
-                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
+                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: patientId, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(`draft_anexo_${evoId}`);
@@ -1063,7 +1068,7 @@
             const originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
 
             try {
-                const response = await fetch('/api/save-evolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
+                const response = await fetch('/api/historia?action=saveEvolucion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pacienteId: id, evoluciones: evoluciones, strikes: currentStrikes }) });
 
                 if (response.ok) {
                     localStorage.removeItem(draftEvoKey);
