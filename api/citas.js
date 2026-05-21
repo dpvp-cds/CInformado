@@ -181,18 +181,24 @@ END:VCALENDAR`;
                                     <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${safeMeet || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${safeMeet || 'Presencial'}</a></p>
                                 </div>
                                 <p style="font-size: 13px; color: #666;"><i>💡 Sugerencia: En la parte superior de este correo o en los archivos adjuntos, encontrarás la opción para <strong>"Añadir a tu Calendario"</strong> (Google Calendar, Outlook, Apple). Haz clic allí para que te recordemos automáticamente.</i></p>
+                                
+                                <!-- NOTA HABEAS DATA -->
+                                <div style="background-color: #fff8e1; border: 1px solid #ffe082; padding: 15px; margin-top: 25px; border-radius: 8px; font-size: 12px; color: #856404; line-height: 1.5;">
+                                    <strong>⚖️ Ley de Protección de Datos (Habeas Data)</strong><br>
+                                    Recuerda que tienes derecho a actualizar y/o modificar tus datos de acuerdo a la ley de protección de datos. Si hay algún dato que cambió distinto a tu documento de identidad, infórmaselo de inmediato a tu psicólogo o en la próxima cita.
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `,
-                attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
-            });
+                    `,
+                    attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
+                });
 
-            await resend.emails.send({
-                from: 'Sistema de Citas <caminosdelser@emcotic.com>',
-                to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
-                subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; color: #333;">
+                await resend.emails.send({
+                    from: 'Sistema de Citas <caminosdelser@emcotic.com>',
+                    to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                    subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333;">
                             <h2 style="color: #003366;">Cita Agendada Exitosamente</h2>
                             <p>Has programado una nueva sesión en el sistema.</p>
                             <ul>
@@ -249,6 +255,12 @@ END:VCALENDAR`;
                                 <h3 style="color: #e11d48;">Hola ${primerNombre},</h3>
                                 <p>Te informamos que tu cita de psicología programada para el <strong>${fechaStr}</strong> ha sido cancelada.</p>
                                 <p>Si deseas reprogramarla, por favor ponte en contacto con nosotros.</p>
+                                
+                                <!-- NOTA HABEAS DATA -->
+                                <div style="background-color: #fff8e1; border: 1px solid #ffe082; padding: 15px; margin-top: 25px; border-radius: 8px; font-size: 12px; color: #856404; line-height: 1.5;">
+                                    <strong>⚖️ Ley de Protección de Datos (Habeas Data)</strong><br>
+                                    Recuerda que tienes derecho a actualizar y/o modificar tus datos de acuerdo a la ley de protección de datos. Si hay algún dato que cambió distinto a tu documento de identidad, infórmaselo de inmediato a tu psicólogo o en la próxima cita.
+                                </div>
                             </div>
                         </div>
                     `
