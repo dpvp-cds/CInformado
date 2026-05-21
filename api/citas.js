@@ -146,6 +146,7 @@ DTEND:${icsDates.end}
 ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango (CUC)":mailto:jarango5@cuc.edu.co
 SUMMARY:Sesión de Psicología - ${nombrePaciente}
 DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.
 LOCATION:${locationStr}${extraUrlStr}
@@ -180,18 +181,18 @@ END:VCALENDAR`;
                                     <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${safeMeet || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${safeMeet || 'Presencial'}</a></p>
                                 </div>
                                 <p style="font-size: 13px; color: #666;"><i>💡 Sugerencia: En la parte superior de este correo o en los archivos adjuntos, encontrarás la opción para <strong>"Añadir a tu Calendario"</strong> (Google Calendar, Outlook, Apple). Haz clic allí para que te recordemos automáticamente.</i></p>
-                            </div>
                         </div>
-                    `,
-                    attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
-                });
+                    </div>
+                `,
+                attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
+            });
 
-                await resend.emails.send({
-                    from: 'Sistema de Citas <caminosdelser@emcotic.com>',
-                    to: 'caminosdelser@emcotic.com',
-                    subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; color: #333;">
+            await resend.emails.send({
+                from: 'Sistema de Citas <caminosdelser@emcotic.com>',
+                to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; color: #333;">
                             <h2 style="color: #003366;">Cita Agendada Exitosamente</h2>
                             <p>Has programado una nueva sesión en el sistema.</p>
                             <ul>
@@ -255,7 +256,7 @@ END:VCALENDAR`;
                 
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
-                    to: 'caminosdelser@emcotic.com',
+                    to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
                     subject: `❌ CITA CANCELADA: ${primerNombre}`,
                     html: `<p>Se ha cancelado correctamente la cita de <strong>${nombrePaciente}</strong> programada para el ${fechaStr}.</p>`
                 });
