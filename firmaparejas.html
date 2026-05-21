@@ -127,11 +127,15 @@
                         tipoDocumento: datosCrudos.tipoDocumento2, documentoIdentidad: datosCrudos.documentoIdentidad2,
                         telefonoContacto: datosCrudos.telefonoContacto2
                     },
-                    consentimiento: { fechaAceptacion: new Date().toISOString(), userAgent: navigator.userAgent },
+                    consentimiento: { 
+                        fechaAceptacion: new Date().toISOString(), 
+                        userAgent: navigator.userAgent,
+                        modalidad: datosCrudos.modalidad || 'presencial' // APLICADO
+                    },
                     firmas: { firma1: c1.canvas.toDataURL('image/png'), firma2: c2.canvas.toDataURL('image/png') }
                 };
 
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/consentimientos?action=savePareja)
+                // APUNTANDO A LA API UNIFICADA
                 const response = await fetch('/api/consentimientos?action=savePareja', {
                     method: 'POST', body: JSON.stringify(finalData), headers: { 'Content-Type': 'application/json' }
                 });
