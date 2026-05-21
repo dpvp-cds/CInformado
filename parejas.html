@@ -131,19 +131,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) { console.error('Error cargando geodata:', error); }
     }
 
+    // CORRECCIÓN HABEAS DATA / GEODATA (Iteración dinámica)
     function poblarPaises(suffix) {
         const select = document.getElementById('pais' + suffix);
         select.innerHTML = '<option value="">Seleccione un país</option>';
-        const continentes = ['Norteamérica', 'Centroamérica', 'Suramérica'];
-        continentes.forEach(continente => {
+        Object.keys(geodata).forEach(continente => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = continente;
-            Object.keys(geodata[continente]).sort().forEach(pais => {
-                const option = document.createElement('option');
-                option.value = pais; option.textContent = pais;
-                optgroup.appendChild(option);
-            });
-            select.appendChild(optgroup);
+            if (geodata[continente]) {
+                Object.keys(geodata[continente]).sort().forEach(pais => {
+                    const option = document.createElement('option');
+                    option.value = pais; option.textContent = pais;
+                    optgroup.appendChild(option);
+                });
+                select.appendChild(optgroup);
+            }
         });
     }
 
@@ -151,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const select = document.getElementById('departamento' + suffix);
         select.innerHTML = '<option value="">Seleccione Departamento</option>';
         let departamentos = [];
-        for (const cont in geodata) { if (geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
+        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
         departamentos.sort().forEach(depto => {
             const option = document.createElement('option');
             option.value = depto; option.textContent = depto;
@@ -163,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const select = document.getElementById('municipio' + suffix);
         select.innerHTML = '<option value="">Seleccione Municipio</option>';
         let municipios = [];
-        for (const cont in geodata) { if (geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
+        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
         municipios.sort().forEach(mun => {
             const option = document.createElement('option');
             option.value = mun; option.textContent = mun;
