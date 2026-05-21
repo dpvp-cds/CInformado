@@ -41,12 +41,6 @@
             </form>
         </div>
     </main>
-    <footer class="bg-[#1a1a1a] text-white py-8 mt-12">
-        <div class="container mx-auto text-center space-y-2">
-            <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados. <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-200 transition-colors underline ml-2">Política de tratamiento de datos</a></p>
-            <div class="mt-4"><a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso a Terapeuta</a></div>
-        </div>
-    </footer>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -138,12 +132,13 @@
                     },
                     consentimiento: {
                         fechaAceptacion: new Date().toISOString(),
-                        userAgent: navigator.userAgent
+                        userAgent: navigator.userAgent,
+                        modalidad: datosCrudos.modalidad || 'presencial' // APLICADO
                     },
                     firmaDigital: firmaDigital
                 };
 
-                // SE ACTUALIZÓ ESTA LÍNEA (POST a /api/consentimientos?action=saveIndividual)
+                // APUNTANDO A LA API UNIFICADA
                 const response = await fetch('/api/consentimientos?action=saveIndividual', {
                     method: 'POST',
                     body: JSON.stringify(finalData),
