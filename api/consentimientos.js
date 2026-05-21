@@ -4,7 +4,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
 
 // =======================================================
-// 1. FUNCIONES HELPER PARA GENERAR PDFs
+// GENERADORES DE PDF (INDIVIDUAL Y PAREJA)
 // =======================================================
 async function crearPDFConsentimiento(datos) {
     const { demograficos, firmaDigital, fecha } = datos;
@@ -45,14 +45,17 @@ async function crearPDFConsentimiento(datos) {
     y -= 30;
 
     const esMenor = parseInt(demograficos.edad, 10) < 18;
+    const modalidad = datos.consentimiento?.modalidad || 'presencial';
+    
     const textos = {
-        intro: esMenor ? `Yo, ${demograficos.nombreAcudiente}, con documento ${demograficos.documentoAcudiente}, como ${demograficos.tipoAcudiente} de ${demograficos.nombreCompleto || demograficos.nombre} (doc ${demograficos.documentoIdentidad}), declaro que:` : `Yo, ${demograficos.nombreCompleto || demograficos.nombre}, con documento ${demograficos.documentoIdentidad}, declaro que:`,
+        intro: esMenor ? `Yo, ${demograficos.nombreAcudiente}, con documento ${demograficos.documentoAcudiente}, como ${demograficos.tipoAcudiente} de ${demograficos.nombre} (doc ${demograficos.documentoIdentidad}), declaro que:` : `Yo, ${demograficos.nombre}, con documento ${demograficos.documentoIdentidad}, declaro que:`,
         confidencialidad: 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.',
         proposito: 'El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.',
         naturaleza: 'Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.',
         evaluacion: esMenor ? 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.' : 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.',
         costos: esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.',
-        datos: 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.'
+        datos: 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.',
+        declaracion: esMenor ? `Declaro y doy fe de que yo, ${demograficos.nombreAcudiente}, actuando como acudiente, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.` : `Declaro y doy fe de que yo, ${demograficos.nombre}, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.`
     };
 
     drawWrappedText(textos.intro, { font, size: 10, lineHeight });
@@ -87,6 +90,11 @@ async function crearPDFConsentimiento(datos) {
     y -= titleLineHeight;
     drawWrappedText(textos.datos, { font, size: 10, lineHeight });
 
+    y -= 5;
+    page.drawText('2.7 Declaración y Modalidad de la Sesión:', { x: margin, y, font: boldFont, size: 10 });
+    y -= titleLineHeight;
+    drawWrappedText(textos.declaracion, { font, size: 10, lineHeight });
+
     page = pdfDoc.addPage();
     y = height - 40;
 
@@ -100,7 +108,7 @@ async function crearPDFConsentimiento(datos) {
             y -= 18;
         }
     };
-    drawDetail('Nombre Paciente', demograficos.nombreCompleto || demograficos.nombre);
+    drawDetail('Nombre Paciente', demograficos.nombre);
     drawDetail('Documento Paciente', `${demograficos.documentoIdentidad} (${demograficos.tipoDocumento})`);
     drawDetail('Fecha Nacimiento', demograficos.fechaNacimiento);
     drawDetail('Edad', demograficos.edad);
@@ -108,7 +116,7 @@ async function crearPDFConsentimiento(datos) {
     drawDetail('EPS / Serv. de Salud', demograficos.eps);
     drawDetail('Teléfono', demograficos.telefonoContacto);
     drawDetail('Dirección', demograficos.direccion);
-    drawDetail('Ubicación', `${demograficos.ciudad || demograficos.municipio || ''}, ${demograficos.departamento || ''}, ${demograficos.pais}`);
+    drawDetail('Ubicación', `${demograficos.ciudad || ''}, ${demograficos.departamento || ''}, ${demograficos.pais}`);
     drawDetail('Contacto Emergencia', `${demograficos.contactoEmergenciaNombre} (${demograficos.contactoEmergenciaTelefono})`);
     
     if(esMenor) {
@@ -131,8 +139,7 @@ async function crearPDFConsentimiento(datos) {
     page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 200, y: y - 5 }, thickness: 1 });
     page.drawText('Firma Electrónica', { x: margin, y: y - 15, font, size: 8 });
     
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
+    return await pdfDoc.save();
 }
 
 async function crearPDFParejas(datos) {
@@ -145,44 +152,67 @@ async function crearPDFParejas(datos) {
     
     let y = height - 40;
     const margin = 50;
+    const maxWidth = width - 2 * margin;
 
     const drawText = (text, size, isBold = false) => {
         page.drawText(text, { x: margin, y, font: isBold ? boldFont : font, size });
         y -= (size + 4);
     };
 
+    const drawWrappedText = (text, size, isBold = false) => {
+        const words = text.split(' ');
+        let line = '';
+        for (const word of words) {
+            const testLine = line + word + ' ';
+            const testWidth = (isBold ? boldFont : font).widthOfTextAtSize(testLine, size);
+            if (testWidth > maxWidth && line !== '') {
+                page.drawText(line, { x: margin, y, font: isBold ? boldFont : font, size });
+                y -= (size + 4);
+                line = word + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        page.drawText(line, { x: margin, y, font: isBold ? boldFont : font, size });
+        y -= (size + 4);
+    };
+
     drawText('Consentimiento Informado - Terapia de Pareja', 16, true);
     y -= 10;
 
-    const intro = `Nosotros, ${paciente1.nombreCompleto1 || paciente1.nombre} (Doc: ${paciente1.documentoIdentidad1 || paciente1.documentoIdentidad}) y ${paciente2.nombreCompleto2 || paciente2.nombre} (Doc: ${paciente2.documentoIdentidad2 || paciente2.documentoIdentidad}), declaramos voluntariamente que:`;
-    drawText(intro, 10); y -= 10;
+    const intro = `Nosotros, ${paciente1.nombre} (Doc: ${paciente1.documentoIdentidad}) y ${paciente2.nombre} (Doc: ${paciente2.documentoIdentidad}), declaramos voluntariamente que:`;
+    drawWrappedText(intro, 10); y -= 10;
     
     drawText('3.1 Confidencialidad y Secreto Compartido:', 10, true);
-    drawText('Entendemos y aceptamos que la terapia de pareja implica un "paciente conjunto".', 10);
-    drawText('Se guardará estricta confidencialidad bajo una política de "no secretos".', 10); y -= 5;
+    drawWrappedText('Entendemos y aceptamos que la terapia de pareja implica un "paciente conjunto". Se guardará estricta confidencialidad bajo una política de "no secretos".', 10); y -= 5;
 
     drawText('3.2 Propósito de la Intervención:', 10, true);
-    drawText('Mejorar la dinámica relacional utilizando técnicas validadas.', 10); y -= 5;
+    drawWrappedText('Mejorar la dinámica relacional utilizando técnicas validadas.', 10); y -= 5;
 
     drawText('3.3 Tratamiento de Datos y Costos:', 10, true);
-    drawText('Autorizamos el tratamiento de datos y nos comprometemos solidariamente a los costos.', 10); y -= 20;
+    drawWrappedText('Autorizamos el tratamiento de datos y nos comprometemos solidariamente a los costos.', 10); y -= 10;
+
+    drawText('3.4 Declaración y Modalidad de la Sesión:', 10, true);
+    const modalidad = datos.consentimiento?.modalidad || 'presencial';
+    const decPareja = `Declaramos y damos fe de que nosotros, ${paciente1.nombre} y ${paciente2.nombre}, hemos leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se nos ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a nuestra entera satisfacción.`;
+    drawWrappedText(decPareja, 10); y -= 20;
 
     // --- DATOS PACIENTE 1 ---
     drawText('DATOS PACIENTE 1:', 12, true);
-    drawText(`Nombre: ${paciente1.nombreCompleto1 || paciente1.nombre} | Doc: ${paciente1.tipoDocumento1 || paciente1.tipoDocumento} ${paciente1.documentoIdentidad1 || paciente1.documentoIdentidad}`, 9);
-    drawText(`Edad: ${paciente1.edad1 || paciente1.edad} | Fecha Nacimiento: ${paciente1.fechaNacimiento1 || paciente1.fechaNacimiento}`, 9);
-    drawText(`Ubicación: ${paciente1.ciudad1 || paciente1.municipio1 || ''}, ${paciente1.departamento1 || ''}, ${paciente1.pais1 || paciente1.pais}`, 9);
-    drawText(`Tel: ${paciente1.telefonoContacto1 || paciente1.telefonoContacto} | Email: ${paciente1.email1 || paciente1.email}`, 9);
-    drawText(`EPS / Servicio de Salud: ${paciente1.eps1 || paciente1.eps}`, 9, true); 
+    drawText(`Nombre: ${paciente1.nombre} | Doc: ${paciente1.tipoDocumento} ${paciente1.documentoIdentidad}`, 9);
+    drawText(`Edad: ${paciente1.edad} | Fecha Nacimiento: ${paciente1.fechaNacimiento}`, 9);
+    drawText(`Ubicación: ${paciente1.ciudad || ''}, ${paciente1.departamento || ''}, ${paciente1.pais}`, 9);
+    drawText(`Tel: ${paciente1.telefonoContacto} | Email: ${paciente1.email}`, 9);
+    drawText(`EPS / Servicio de Salud: ${paciente1.eps}`, 9, true);
     y -= 10;
 
     // --- DATOS PACIENTE 2 ---
     drawText('DATOS PACIENTE 2:', 12, true);
-    drawText(`Nombre: ${paciente2.nombreCompleto2 || paciente2.nombre} | Doc: ${paciente2.tipoDocumento2 || paciente2.tipoDocumento} ${paciente2.documentoIdentidad2 || paciente2.documentoIdentidad}`, 9);
-    drawText(`Edad: ${paciente2.edad2 || paciente2.edad} | Fecha Nacimiento: ${paciente2.fechaNacimiento2 || paciente2.fechaNacimiento}`, 9);
-    drawText(`Ubicación: ${paciente2.ciudad2 || paciente2.municipio2 || ''}, ${paciente2.departamento2 || ''}, ${paciente2.pais2 || paciente2.pais}`, 9);
-    drawText(`Tel: ${paciente2.telefonoContacto2 || paciente2.telefonoContacto} | Email: ${paciente2.email2 || paciente2.email}`, 9);
-    drawText(`EPS / Servicio de Salud: ${paciente2.eps2 || paciente2.eps}`, 9, true); 
+    drawText(`Nombre: ${paciente2.nombre} | Doc: ${paciente2.tipoDocumento} ${paciente2.documentoIdentidad}`, 9);
+    drawText(`Edad: ${paciente2.edad} | Fecha Nacimiento: ${paciente2.fechaNacimiento}`, 9);
+    drawText(`Ubicación: ${paciente2.ciudad || ''}, ${paciente2.departamento || ''}, ${paciente2.pais}`, 9);
+    drawText(`Tel: ${paciente2.telefonoContacto} | Email: ${paciente2.email}`, 9);
+    drawText(`EPS / Servicio de Salud: ${paciente2.eps}`, 9, true);
     y -= 20;
 
     // --- FIRMAS ---
@@ -198,81 +228,75 @@ async function crearPDFParejas(datos) {
     page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 150, y: y - 5 }, thickness: 1 });
     page.drawLine({ start: { x: margin + 200, y: y - 5 }, end: { x: margin + 350, y: y - 5 }, thickness: 1 });
     
-    page.drawText(paciente1.nombreCompleto1 || paciente1.nombre, { x: margin, y: y - 15, font: font, size: 8 });
-    page.drawText(paciente2.nombreCompleto2 || paciente2.nombre, { x: margin + 200, y: y - 15, font: font, size: 8 });
+    page.drawText(paciente1.nombre, { x: margin, y: y - 15, font: font, size: 8 });
+    page.drawText(paciente2.nombre, { x: margin + 200, y: y - 15, font: font, size: 8 });
     
     return await pdfDoc.save();
 }
 
 // =======================================================
-// 2. CONTROLADOR MAESTRO UNIFICADO DE CONSENTIMIENTOS
+// CONTROLADOR MAESTRO DE CONSENTIMIENTOS
 // =======================================================
 export default async function handler(request, response) {
-    const { action, id } = request.query;
+    const action = request.query.action;
 
     try {
-        // --- BLOQUE GET (Lectura y Consultas) ---
+        // --- BLOQUE GET (Lectura) ---
         if (request.method === 'GET') {
             
             if (action === 'getAll') {
-                const individualSnapshot = await db.collection('consents').get();
-                const parejaSnapshot = await db.collection('consents_parejas').get();
-                let allConsents = [];
+                const results = [];
                 
-                individualSnapshot.forEach(doc => {
+                const snapshotIndividuales = await db.collection('consents').orderBy('fecha', 'desc').get();
+                snapshotIndividuales.forEach(doc => {
                     const data = doc.data();
-                    allConsents.push({
+                    results.push({
                         id: doc.id,
-                        nombre: data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Sin nombre',
-                        email: data.demograficos?.email || 'Sin email',
-                        fecha: data.fecha || new Date().toISOString(),
-                        tipo: 'individual'
+                        nombre: data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Sin Nombre',
+                        email: data.demograficos?.email || 'Sin Email',
+                        tipo: 'individual',
+                        fecha: data.fecha
                     });
                 });
-                
-                parejaSnapshot.forEach(doc => {
+
+                const snapshotParejas = await db.collection('consents_parejas').orderBy('fecha', 'desc').get();
+                snapshotParejas.forEach(doc => {
                     const data = doc.data();
                     const n1 = data.paciente1?.nombreCompleto1 || data.paciente1?.nombre || 'P1';
                     const n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
-                    const e1 = data.paciente1?.email1 || data.paciente1?.email || '';
-                    const e2 = data.paciente2?.email2 || data.paciente2?.email || '';
-                    
-                    allConsents.push({
+                    results.push({
                         id: doc.id,
                         nombre: `${n1} y ${n2}`,
-                        email: `${e1} / ${e2}`,
-                        fecha: data.fecha || new Date().toISOString(),
-                        tipo: 'pareja'
+                        email: data.paciente1?.email1 || data.paciente1?.email || 'Sin Email',
+                        tipo: 'pareja',
+                        fecha: data.fecha
                     });
                 });
-                
-                allConsents.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                return response.status(200).json(allConsents);
+
+                results.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                return response.status(200).json(results);
             }
             
             if (action === 'getIndividual') {
-                if (!id) return response.status(400).json({ message: 'El ID es requerido.' });
-                const doc = await db.collection('consents').doc(id).get();
-                if (!doc.exists) return response.status(404).json({ message: 'No encontrado.' });
-                return response.status(200).json({ id: doc.id, ...doc.data() });
-            }
-
-            if (action === 'getPareja') {
-                if (!id) return response.status(400).json({ message: 'El ID es requerido.' });
-                const doc = await db.collection('consents_parejas').doc(id).get();
-                if (!doc.exists) return response.status(404).json({ message: 'No encontrado.' });
+                const doc = await db.collection('consents').doc(request.query.id).get();
+                if (!doc.exists) return response.status(404).json({ message: 'No encontrado' });
                 return response.status(200).json({ id: doc.id, ...doc.data() });
             }
             
-            return response.status(400).json({ message: 'Acción GET no válida' });
+            if (action === 'getPareja') {
+                const doc = await db.collection('consents_parejas').doc(request.query.id).get();
+                if (!doc.exists) return response.status(404).json({ message: 'No encontrado' });
+                return response.status(200).json({ id: doc.id, ...doc.data() });
+            }
         }
 
-        // --- BLOQUE POST (Guardar Consentimientos, Correos y PDFs) ---
+        // --- BLOQUE POST (Guardar Consentimientos, Correos, PDFs y Habeas Data) ---
         if (request.method === 'POST') {
             const data = request.body;
             const resendApiKey = process.env.RESEND2_API_KEY;
             const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
+            // 1. Actualización de Habeas Data
             if (action === 'updateDemographics') {
                 const { id, isPareja, datos } = request.body;
                 if (!id || !datos) return response.status(400).json({ message: 'Faltan datos.' });
@@ -290,73 +314,79 @@ export default async function handler(request, response) {
                 return response.status(200).json({ message: 'Datos actualizados exitosamente.' });
             }
 
+            // 2. Guardar Individual
             if (action === 'saveIndividual') {
                 if (!data.demograficos || !data.firmaDigital) return response.status(400).json({ message: 'Faltan datos críticos.' });
+                
                 const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado' };
                 const docRef = await db.collection('consents').add(dataToSave);
                 
                 if (resend) {
                     const pdfBuffer = await crearPDFConsentimiento(dataToSave);
-                    const attachments = [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }];
-                    const nombrePaciente = data.demograficos.nombreCompleto || data.demograficos.nombre;
-                    await Promise.all([
-                        resend.emails.send({ 
-                            from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>', 
-                            to: data.demograficos.email, 
-                            subject: `Copia de tu Consentimiento Informado - Caminos del Ser`, 
-                            html: `<p>Estimado/a ${nombrePaciente},</p><p>Recibes una copia del consentimiento informado para la atención psicológica.</p><p>Cualquier inquietud al correo caminosdelser@emcotic.com o al <a href="https://wa.me/573233796547" target="_blank">WhatsApp +573233796547</a>.</p>`, 
-                            attachments 
-                        }),
-                        resend.emails.send({ 
-                            from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>', 
-                            to: 'caminosdelser@emcotic.com', 
-                            subject: `Nuevo Consentimiento Informado Firmado: ${nombrePaciente}`, 
-                            html: `<p>Has recibido el consentimiento informado firmado del paciente <strong>${nombrePaciente}</strong>.</p>`, 
-                            attachments 
-                        })
-                    ]);
+                    const mailToPaciente = {
+                        from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
+                        to: dataToSave.demograficos.email,
+                        subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
+                        html: `<p>Estimado/a ${dataToSave.demograficos.nombre},</p><p>Recibes una copia del consentimiento informado para la atención psicológica con el Psicólogo Jorge Arango Castaño.</p><p>Adjunto, encontrarás el PDF con tu firma.</p>`,
+                        attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
+                    };
+                    const mailToTerapeuta = {
+                        from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
+                        to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                        subject: `Nuevo Consentimiento Firmado: ${dataToSave.demograficos.nombre}`,
+                        html: `<p>Has recibido el consentimiento firmado de <strong>${dataToSave.demograficos.nombre}</strong>.</p>`,
+                        attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
+                    };
+                    await Promise.all([ resend.emails.send(mailToPaciente), resend.emails.send(mailToTerapeuta) ]);
                 }
                 return response.status(200).json({ message: 'Procesado exitosamente', id: docRef.id });
             }
 
+            // 3. Guardar Pareja
             if (action === 'savePareja') {
+                if (!data.paciente1 || !data.firmas) return response.status(400).json({ message: 'Faltan datos críticos.' });
+                
                 const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado Pareja' };
                 const docRef = await db.collection('consents_parejas').add(dataToSave);
                 
                 if (resend) {
                     const pdfBuffer = await crearPDFParejas(dataToSave);
                     const attachments = [{ filename: `Consentimiento-Pareja-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }];
-                    const email1 = data.paciente1.email1 || data.paciente1.email;
-                    const email2 = data.paciente2.email2 || data.paciente2.email;
-                    const nombre1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre;
-                    const nombre2 = data.paciente2.nombreCompleto2 || data.paciente2.nombre;
+                    const correos = [
+                        { to: dataToSave.paciente1.email, subject: 'Copia de Consentimiento de Pareja' },
+                        { to: dataToSave.paciente2.email, subject: 'Copia de Consentimiento de Pareja' },
+                        { to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'], subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` }
+                    ];
 
-                    await Promise.all([
-                        resend.emails.send({ from: 'Notificación Consentimiento <caminosdelser@emcotic.com>', to: email1, subject: `Copia de Consentimiento de Pareja`, html: `<p>Adjunto encontrarás el PDF del consentimiento informado de terapia de pareja.</p>`, attachments }),
-                        resend.emails.send({ from: 'Notificación Consentimiento <caminosdelser@emcotic.com>', to: email2, subject: `Copia de Consentimiento de Pareja`, html: `<p>Adjunto encontrarás el PDF del consentimiento informado de terapia de pareja.</p>`, attachments }),
-                        resend.emails.send({ from: 'Notificación Consentimiento <caminosdelser@emcotic.com>', to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento Pareja: ${nombre1} y ${nombre2}`, html: `<p>Adjunto encontrarás el PDF firmado digitalmente.</p>`, attachments })
-                    ]);
+                    const emailPromises = correos.map(correo => resend.emails.send({
+                        from: 'Notificación Consentimiento <caminosdelser@emcotic.com>',
+                        to: correo.to,
+                        subject: correo.subject,
+                        html: `<p>Adjunto encontrarás el PDF del consentimiento informado de terapia de pareja firmado digitalmente.</p>`,
+                        attachments: attachments
+                    }));
+                    await Promise.all(emailPromises);
                 }
                 return response.status(200).json({ message: 'Procesado exitosamente', id: docRef.id });
             }
-
-            return response.status(400).json({ message: 'Acción POST no válida' });
         }
 
-        // --- BLOQUE DELETE (Eliminar Paciente y su Expediente) ---
+        // --- BLOQUE DELETE (Borrar) ---
         if (request.method === 'DELETE' && action === 'delete') {
-            if (!id) return response.status(400).json({ message: 'Falta el ID' });
-            
+            const { id } = request.query;
+            if (!id) return response.status(400).json({ message: 'Falta el ID del expediente.' });
+
             await db.collection('consents').doc(id).delete();
             await db.collection('consents_parejas').doc(id).delete();
             await db.collection('historias_clinicas').doc(id).delete();
-            return response.status(200).json({ message: 'Registro eliminado correctamente' });
+
+            return response.status(200).json({ message: 'Expediente eliminado completamente.' });
         }
 
-        return response.status(405).json({ message: 'Método no permitido.' });
+        return response.status(405).json({ message: 'Método o acción no soportada.' });
 
     } catch (error) {
-        console.error("Error crítico en consentimientos:", error);
-        return response.status(500).json({ message: 'Error interno del servidor', detail: error.message });
+        console.error("Error en el controlador maestro de consentimientos:", error);
+        return response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
     }
 }
