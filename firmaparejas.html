@@ -116,7 +116,9 @@
                         ciudad: datosCrudos.municipio1 || datosCrudos.ciudad1 || null,
                         direccion: datosCrudos.direccion1, eps: datosCrudos.eps1, 
                         tipoDocumento: datosCrudos.tipoDocumento1, documentoIdentidad: datosCrudos.documentoIdentidad1,
-                        telefonoContacto: datosCrudos.telefonoContacto1
+                        telefonoContacto: datosCrudos.telefonoContacto1,
+                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre1 || null,
+                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono1 || null
                     },
                     paciente2: {
                         nombre: datosCrudos.nombreCompleto2, email: datosCrudos.email2,
@@ -125,17 +127,18 @@
                         ciudad: datosCrudos.municipio2 || datosCrudos.ciudad2 || null,
                         direccion: datosCrudos.direccion2, eps: datosCrudos.eps2, 
                         tipoDocumento: datosCrudos.tipoDocumento2, documentoIdentidad: datosCrudos.documentoIdentidad2,
-                        telefonoContacto: datosCrudos.telefonoContacto2
+                        telefonoContacto: datosCrudos.telefonoContacto2,
+                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre2 || null,
+                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono2 || null
                     },
                     consentimiento: { 
                         fechaAceptacion: new Date().toISOString(), 
                         userAgent: navigator.userAgent,
-                        modalidad: datosCrudos.modalidad || 'presencial' // APLICADO
+                        modalidad: datosCrudos.modalidad || 'presencial' // GUARDA LA MODALIDAD
                     },
                     firmas: { firma1: c1.canvas.toDataURL('image/png'), firma2: c2.canvas.toDataURL('image/png') }
                 };
 
-                // APUNTANDO A LA API UNIFICADA
                 const response = await fetch('/api/consentimientos?action=savePareja', {
                     method: 'POST', body: JSON.stringify(finalData), headers: { 'Content-Type': 'application/json' }
                 });
