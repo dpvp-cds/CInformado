@@ -4,7 +4,9 @@ import { Buffer } from 'buffer';
 
 // Helper para formatear fechas al estándar iCalendar (UTC)
 function formatICSDate(dateStr, timeStr) {
+    // Asumimos zona horaria de Colombia (UTC-5)
     const localDate = new Date(`${dateStr}T${timeStr}:00-05:00`);
+    // Duración ajustada a 1 hora y 30 minutos (90 minutos)
     const endLocalDate = new Date(localDate.getTime() + 90 * 60 * 1000); 
 
     const toUTC = (d) => {
@@ -144,11 +146,13 @@ export default async function handler(request, response) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
             }
 
+            // 1. Guardar en BD
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: { fecha, hora },
                 enlaceMeet: enlaceMeet || ''
             }, { merge: true });
 
+            // 2. Lógica de Correos
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey) {
                 const resend = new Resend(resendApiKey);
