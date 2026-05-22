@@ -158,6 +158,7 @@ export default async function handler(request, response) {
                 const locationStr = enlaceMeet ? 'Videollamada (Google Meet)' : 'Consultorio Caminos del Ser';
                 const extraUrlStr = enlaceMeet ? `\nURL:${safeMeet}\nX-GOOGLE-CONFERENCE:${safeMeet}` : '';
 
+                // AQUÍ SÍ SE QUEDA LA CUC: Para que se incruste en tu agenda
                 const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//CInformado//Citas//ES
@@ -181,8 +182,12 @@ END:VEVENT
 END:VCALENDAR`;
 
                 const icsBuffer = Buffer.from(icsContent, 'utf-8');
+                
                 const localDateForText = new Date(`${fecha}T${hora}:00-05:00`);
-                const fechaBonita = localDateForText.toLocaleString('es-CO', { timeZone: 'America/Bogota', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+                const fechaBonita = localDateForText.toLocaleString('es-CO', { 
+                    timeZone: 'America/Bogota', weekday: 'long', year: 'numeric', month: 'long', 
+                    day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true 
+                });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
                 // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
@@ -215,10 +220,10 @@ END:VCALENDAR`;
                     attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
                 });
 
-                // B. CORREO PARA EL TERAPEUTA (Ambos correos)
+                // B. CORREO PARA EL TERAPEUTA
                 await resend.emails.send({
                     from: 'Sistema de Citas <caminosdelser@emcotic.com>',
-                    to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                    to: 'caminosdelser@emcotic.com', // CUC REMOVED de destinatarios directos de email
                     subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333;">
@@ -229,7 +234,7 @@ END:VCALENDAR`;
                                 <li><strong>Fecha:</strong> ${fechaBonita}</li>
                                 <li><strong>Meet:</strong> <a href="${safeMeet || '#'}">${safeMeet || 'Presencial'}</a></li>
                             </ul>
-                            <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal.</p>
+                            <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                         </div>
                     `,
                     attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
@@ -237,7 +242,6 @@ END:VCALENDAR`;
             }
 
             return response.status(200).json({ message: 'Cita agendada y correos enviados.' });
-
         } catch (error) {
             console.error("Error al agendar cita:", error);
             return response.status(500).json({ message: 'Error interno del servidor al agendar.', detail: error.message });
@@ -256,8 +260,11 @@ END:VCALENDAR`;
             }
 
             // Borrar de la BD asignando null a la proximaCita
-            await db.collection('historias_clinicas').doc(pacienteId).set({ proximaCita: null }, { merge: true });
+            await db.collection('historias_clinicas').doc(pacienteId).set({
+                proximaCita: null
+            }, { merge: true });
 
+            // Enviar correo de cancelación
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey && enviarCorreo && emailPaciente) {
                 const resend = new Resend(resendApiKey);
@@ -288,10 +295,10 @@ END:VCALENDAR`;
                     `
                 });
                 
-                // B. CORREO PARA EL TERAPEUTA (Ambos correos)
+                // B. CORREO PARA EL TERAPEUTA
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
-                    to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                    to: 'caminosdelser@emcotic.com', // CUC REMOVED
                     subject: `❌ CITA CANCELADA: ${primerNombre}`,
                     html: `<p>Se ha cancelado correctamente la cita de <strong>${nombrePaciente}</strong> programada para el ${fechaStr}.</p>`
                 });
