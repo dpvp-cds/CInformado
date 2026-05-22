@@ -139,7 +139,8 @@ async function crearPDFConsentimiento(datos) {
     page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 200, y: y - 5 }, thickness: 1 });
     page.drawText('Firma Electrónica', { x: margin, y: y - 15, font, size: 8 });
     
-    return await pdfDoc.save();
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
 }
 
 async function crearPDFParejas(datos) {
@@ -252,28 +253,31 @@ export default async function handler(request, response) {
     const action = request.query.action;
 
     try {
-        // --- BLOQUE GET (Lectura del Dashboard Retrocompatible) ---
+        // --- BLOQUE GET (Lectura del Dashboard MÁS Retrocompatible) ---
         if (request.method === 'GET') {
             
             if (action === 'getAll') {
                 const results = [];
                 
-                // Buscar en Individuales (Pero asegurándose que no haya parejas viejas ocultas aquí)
-                const snapshotIndividuales = await db.collection('consents').orderBy('fecha', 'desc').get();
+                // Buscar en Individuales y Viejos
+                const snapshotIndividuales = await db.collection('consents').get(); // Sin orderBy para no perder fechas viejas
                 snapshotIndividuales.forEach(doc => {
                     const data = doc.data();
-                    const d = data.demograficos || {};
-                    const isOldCouple = data.tipo === 'pareja' || d.nombreCompleto1 !== undefined;
+                    const d = data.demograficos || data || {};
+                    const isOldCouple = data.tipo === 'pareja' || d.nombreCompleto1 !== undefined || d.nombre1 !== undefined;
+                    
+                    // Rastreador profundo de fecha
+                    let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
 
                     if (isOldCouple) {
-                        const n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
-                        const n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                        const n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
+                        const n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
                         results.push({
                             id: doc.id,
                             nombre: `${n1} y ${n2}`,
                             email: d.email1 || d.email || 'Sin Email',
                             tipo: 'pareja',
-                            fecha: data.fecha
+                            fecha: docFecha
                         });
                     } else {
                         results.push({
@@ -281,39 +285,42 @@ export default async function handler(request, response) {
                             nombre: d.nombreCompleto || d.nombre || 'Sin Nombre',
                             email: d.email || 'Sin Email',
                             tipo: 'individual',
-                            fecha: data.fecha
+                            fecha: docFecha
                         });
                     }
                 });
 
-                // Buscar en Parejas (Nuevas y Viejas)
-                const snapshotParejas = await db.collection('consents_parejas').orderBy('fecha', 'desc').get();
+                // Buscar en Parejas (Nuevas y Viejas en la otra colección)
+                const snapshotParejas = await db.collection('consents_parejas').get();
                 snapshotParejas.forEach(doc => {
                     const data = doc.data();
                     let n1, n2, email;
                     
-                    if (data.paciente1) {
-                        // Estructura Nueva
+                    if (data.paciente1 && typeof data.paciente1 === 'object') {
+                        // Nueva estructura
                         n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'P1';
                         n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
                         email = data.paciente1.email1 || data.paciente1.email || 'Sin Email';
                     } else {
-                        // Estructura Vieja
-                        const d = data.demograficos || {};
-                        n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
-                        n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                        // Estructura vieja de parejas
+                        const d = data.demograficos || data || {};
+                        n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
+                        n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
                         email = d.email1 || d.email || 'Sin Email';
                     }
+
+                    let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
 
                     results.push({
                         id: doc.id,
                         nombre: `${n1} y ${n2}`,
                         email: email,
                         tipo: 'pareja',
-                        fecha: data.fecha
+                        fecha: docFecha
                     });
                 });
 
+                // Ordenamos la lista consolidada
                 results.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
                 return response.status(200).json(results);
             }
