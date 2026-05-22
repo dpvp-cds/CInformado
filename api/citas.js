@@ -36,20 +36,19 @@ export default async function handler(request, response) {
                 db.collection('historias_clinicas').get()
             ]);
 
+            // 1. Mapeo de Colección Individual (y Parejas Antiguas)
             indivSnap.forEach(doc => {
                 const data = doc.data();
-                const d = data.demograficos || {};
+                const d = data.demograficos || data || {};
                 
-                // ¿Era una pareja guardada en 'consents' en la versión anterior?
-                if (data.tipo === 'pareja' || d.nombreCompleto1) {
-                    const n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
-                    const n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                if (data.tipo === 'pareja' || d.nombreCompleto1 !== undefined || d.nombre1 !== undefined) {
+                    const n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
+                    const n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
                     patientsMap[doc.id] = {
                         nombre: `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`,
                         email: d.email1 || d.email || ''
                     };
                 } else {
-                    // Paciente individual normal
                     patientsMap[doc.id] = {
                         nombre: d.nombreCompleto || d.nombre || 'Paciente',
                         email: d.email || ''
@@ -57,20 +56,19 @@ export default async function handler(request, response) {
                 }
             });
 
+            // 2. Mapeo de Colección de Parejas Nuevas
             parejaSnap.forEach(doc => {
                 const data = doc.data();
                 let n1, n2, email;
                 
-                if (data.paciente1) {
-                    // Nueva estructura
+                if (data.paciente1 && typeof data.paciente1 === 'object') {
                     n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'P1';
                     n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
                     email = data.paciente1.email1 || data.paciente1.email || '';
                 } else {
-                    // Estructura vieja de parejas
-                    const d = data.demograficos || {};
-                    n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
-                    n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                    const d = data.demograficos || data || {};
+                    n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
+                    n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
                     email = d.email1 || d.email || '';
                 }
                 
@@ -82,12 +80,13 @@ export default async function handler(request, response) {
 
             const eventosCalendario = [];
 
+            // 3. Procesar las historias clínicas para extraer citas y sesiones
             histSnap.forEach(doc => {
                 const data = doc.data();
                 const pacienteId = doc.id;
                 const infoPaciente = patientsMap[pacienteId] || { nombre: 'Paciente Sin Nombre', email: '' };
 
-                // A. Extraer la PRÓXIMA CITA
+                // A. Extraer la PRÓXIMA CITA (Futura)
                 if (data.proximaCita && data.proximaCita.fecha && data.proximaCita.hora) {
                     const startDate = new Date(`${data.proximaCita.fecha}T${data.proximaCita.hora}:00-05:00`);
                     const endDate = new Date(startDate.getTime() + 90 * 60 * 1000); 
@@ -100,15 +99,11 @@ export default async function handler(request, response) {
                         end: endDate.toISOString(),
                         backgroundColor: '#4f46e5',
                         borderColor: '#4338ca',
-                        extendedProps: { 
-                            tipo: 'Futura', 
-                            meet: data.enlaceMeet || '',
-                            email: infoPaciente.email 
-                        }
+                        extendedProps: { tipo: 'Futura', meet: data.enlaceMeet || '', email: infoPaciente.email }
                     });
                 }
 
-                // B. Extraer las SESIONES PASADAS
+                // B. Extraer las SESIONES PASADAS (Bitácora)
                 if (data.evoluciones && Array.isArray(data.evoluciones)) {
                     data.evoluciones.forEach((evo, index) => {
                         if (evo.fecha) {
@@ -146,13 +141,13 @@ export default async function handler(request, response) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
             }
 
-            // 1. Guardar en BD
+            // 1. Guardar la cita y el enlace en la base de datos
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: { fecha, hora },
                 enlaceMeet: enlaceMeet || ''
             }, { merge: true });
 
-            // 2. Lógica de Correos
+            // 2. Lógica de Correos y Calendario (.ics)
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey) {
                 const resend = new Resend(resendApiKey);
@@ -186,12 +181,8 @@ END:VEVENT
 END:VCALENDAR`;
 
                 const icsBuffer = Buffer.from(icsContent, 'utf-8');
-                
                 const localDateForText = new Date(`${fecha}T${hora}:00-05:00`);
-                const fechaBonita = localDateForText.toLocaleString('es-CO', { 
-                    timeZone: 'America/Bogota', weekday: 'long', year: 'numeric', month: 'long', 
-                    day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true 
-                });
+                const fechaBonita = localDateForText.toLocaleString('es-CO', { timeZone: 'America/Bogota', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
                 // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
@@ -224,7 +215,7 @@ END:VCALENDAR`;
                     attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
                 });
 
-                // B. CORREO PARA EL TERAPEUTA (Y CUC)
+                // B. CORREO PARA EL TERAPEUTA (Ambos correos)
                 await resend.emails.send({
                     from: 'Sistema de Citas <caminosdelser@emcotic.com>',
                     to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
@@ -238,7 +229,7 @@ END:VCALENDAR`;
                                 <li><strong>Fecha:</strong> ${fechaBonita}</li>
                                 <li><strong>Meet:</strong> <a href="${safeMeet || '#'}">${safeMeet || 'Presencial'}</a></li>
                             </ul>
-                            <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
+                            <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal.</p>
                         </div>
                     `,
                     attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
@@ -246,6 +237,7 @@ END:VCALENDAR`;
             }
 
             return response.status(200).json({ message: 'Cita agendada y correos enviados.' });
+
         } catch (error) {
             console.error("Error al agendar cita:", error);
             return response.status(500).json({ message: 'Error interno del servidor al agendar.', detail: error.message });
@@ -264,11 +256,8 @@ END:VCALENDAR`;
             }
 
             // Borrar de la BD asignando null a la proximaCita
-            await db.collection('historias_clinicas').doc(pacienteId).set({
-                proximaCita: null
-            }, { merge: true });
+            await db.collection('historias_clinicas').doc(pacienteId).set({ proximaCita: null }, { merge: true });
 
-            // Enviar correo de cancelación
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey && enviarCorreo && emailPaciente) {
                 const resend = new Resend(resendApiKey);
@@ -299,7 +288,7 @@ END:VCALENDAR`;
                     `
                 });
                 
-                // B. CORREO PARA EL TERAPEUTA (Y CUC)
+                // B. CORREO PARA EL TERAPEUTA (Ambos correos)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
