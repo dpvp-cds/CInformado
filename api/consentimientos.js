@@ -337,7 +337,7 @@ export default async function handler(request, response) {
                     };
                     const mailToTerapeuta = {
                         from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
-                        to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
+                        to: 'caminosdelser@emcotic.com', // CUC REMOVED
                         subject: `Nuevo Consentimiento Firmado: ${dataToSave.demograficos.nombre}`,
                         html: `<p>Has recibido un consentimiento firmado de <strong>${dataToSave.demograficos.nombre}</strong>.</p><p>Revisa el PDF adjunto para ver los datos completos y la firma.</p>`,
                         attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
@@ -359,7 +359,7 @@ export default async function handler(request, response) {
                     const correos = [
                         { to: dataToSave.paciente1.email, subject: 'Copia de Consentimiento de Pareja' },
                         { to: dataToSave.paciente2.email, subject: 'Copia de Consentimiento de Pareja' },
-                        { to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'], subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` }
+                        { to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } // CUC REMOVED
                     ];
 
                     const emailPromises = correos.map(correo => resend.emails.send({
