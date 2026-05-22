@@ -180,19 +180,28 @@ async function crearPDFParejas(datos) {
     drawText('Consentimiento Informado - Terapia de Pareja', 16, true);
     y -= 10;
 
-    const intro = `Nosotros, ${paciente1.nombre} (Doc: ${paciente1.documentoIdentidad}) y ${paciente2.nombre} (Doc: ${paciente2.documentoIdentidad}), declaramos voluntariamente que:`;
+    const intro = `Nosotros, ${paciente1.nombre} (Doc: ${paciente1.documentoIdentidad}) y ${paciente2.nombre} (Doc: ${paciente2.documentoIdentidad}), declaramos que:`;
     drawWrappedText(intro, 10); y -= 10;
     
-    drawText('3.1 Confidencialidad y Secreto Compartido:', 10, true);
-    drawWrappedText('Entendemos y aceptamos que la terapia de pareja implica un "paciente conjunto". Se guardará estricta confidencialidad bajo una política de "no secretos".', 10); y -= 5;
+    drawText('3.1 Confidencialidad:', 10, true);
+    drawWrappedText('Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con nosotros, la cual será inviolable, salvo que nuestra integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.', 10); y -= 5;
 
     drawText('3.2 Propósito de la Intervención:', 10, true);
-    drawWrappedText('Mejorar la dinámica relacional utilizando técnicas validadas.', 10); y -= 5;
+    drawWrappedText('El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.', 10); y -= 5;
 
-    drawText('3.3 Tratamiento de Datos y Costos:', 10, true);
-    drawWrappedText('Autorizamos el tratamiento de datos y nos comprometemos solidariamente a los costos.', 10); y -= 10;
+    drawText('3.3 Naturaleza del Proceso:', 10, true);
+    drawWrappedText('Se nos ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa es fundamental para el éxito del mismo.', 10); y -= 5;
 
-    drawText('3.4 Declaración y Modalidad de la Sesión:', 10, true);
+    drawText('3.4 Proceso de evaluación:', 10, true);
+    drawWrappedText('Autorizamos que nos sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.', 10); y -= 5;
+
+    drawText('3.5 Costos económicos:', 10, true);
+    drawWrappedText('Nos comprometemos a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.', 10); y -= 5;
+
+    drawText('3.6 Tratamiento de Datos:', 10, true);
+    drawWrappedText('Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual hemos podido consultar.', 10); y -= 5;
+
+    drawText('3.7 Declaración y Modalidad de la Sesión:', 10, true);
     const modalidad = datos.consentimiento?.modalidad || 'presencial';
     const decPareja = `Declaramos y damos fe de que nosotros, ${paciente1.nombre} y ${paciente2.nombre}, hemos leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se nos ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a nuestra entera satisfacción.`;
     drawWrappedText(decPareja, 10); y -= 20;
@@ -204,6 +213,7 @@ async function crearPDFParejas(datos) {
     drawText(`Ubicación: ${paciente1.ciudad || ''}, ${paciente1.departamento || ''}, ${paciente1.pais}`, 9);
     drawText(`Tel: ${paciente1.telefonoContacto} | Email: ${paciente1.email}`, 9);
     drawText(`EPS / Servicio de Salud: ${paciente1.eps}`, 9, true);
+    drawText(`Emergencia: ${paciente1.contactoEmergenciaNombre || 'No Registrado'} (${paciente1.contactoEmergenciaTelefono || 'N/A'})`, 9);
     y -= 10;
 
     // --- DATOS PACIENTE 2 ---
@@ -213,6 +223,7 @@ async function crearPDFParejas(datos) {
     drawText(`Ubicación: ${paciente2.ciudad || ''}, ${paciente2.departamento || ''}, ${paciente2.pais}`, 9);
     drawText(`Tel: ${paciente2.telefonoContacto} | Email: ${paciente2.email}`, 9);
     drawText(`EPS / Servicio de Salud: ${paciente2.eps}`, 9, true);
+    drawText(`Emergencia: ${paciente2.contactoEmergenciaNombre || 'No Registrado'} (${paciente2.contactoEmergenciaTelefono || 'N/A'})`, 9);
     y -= 20;
 
     // --- FIRMAS ---
@@ -241,33 +252,63 @@ export default async function handler(request, response) {
     const action = request.query.action;
 
     try {
-        // --- BLOQUE GET (Lectura) ---
+        // --- BLOQUE GET (Lectura del Dashboard Retrocompatible) ---
         if (request.method === 'GET') {
             
             if (action === 'getAll') {
                 const results = [];
                 
+                // Buscar en Individuales (Pero asegurándose que no haya parejas viejas ocultas aquí)
                 const snapshotIndividuales = await db.collection('consents').orderBy('fecha', 'desc').get();
                 snapshotIndividuales.forEach(doc => {
                     const data = doc.data();
-                    results.push({
-                        id: doc.id,
-                        nombre: data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Sin Nombre',
-                        email: data.demograficos?.email || 'Sin Email',
-                        tipo: 'individual',
-                        fecha: data.fecha
-                    });
+                    const d = data.demograficos || {};
+                    const isOldCouple = data.tipo === 'pareja' || d.nombreCompleto1 !== undefined;
+
+                    if (isOldCouple) {
+                        const n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
+                        const n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                        results.push({
+                            id: doc.id,
+                            nombre: `${n1} y ${n2}`,
+                            email: d.email1 || d.email || 'Sin Email',
+                            tipo: 'pareja',
+                            fecha: data.fecha
+                        });
+                    } else {
+                        results.push({
+                            id: doc.id,
+                            nombre: d.nombreCompleto || d.nombre || 'Sin Nombre',
+                            email: d.email || 'Sin Email',
+                            tipo: 'individual',
+                            fecha: data.fecha
+                        });
+                    }
                 });
 
+                // Buscar en Parejas (Nuevas y Viejas)
                 const snapshotParejas = await db.collection('consents_parejas').orderBy('fecha', 'desc').get();
                 snapshotParejas.forEach(doc => {
                     const data = doc.data();
-                    const n1 = data.paciente1?.nombreCompleto1 || data.paciente1?.nombre || 'P1';
-                    const n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
+                    let n1, n2, email;
+                    
+                    if (data.paciente1) {
+                        // Estructura Nueva
+                        n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'P1';
+                        n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
+                        email = data.paciente1.email1 || data.paciente1.email || 'Sin Email';
+                    } else {
+                        // Estructura Vieja
+                        const d = data.demograficos || {};
+                        n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
+                        n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                        email = d.email1 || d.email || 'Sin Email';
+                    }
+
                     results.push({
                         id: doc.id,
                         nombre: `${n1} y ${n2}`,
-                        email: data.paciente1?.email1 || data.paciente1?.email || 'Sin Email',
+                        email: email,
                         tipo: 'pareja',
                         fecha: data.fecha
                     });
