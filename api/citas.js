@@ -22,7 +22,7 @@ function formatICSDate(dateStr, timeStr) {
 export default async function handler(request, response) {
     
     // =======================================================
-    // BLOQUE GET: LECTURA PARA EL CALENDARIO 
+    // BLOQUE GET: LECTURA PARA EL CALENDARIO (Retrocompatible)
     // =======================================================
     if (request.method === 'GET') {
         try {
@@ -36,19 +36,45 @@ export default async function handler(request, response) {
 
             indivSnap.forEach(doc => {
                 const data = doc.data();
-                patientsMap[doc.id] = {
-                    nombre: data.demograficos?.nombreCompleto || data.demograficos?.nombre || 'Paciente',
-                    email: data.demograficos?.email || ''
-                };
+                const d = data.demograficos || {};
+                
+                // ¿Era una pareja guardada en 'consents' en la versión anterior?
+                if (data.tipo === 'pareja' || d.nombreCompleto1) {
+                    const n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
+                    const n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                    patientsMap[doc.id] = {
+                        nombre: `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`,
+                        email: d.email1 || d.email || ''
+                    };
+                } else {
+                    // Paciente individual normal
+                    patientsMap[doc.id] = {
+                        nombre: d.nombreCompleto || d.nombre || 'Paciente',
+                        email: d.email || ''
+                    };
+                }
             });
 
             parejaSnap.forEach(doc => {
                 const data = doc.data();
-                const n1 = data.paciente1?.nombreCompleto1 || data.paciente1?.nombre || 'P1';
-                const n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
+                let n1, n2, email;
+                
+                if (data.paciente1) {
+                    // Nueva estructura
+                    n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'P1';
+                    n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
+                    email = data.paciente1.email1 || data.paciente1.email || '';
+                } else {
+                    // Estructura vieja de parejas
+                    const d = data.demograficos || {};
+                    n1 = d.nombreCompleto1 || d.nombre1 || 'P1';
+                    n2 = d.nombreCompleto2 || d.nombre2 || 'P2';
+                    email = d.email1 || d.email || '';
+                }
+                
                 patientsMap[doc.id] = {
                     nombre: `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`,
-                    email: data.paciente1?.email1 || data.paciente1?.email || ''
+                    email: email
                 };
             });
 
@@ -164,6 +190,7 @@ END:VCALENDAR`;
                 });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
+                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -193,6 +220,7 @@ END:VCALENDAR`;
                     attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
                 });
 
+                // B. CORREO PARA EL TERAPEUTA (Y CUC)
                 await resend.emails.send({
                     from: 'Sistema de Citas <caminosdelser@emcotic.com>',
                     to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
@@ -242,6 +270,7 @@ END:VCALENDAR`;
                 const resend = new Resend(resendApiKey);
                 const primerNombre = nombrePaciente.split(' ')[0];
 
+                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -266,6 +295,7 @@ END:VCALENDAR`;
                     `
                 });
                 
+                // B. CORREO PARA EL TERAPEUTA (Y CUC)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: ['caminosdelser@emcotic.com', 'jarango5@cuc.edu.co'],
