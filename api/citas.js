@@ -36,7 +36,6 @@ export default async function handler(request, response) {
                 db.collection('historias_clinicas').get()
             ]);
 
-            // 1. Mapeo de Colección Individual (y Parejas Antiguas)
             indivSnap.forEach(doc => {
                 const data = doc.data();
                 const d = data.demograficos || data || {};
@@ -56,7 +55,6 @@ export default async function handler(request, response) {
                 }
             });
 
-            // 2. Mapeo de Colección de Parejas Nuevas
             parejaSnap.forEach(doc => {
                 const data = doc.data();
                 let n1, n2, email;
@@ -80,13 +78,11 @@ export default async function handler(request, response) {
 
             const eventosCalendario = [];
 
-            // 3. Procesar las historias clínicas para extraer citas y sesiones
             histSnap.forEach(doc => {
                 const data = doc.data();
                 const pacienteId = doc.id;
                 const infoPaciente = patientsMap[pacienteId] || { nombre: 'Paciente Sin Nombre', email: '' };
 
-                // A. Extraer la PRÓXIMA CITA (Futura)
                 if (data.proximaCita && data.proximaCita.fecha && data.proximaCita.hora) {
                     const startDate = new Date(`${data.proximaCita.fecha}T${data.proximaCita.hora}:00-05:00`);
                     const endDate = new Date(startDate.getTime() + 90 * 60 * 1000); 
@@ -103,7 +99,6 @@ export default async function handler(request, response) {
                     });
                 }
 
-                // B. Extraer las SESIONES PASADAS (Bitácora)
                 if (data.evoluciones && Array.isArray(data.evoluciones)) {
                     data.evoluciones.forEach((evo, index) => {
                         if (evo.fecha) {
@@ -153,34 +148,51 @@ export default async function handler(request, response) {
                 const resend = new Resend(resendApiKey);
 
                 const icsDates = formatICSDate(fecha, hora);
-                const safeMeet = enlaceMeet ? enlaceMeet : '';
-                const meetDescription = enlaceMeet ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${safeMeet}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
-                const locationStr = enlaceMeet ? 'Videollamada (Google Meet)' : 'Consultorio Caminos del Ser';
-                const extraUrlStr = enlaceMeet ? `\nURL:${safeMeet}\nX-GOOGLE-CONFERENCE:${safeMeet}` : '';
+                
+                // Formateo seguro del enlace de Meet (Asegurando que tenga https://)
+                let meetUrl = enlaceMeet ? enlaceMeet.trim() : '';
+                if (meetUrl && !meetUrl.startsWith('http')) {
+                    meetUrl = 'https://' + meetUrl;
+                }
 
-                // AQUÍ SÍ SE QUEDA LA CUC: Para que se incruste en tu agenda
-                const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//CInformado//Citas//ES
-CALSCALE:GREGORIAN
-METHOD:REQUEST
-BEGIN:VEVENT
-UID:cita-${Date.now()}@caminosdelser.co
-DTSTAMP:${icsDates.stamp}
-DTSTART:${icsDates.start}
-DTEND:${icsDates.end}
-ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango (CUC)":mailto:jarango5@cuc.edu.co
-SUMMARY:Sesión de Psicología - ${nombrePaciente}
-DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.
-LOCATION:${locationStr}${extraUrlStr}
-STATUS:CONFIRMED
-SEQUENCE:0
-END:VEVENT
-END:VCALENDAR`;
+                const meetDescription = meetUrl ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${meetUrl}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
 
+                // Construcción de archivo .ics garantizando estándar \r\n y etiquetas nativas
+                const icsLines = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'PRODID:-//CInformado//Citas//ES',
+                    'CALSCALE:GREGORIAN',
+                    'METHOD:REQUEST',
+                    'BEGIN:VEVENT',
+                    `UID:cita-${Date.now()}@caminosdelser.co`,
+                    `DTSTAMP:${icsDates.stamp}`,
+                    `DTSTART:${icsDates.start}`,
+                    `DTEND:${icsDates.end}`,
+                    'ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
+                    `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}`,
+                    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
+                    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango (CUC)":mailto:jarango5@cuc.edu.co',
+                    `SUMMARY:Sesión de Psicología - ${nombrePaciente}`,
+                    `DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.`
+                ];
+
+                // Inyección de etiquetas nativas para reconocimiento automático de Google Calendar
+                if (meetUrl) {
+                    icsLines.push(`LOCATION:${meetUrl}`);
+                    icsLines.push(`URL:${meetUrl}`);
+                    icsLines.push(`CONFERENCE;VALUE=URI:${meetUrl}`);
+                    icsLines.push(`X-GOOGLE-CONFERENCE:${meetUrl}`);
+                } else {
+                    icsLines.push(`LOCATION:Consultorio Caminos del Ser`);
+                }
+
+                icsLines.push('STATUS:CONFIRMED');
+                icsLines.push('SEQUENCE:0');
+                icsLines.push('END:VEVENT');
+                icsLines.push('END:VCALENDAR');
+
+                const icsContent = icsLines.join('\r\n');
                 const icsBuffer = Buffer.from(icsContent, 'utf-8');
                 
                 const localDateForText = new Date(`${fecha}T${hora}:00-05:00`);
@@ -190,7 +202,7 @@ END:VCALENDAR`;
                 });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
-                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
+                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data y Enlace Seguro)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -205,11 +217,10 @@ END:VCALENDAR`;
                                 <p>Tu próxima sesión de acompañamiento psicológico con <strong>Jorge Arango Castaño</strong> ha sido agendada exitosamente.</p>
                                 <div style="background-color: #f4f6f8; border-left: 4px solid #003366; padding: 15px; margin: 20px 0;">
                                     <p style="margin: 0 0 10px 0;"><strong>🗓️ Fecha y Hora:</strong><br>${fechaBonita}</p>
-                                    <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${safeMeet || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${safeMeet || 'Presencial'}</a></p>
+                                    <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${meetUrl || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${meetUrl || 'Presencial'}</a></p>
                                 </div>
                                 <p style="font-size: 13px; color: #666;"><i>💡 Sugerencia: En la parte superior de este correo o en los archivos adjuntos, encontrarás la opción para <strong>"Añadir a tu Calendario"</strong> (Google Calendar, Outlook, Apple). Haz clic allí para que te recordemos automáticamente.</i></p>
                                 
-                                <!-- NOTA HABEAS DATA -->
                                 <div style="background-color: #fff8e1; border: 1px solid #ffe082; padding: 15px; margin-top: 25px; border-radius: 8px; font-size: 12px; color: #856404; line-height: 1.5;">
                                     <strong>⚖️ Ley de Protección de Datos (Habeas Data)</strong><br>
                                     Recuerda que tienes derecho a actualizar y/o modificar tus datos de acuerdo a la ley de protección de datos. Si hay algún dato que cambió distinto a tu documento de identidad, infórmaselo de inmediato a tu psicólogo o en la próxima cita.
@@ -223,7 +234,7 @@ END:VCALENDAR`;
                 // B. CORREO PARA EL TERAPEUTA
                 await resend.emails.send({
                     from: 'Sistema de Citas <caminosdelser@emcotic.com>',
-                    to: 'caminosdelser@emcotic.com', // CUC REMOVED de destinatarios directos de email
+                    to: 'caminosdelser@emcotic.com',
                     subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333;">
@@ -232,7 +243,7 @@ END:VCALENDAR`;
                             <ul>
                                 <li><strong>Paciente:</strong> ${nombrePaciente}</li>
                                 <li><strong>Fecha:</strong> ${fechaBonita}</li>
-                                <li><strong>Meet:</strong> <a href="${safeMeet || '#'}">${safeMeet || 'Presencial'}</a></li>
+                                <li><strong>Meet:</strong> <a href="${meetUrl || '#'}">${meetUrl || 'Presencial'}</a></li>
                             </ul>
                             <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                         </div>
@@ -259,18 +270,15 @@ END:VCALENDAR`;
                 return response.status(400).json({ message: 'Falta el ID del paciente.' });
             }
 
-            // Borrar de la BD asignando null a la proximaCita
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: null
             }, { merge: true });
 
-            // Enviar correo de cancelación
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey && enviarCorreo && emailPaciente) {
                 const resend = new Resend(resendApiKey);
                 const primerNombre = nombrePaciente.split(' ')[0];
 
-                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data)
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -285,7 +293,6 @@ END:VCALENDAR`;
                                 <p>Te informamos que tu cita de psicología programada para el <strong>${fechaStr}</strong> ha sido cancelada.</p>
                                 <p>Si deseas reprogramarla, por favor ponte en contacto con nosotros.</p>
                                 
-                                <!-- NOTA HABEAS DATA -->
                                 <div style="background-color: #fff8e1; border: 1px solid #ffe082; padding: 15px; margin-top: 25px; border-radius: 8px; font-size: 12px; color: #856404; line-height: 1.5;">
                                     <strong>⚖️ Ley de Protección de Datos (Habeas Data)</strong><br>
                                     Recuerda que tienes derecho a actualizar y/o modificar tus datos de acuerdo a la ley de protección de datos. Si hay algún dato que cambió distinto a tu documento de identidad, infórmaselo de inmediato a tu psicólogo o en la próxima cita.
@@ -295,10 +302,9 @@ END:VCALENDAR`;
                     `
                 });
                 
-                // B. CORREO PARA EL TERAPEUTA
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
-                    to: 'caminosdelser@emcotic.com', // CUC REMOVED
+                    to: 'caminosdelser@emcotic.com', 
                     subject: `❌ CITA CANCELADA: ${primerNombre}`,
                     html: `<p>Se ha cancelado correctamente la cita de <strong>${nombrePaciente}</strong> programada para el ${fechaStr}.</p>`
                 });
