@@ -24,7 +24,7 @@ function formatICSDate(dateStr, timeStr) {
 export default async function handler(request, response) {
     
     // =======================================================
-    // BLOQUE GET: LECTURA PARA EL CALENDARIO (Retrocompatible)
+    // BLOQUE GET: LECTURA PARA EL CALENDARIO
     // =======================================================
     if (request.method === 'GET') {
         try {
@@ -191,6 +191,11 @@ export default async function handler(request, response) {
                     extraUrlStr = `\r\nURL:${meetUrl}\r\nCONFERENCE;VALUE=URI:${meetUrl}\r\nX-GOOGLE-CONFERENCE:${meetUrl}`;
                 }
 
+                // 1. Limpieza de seguridad para evitar que saltos de línea rompan el archivo .ics
+                const safeDescription = meetDescription.replace(/\r?\n/g, '\\n');
+                const safeLocation = locationStr.replace(/\r?\n/g, ', ');
+                const safeName = nombrePaciente.replace(/["\r\n]/g, '');
+
                 // Construcción de archivo .ics garantizando estándar \r\n y etiquetas nativas
                 const icsLines = [
                     'BEGIN:VCALENDAR',
@@ -204,11 +209,11 @@ export default async function handler(request, response) {
                     `DTSTART:${icsDates.start}`,
                     `DTEND:${icsDates.end}`,
                     'ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
-                    `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}`,
+                    `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${safeName}":mailto:${emailPaciente}`,
                     'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
-                    `SUMMARY:Sesión de Psicología - ${nombrePaciente}`,
-                    `DESCRIPTION:${meetDescription}`,
-                    `LOCATION:${locationStr}`
+                    `SUMMARY:Sesión de Psicología - ${safeName}`,
+                    `DESCRIPTION:${safeDescription}`,
+                    `LOCATION:${safeLocation}`
                 ];
 
                 if (meetUrl) {
@@ -258,7 +263,12 @@ export default async function handler(request, response) {
                             </div>
                         </div>
                     `,
-                    attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
+                    // 2. Especificación explícita del MIME TYPE para que los correos lo reconozcan
+                    attachments: [{ 
+                        filename: 'invitacion-sesion.ics', 
+                        content: icsBuffer,
+                        contentType: 'text/calendar; method=REQUEST'
+                    }]
                 });
 
                 // B. CORREO PARA EL TERAPEUTA
@@ -278,7 +288,12 @@ export default async function handler(request, response) {
                             <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                         </div>
                     `,
-                    attachments: [{ filename: 'invitacion-sesion.ics', content: icsBuffer }]
+                    // 2. Especificación explícita del MIME TYPE
+                    attachments: [{ 
+                        filename: 'invitacion-sesion.ics', 
+                        content: icsBuffer,
+                        contentType: 'text/calendar; method=REQUEST'
+                    }]
                 });
             }
 
