@@ -95,7 +95,12 @@ export default async function handler(request, response) {
                         end: endDate.toISOString(),
                         backgroundColor: '#4f46e5',
                         borderColor: '#4338ca',
-                        extendedProps: { tipo: 'Futura', meet: data.enlaceMeet || '', email: infoPaciente.email }
+                        extendedProps: { 
+                            tipo: 'Futura', 
+                            meet: data.enlaceMeet || '', 
+                            email: infoPaciente.email,
+                            direccion: data.direccionConsultorio || '' 
+                        }
                     });
                 }
 
