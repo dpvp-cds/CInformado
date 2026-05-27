@@ -47,8 +47,11 @@ export default async function handler(request, response) {
         else if (request.method === 'POST') {
             const { backupData, pinSeguridad } = request.body;
 
-            // 🛡️ PROTECCIÓN EXTREMA: PIN Maestro
-            if (pinSeguridad !== 'JAC-RESCATE-2026') {
+            // 🛡️ PROTECCIÓN EXTREMA (A prueba de espacios fantasmas y leyendo Vercel)
+            const masterPin = (process.env.MASTER_PIN || 'JAC-RESCATE-2026').trim();
+            const inputPin = (pinSeguridad || '').trim();
+
+            if (inputPin !== masterPin) {
                 return response.status(401).json({ message: 'Acceso Denegado. PIN de seguridad incorrecto.' });
             }
 
