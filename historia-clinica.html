@@ -17,10 +17,6 @@
         .input-styled:focus, .textarea-styled:focus { outline: none; border-color: #003366; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
         
         .min-h-input { min-height: 48px !important; }
-
-        .tab-btn { padding: 10px 20px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .tab-btn.active { border-bottom-color: #003366; color: #003366; }
-        .tab-btn:hover:not(.active) { color: #003366; background-color: #f3f4f6; border-radius: 8px 8px 0 0; }
         
         .strike-indicator { transition: all 0.3s; }
         .strike-active { background-color: #ef4444; border-color: #ef4444; }
@@ -154,10 +150,20 @@
                     </div>
                 </div>
 
-                <div class="flex border-b border-gray-200 no-print overflow-x-auto">
-                    <button class="tab-btn active whitespace-nowrap" onclick="switchTab('tab-sesion-cero')">1. Sesión Cero (HALCÓN)</button>
-                    <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-plan-trabajo')">2. Plan de Trabajo</button>
-                    <button class="tab-btn text-gray-500 whitespace-nowrap" onclick="switchTab('tab-evolucion')">3. Bitácora & Evolución</button>
+                <!-- PESTAÑAS DE NAVEGACIÓN (NUEVO DISEÑO RESALTADO) -->
+                <div class="flex bg-gray-200/70 p-1.5 rounded-xl border border-gray-200 no-print overflow-x-auto space-x-2 mb-6 shadow-inner">
+                    <button class="tab-btn bg-[#003366] text-white shadow-md rounded-lg px-6 py-3 font-bold flex items-center whitespace-nowrap transition-all" onclick="switchTab('tab-sesion-cero', this)">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                        1. Sesión Cero (HALCÓN)
+                    </button>
+                    <button class="tab-btn text-gray-600 hover:bg-white hover:text-[#003366] rounded-lg px-6 py-3 font-bold flex items-center whitespace-nowrap transition-all" onclick="switchTab('tab-plan-trabajo', this)">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        2. Plan de Trabajo
+                    </button>
+                    <button class="tab-btn text-gray-600 hover:bg-white hover:text-[#003366] rounded-lg px-6 py-3 font-bold flex items-center whitespace-nowrap transition-all" onclick="switchTab('tab-evolucion', this)">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        3. Bitácora & Evolución
+                    </button>
                 </div>
 
                 <div id="tab-sesion-cero" class="card print:mt-4">
@@ -323,7 +329,15 @@
                                         <label class="block text-xs font-semibold text-indigo-700 mb-1" title="El sistema recordará este enlace para este paciente.">Enlace Google Meet</label>
                                         <input type="url" id="citaMeet" class="input-styled text-sm bg-white border-indigo-200 focus:border-indigo-500" placeholder="https://meet.google.com/xxx-xxxx-xxx">
                                     </div>
-                                    <button onclick="agendarCita()" id="btnAgendar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center">
+                                    <div class="mt-3 flex items-center bg-indigo-100/50 border border-indigo-200 rounded-lg px-3 py-2">
+                                        <input type="checkbox" id="citaPresencial" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer" onchange="toggleDireccion()">
+                                        <label for="citaPresencial" class="ml-2 text-sm font-bold text-indigo-800 cursor-pointer">Cita Predominantemente Presencial</label>
+                                    </div>
+                                    <div id="boxDireccion" class="hidden mt-1">
+                                        <label class="block text-xs font-semibold text-indigo-700 mb-1" title="El sistema recordará esta dirección.">Dirección del Consultorio</label>
+                                        <input type="text" id="citaDireccion" class="input-styled text-sm bg-white border-indigo-200 focus:border-indigo-500" placeholder="Ej. Edificio X, Consultorio 101, Ciudad">
+                                    </div>
+                                    <button onclick="agendarCita()" id="btnAgendar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center mt-2">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                                         Agendar y Enviar Correos
                                     </button>
@@ -765,6 +779,12 @@
             else { box.classList.add('hidden'); document.getElementById('pruebaResultados').required = false; document.getElementById('pruebaResultados').value = ''; }
         }
 
+        function toggleDireccion() {
+            const box = document.getElementById('boxDireccion');
+            if (document.getElementById('citaPresencial').checked) { box.classList.remove('hidden'); } 
+            else { box.classList.add('hidden'); }
+        }
+
         async function fetchPatientData(id) {
             try {
                 let data;
@@ -883,6 +903,11 @@
                             if (histData.enlaceMeet) {
                                 document.getElementById('citaMeet').value = histData.enlaceMeet;
                             }
+                            if (histData.direccionConsultorio) {
+                                document.getElementById('citaDireccion').value = histData.direccionConsultorio;
+                            } else {
+                                document.getElementById('citaDireccion').value = 'Consultorio Caminos del Ser';
+                            }
                             if (histData.proximaCita && histData.proximaCita.fecha) {
                                 document.getElementById('bannerProximaCita').textContent = `${formatearFechaAmigable(histData.proximaCita.fecha)} a las ${histData.proximaCita.hora}`;
                             }
@@ -913,6 +938,8 @@
             const fecha = document.getElementById('citaFecha').value;
             const hora = document.getElementById('citaHora').value;
             const enlaceMeet = document.getElementById('citaMeet').value;
+            const isPresencial = document.getElementById('citaPresencial').checked;
+            const direccionConsultorio = document.getElementById('citaDireccion').value;
             const nombrePaciente = document.getElementById('pacienteNombre').textContent;
 
             if (!fecha || !hora) {
@@ -935,7 +962,9 @@
                         nombrePaciente: nombrePaciente,
                         fecha: fecha,
                         hora: hora,
-                        enlaceMeet: enlaceMeet
+                        enlaceMeet: enlaceMeet,
+                        isPresencial: isPresencial,
+                        direccionConsultorio: direccionConsultorio
                     }) 
                 });
 
@@ -1014,9 +1043,13 @@
             finally { btn.textContent = originalText; btn.disabled = false; }
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'border-b-[#003366]', 'text-[#003366]'));
-            event.target.classList.add('active', 'border-b-[#003366]', 'text-[#003366]');
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn text-gray-600 hover:bg-white hover:text-[#003366] rounded-lg px-6 py-3 font-bold flex items-center whitespace-nowrap transition-all';
+            });
+            const activeBtn = element || event.currentTarget;
+            activeBtn.className = 'tab-btn bg-[#003366] text-white shadow-md rounded-lg px-6 py-3 font-bold flex items-center whitespace-nowrap transition-all';
+            
             document.getElementById('tab-sesion-cero').classList.add('hidden');
             document.getElementById('tab-plan-trabajo').classList.add('hidden');
             document.getElementById('tab-evolucion').classList.add('hidden');
@@ -1191,7 +1224,6 @@
             setTimeout(resizeAllTextareas, 50);
         }
 
-        // FUNCION PARA CERRAR EL MODAL QUE FALTABA
         function closeModal() {
             document.getElementById('sessionModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
