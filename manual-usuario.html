@@ -83,7 +83,7 @@
                     <h3 class="font-bold text-lg mb-2">Flujo para el Paciente</h3>
                     <p class="mb-2">Usted no necesita crear los pacientes manualmente. El flujo correcto es:</p>
                     <ol class="list-decimal list-inside space-y-1 ml-2">
-                        <li>Envíe el enlace público de su web al paciente (ej. <code>susitio.com/index.html</code> para individuos o <code>/parejas.html</code> para parejas).</li>
+                        <li>Envíe el enlace público de su web al paciente (ej. <code>https://cinformado.caminosdelser.co/index.html</code> para individuos o <code>https://cinformado.caminosdelser.co/parejas.html</code> para parejas).</li>
                         <li>El paciente llena sus datos, acepta los términos y firma desde su celular o computador.</li>
                         <li>El sistema genera automáticamente el PDF, se lo envía al paciente por correo y a usted le llega una notificación.</li>
                         <li>El paciente aparecerá mágicamente en su <strong>Dashboard Principal</strong>.</li>
@@ -92,10 +92,38 @@
                 <p><strong>Nota Habeas Data:</strong> Si un paciente cambia de número de teléfono o dirección, usted puede actualizar estos datos ingresando a su "Historia Clínica" y haciendo clic en el botón gris <em>"Actualizar Datos"</em> en la esquina superior derecha.</p>
             </section>
 
-            <!-- 3. HISTORIA CLÍNICA -->
+            <!-- 3. DASHBOARD PRINCIPAL -->
             <section class="card">
                 <h2 class="text-2xl font-bold text-[#003366] border-b pb-2 mb-4 flex items-center">
                     <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">3</span>
+                    Centro de Comando (Dashboard)
+                </h2>
+                <p class="mb-4">El portal principal es la pantalla de inicio del sistema. Una vez que un paciente firma su consentimiento, su expediente aparece aquí de manera automática y en tiempo real.</p>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-bold text-[#003366]">A. Organización Inteligente</h3>
+                        <p class="text-sm">En la esquina superior derecha del panel de pacientes, encontrará un filtro. Puede ordenar su base de datos alfabéticamente (A-Z), por los más recientes, los más antiguos, o agruparlos visualmente separando a los individuos de las parejas.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-[#003366]">B. Accesos Directos (Menú Superior)</h3>
+                        <p class="text-sm">Desde la barra de navegación superior, usted puede saltar a los otros módulos del sistema: <strong>🗓️ Agenda</strong>, <strong>$ Pagos</strong>, <strong>📖 Manual</strong> y descargar un <strong>Backup</strong> de seguridad en un clic.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-[#003366]">C. Gestión del Expediente</h3>
+                        <p class="text-sm">Cada paciente listado en la tabla cuenta con tres acciones disponibles:</p>
+                        <ul class="list-disc list-inside space-y-1 ml-4 text-sm mt-1">
+                            <li><strong>Historia Clínica:</strong> Abre el módulo de gestión existencial (HALCÓN, Plan y Bitácora).</li>
+                            <li><strong>📄 Consentimiento:</strong> Muestra los términos aceptados, las firmas y permite actualizar datos demográficos.</li>
+                            <li><strong>Papelera (Roja):</strong> <span class="text-red-600 font-bold">¡Cuidado!</span> Borra permanentemente toda la información del paciente. Esta acción no se puede deshacer (a menos que tenga un Backup reciente).</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. HISTORIA CLÍNICA -->
+            <section class="card">
+                <h2 class="text-2xl font-bold text-[#003366] border-b pb-2 mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">4</span>
                     Gestión Existencial (Historia Clínica)
                 </h2>
                 <p class="mb-4">Al ingresar al expediente de un paciente desde el Dashboard, encontrará un diseño de pestañas estructurado metodológicamente:</p>
@@ -120,10 +148,10 @@
                 </div>
             </section>
 
-            <!-- 4. AGENDAMIENTO -->
+            <!-- 5. AGENDAMIENTO -->
             <section class="card">
                 <h2 class="text-2xl font-bold text-[#003366] border-b pb-2 mb-4 flex items-center">
-                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">4</span>
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">5</span>
                     Agenda y Notificaciones
                 </h2>
                 <p class="mb-4">El agendamiento se realiza directamente desde la <strong>Historia Clínica</strong> del paciente, en el recuadro morado de la derecha.</p>
@@ -135,10 +163,10 @@
                 </ul>
             </section>
 
-            <!-- 5. FINANZAS -->
+            <!-- 6. FINANZAS -->
             <section class="card">
                 <h2 class="text-2xl font-bold text-[#003366] border-b pb-2 mb-4 flex items-center">
-                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">5</span>
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">6</span>
                     Control Financiero
                 </h2>
                 <div class="flex items-start bg-green-50 p-4 rounded-lg border border-green-200">
@@ -155,10 +183,10 @@
                 <p class="text-sm mt-3">Puede consultar los ingresos por semana, mes o año ingresando al botón <strong>"$ Pagos"</strong> en el menú superior del Dashboard.</p>
             </section>
 
-            <!-- 6. BACKUP Y RESTAURACIÓN -->
+            <!-- 7. BACKUP Y RESTAURACIÓN -->
             <section class="card">
                 <h2 class="text-2xl font-bold text-[#003366] border-b pb-2 mb-4 flex items-center">
-                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">6</span>
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-lg">7</span>
                     Bóveda de Seguridad (Backups)
                 </h2>
                 <p class="mb-4">Usted es el único dueño de sus datos. Le recomendamos hacer un backup cada viernes o al cierre de mes.</p>
@@ -171,7 +199,7 @@
                         <h3 class="font-bold text-red-700">¿Cómo restaurar los datos en caso de pérdida?</h3>
                         <p class="text-sm">Si borra un paciente por accidente o hay un fallo general:</p>
                         <ol class="list-decimal list-inside space-y-1 ml-2 text-sm">
-                            <li>Escriba en su navegador la URL secreta: <code>susitio.com/restaurar-db.html</code></li>
+                            <li>Escriba en su navegador la URL secreta: <code>https://cinformado.caminosdelser.co/restaurar-db.html</code></li>
                             <li>Suba el archivo <code>.json</code> que guardó previamente.</li>
                             <li>Ingrese su PIN Maestro de Seguridad configurado en Vercel.</li>
                             <li>Haga clic en <em>Restaurar</em>. Sus datos volverán al estado exacto en el que estaban al momento del backup.</li>
