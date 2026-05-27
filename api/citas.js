@@ -130,32 +130,61 @@ export default async function handler(request, response) {
     // =======================================================
     else if (request.method === 'POST') {
         try {
-            const { pacienteId, emailPaciente, nombrePaciente, fecha, hora, enlaceMeet } = request.body;
+            const { pacienteId, emailPaciente, nombrePaciente, fecha, hora, enlaceMeet, isPresencial, direccionConsultorio } = request.body;
 
             if (!pacienteId || !emailPaciente || !fecha || !hora) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
             }
 
-            // 1. Guardar la cita y el enlace en la base de datos
+            // 1. Guardar la cita y enlaces/direcciones en la base de datos
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: { fecha, hora },
-                enlaceMeet: enlaceMeet || ''
+                enlaceMeet: enlaceMeet || '',
+                direccionConsultorio: direccionConsultorio || ''
             }, { merge: true });
 
             // 2. Lógica de Correos y Calendario (.ics)
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey) {
                 const resend = new Resend(resendApiKey);
-
                 const icsDates = formatICSDate(fecha, hora);
                 
-                // Formateo seguro del enlace de Meet (Asegurando que tenga https://)
+                // Formateo seguro del enlace de Meet
                 let meetUrl = enlaceMeet ? enlaceMeet.trim() : '';
                 if (meetUrl && !meetUrl.startsWith('http')) {
                     meetUrl = 'https://' + meetUrl;
                 }
 
-                const meetDescription = meetUrl ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${meetUrl}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
+                // Configuración de Textos y Ubicación según Modalidad
+                let meetDescription = '';
+                let locationStr = '';
+                let emailLocationHtml = '';
+                let extraUrlStr = '';
+
+                if (isPresencial) {
+                    const dir = direccionConsultorio || 'Consultorio Caminos del Ser';
+                    locationStr = dir;
+                    meetDescription = `Tu sesión se llevará a cabo de forma PRESENCIAL en la siguiente dirección:\\n${dir}`;
+                    if (meetUrl) meetDescription += `\\n\\n(Enlace alternativo virtual por si hay contratiempos: ${meetUrl})`;
+
+                    emailLocationHtml = `
+                        <p style="margin: 0 0 10px 0;"><strong>📍 Modalidad:</strong> Presencial</p>
+                        <p style="margin: 0 0 10px 0;"><strong>🏢 Dirección:</strong> ${dir}</p>
+                        ${meetUrl ? `<p style="margin: 0; font-size: 12px; color: #666;"><strong>Enlace alternativo (Virtual):</strong> <a href="${meetUrl}" target="_blank" style="color: #003366;">${meetUrl}</a></p>` : ''}
+                    `;
+                } else {
+                    locationStr = meetUrl ? 'Videollamada (Google Meet)' : 'Consultorio Caminos del Ser';
+                    meetDescription = meetUrl ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${meetUrl}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
+                    
+                    emailLocationHtml = `
+                        <p style="margin: 0 0 10px 0;"><strong>📍 Modalidad:</strong> Virtual (Videollamada)</p>
+                        <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${meetUrl || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${meetUrl || 'Pendiente de enlace'}</a></p>
+                    `;
+                }
+
+                if (meetUrl) {
+                    extraUrlStr = `\r\nURL:${meetUrl}\r\nCONFERENCE;VALUE=URI:${meetUrl}\r\nX-GOOGLE-CONFERENCE:${meetUrl}`;
+                }
 
                 // Construcción de archivo .ics garantizando estándar \r\n y etiquetas nativas
                 const icsLines = [
@@ -172,19 +201,15 @@ export default async function handler(request, response) {
                     'ORGANIZER;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
                     `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${nombrePaciente}":mailto:${emailPaciente}`,
                     'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:caminosdelser@emcotic.com',
-                    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango (CUC)":mailto:jarango5@cuc.edu.co',
                     `SUMMARY:Sesión de Psicología - ${nombrePaciente}`,
-                    `DESCRIPTION:Tu sesión psicológica ha sido agendada.\\n\\n${meetDescription}\\n\\nTe esperamos.`
+                    `DESCRIPTION:${meetDescription}`,
+                    `LOCATION:${locationStr}`
                 ];
 
-                // Inyección de etiquetas nativas para reconocimiento automático de Google Calendar
                 if (meetUrl) {
-                    icsLines.push(`LOCATION:${meetUrl}`);
                     icsLines.push(`URL:${meetUrl}`);
                     icsLines.push(`CONFERENCE;VALUE=URI:${meetUrl}`);
                     icsLines.push(`X-GOOGLE-CONFERENCE:${meetUrl}`);
-                } else {
-                    icsLines.push(`LOCATION:Consultorio Caminos del Ser`);
                 }
 
                 icsLines.push('STATUS:CONFIRMED');
@@ -202,7 +227,7 @@ export default async function handler(request, response) {
                 });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
-                // A. CORREO PARA EL PACIENTE (Con Nota de Habeas Data y Enlace Seguro)
+                // A. CORREO PARA EL PACIENTE
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -217,7 +242,7 @@ export default async function handler(request, response) {
                                 <p>Tu próxima sesión de acompañamiento psicológico con <strong>Jorge Arango Castaño</strong> ha sido agendada exitosamente.</p>
                                 <div style="background-color: #f4f6f8; border-left: 4px solid #003366; padding: 15px; margin: 20px 0;">
                                     <p style="margin: 0 0 10px 0;"><strong>🗓️ Fecha y Hora:</strong><br>${fechaBonita}</p>
-                                    <p style="margin: 0;"><strong>💻 Enlace de Conexión:</strong><br><a href="${meetUrl || '#'}" target="_blank" style="color: #003366; text-decoration: underline;">${meetUrl || 'Presencial'}</a></p>
+                                    ${emailLocationHtml}
                                 </div>
                                 <p style="font-size: 13px; color: #666;"><i>💡 Sugerencia: En la parte superior de este correo o en los archivos adjuntos, encontrarás la opción para <strong>"Añadir a tu Calendario"</strong> (Google Calendar, Outlook, Apple). Haz clic allí para que te recordemos automáticamente.</i></p>
                                 
@@ -243,7 +268,7 @@ export default async function handler(request, response) {
                             <ul>
                                 <li><strong>Paciente:</strong> ${nombrePaciente}</li>
                                 <li><strong>Fecha:</strong> ${fechaBonita}</li>
-                                <li><strong>Meet:</strong> <a href="${meetUrl || '#'}">${meetUrl || 'Presencial'}</a></li>
+                                <li><strong>Modalidad:</strong> ${isPresencial ? 'Presencial' : 'Virtual'}</li>
                             </ul>
                             <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                         </div>
