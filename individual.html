@@ -36,18 +36,21 @@
 <body class="antialiased">
 
     <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-6 py-2">
-            <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex-shrink-0" title="Volver al inicio">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
+            </a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Atrás</a>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-12">
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento Informado Digital</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento Informado Individual</h1>
             <p class="text-center text-gray-600 mb-8" id="page-subtitle">Por favor, completa tus datos para generar y aceptar los términos del servicio.</p>
 
             <form id="demographicsForm" class="card space-y-6">
-                <h2 class="text-2xl font-bold border-b pb-3">1. Información del Paciente</h2>
+                <h2 class="text-2xl font-bold border-b pb-3 text-[#003366]">1. Información del Paciente</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label for="fechaDiligenciamiento" class="block mb-2 font-medium">Fecha de Diligenciamiento</label><input type="date" id="fechaDiligenciamiento" name="fechaDiligenciamiento" class="input-styled bg-gray-100" readonly></div>
                     <div><label for="nombreCompleto" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="nombreCompleto" name="nombreCompleto" class="input-styled" required></div>
@@ -64,13 +67,14 @@
                     <div><label for="email" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email" name="email" class="input-styled" required></div>
                     <div><label id="labelEps" for="eps" class="block mb-2 font-medium">EPS / Servicio de Salud</label><input type="text" id="eps" name="eps" class="input-styled" required></div>
 
-                    <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold">Contacto de Emergencia</h3></div>
+                    <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold text-[#003366]">Contacto de Emergencia</h3></div>
                     <div><label for="contactoEmergenciaNombre" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre" name="contactoEmergenciaNombre" class="input-styled" required></div>
                     <div><label for="contactoEmergenciaTelefono" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono" name="contactoEmergenciaTelefono" class="input-styled" required></div>
                 </div>
 
                 <div id="adultoResponsableContainer" class="hidden pt-6 border-t mt-6 space-y-6">
-                     <h3 class="text-xl font-semibold text-red-700">Información del Adulto Responsable</h3>
+                     <h3 class="text-xl font-semibold text-red-700">Información del Adulto Responsable (Acudiente)</h3>
+                     <p class="text-sm text-gray-500">Al ser paciente menor de edad, se requiere la información de su representante legal.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div><label for="nombreAcudiente" class="block mb-2 font-medium">Nombre Completo del Acudiente</label><input type="text" id="nombreAcudiente" name="nombreAcudiente" class="input-styled"></div>
                         <div>
@@ -81,6 +85,8 @@
                             </select>
                         </div>
                         <div><label for="documentoAcudiente" class="block mb-2 font-medium">Documento de Identidad del Acudiente</label><input type="text" id="documentoAcudiente" name="documentoAcudiente" class="input-styled"></div>
+                        
+                        <!-- ESTE ES EL CAMPO NUEVO INTEGRADO PERFECTAMENTE -->
                         <div><label for="telefonoAcudiente" class="block mb-2 font-medium">Teléfono del Acudiente</label><input type="tel" id="telefonoAcudiente" name="telefonoAcudiente" class="input-styled"></div>
                     </div>
                 </div>
@@ -90,8 +96,8 @@
                 </div>
             </form>
 
-            <div id="consentimientoContainer" class="hidden card">
-                <h2 class="text-2xl font-bold border-b pb-3 mb-6">2. Términos del Consentimiento Informado</h2>
+            <div id="consentimientoContainer" class="hidden card mt-8">
+                <h2 class="text-2xl font-bold border-b pb-3 mb-6 text-[#003366]">2. Términos del Consentimiento Informado</h2>
                 <div class="prose max-w-none space-y-4 text-gray-700">
                     <p id="consentimientoIntro"></p>
                     <div class="space-y-2"><h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p></div>
@@ -126,7 +132,7 @@
 
     <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
         <div class="container mx-auto text-center">
-             <p class="text-gray-400">&copy; 2025 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
+             <p class="text-gray-400">&copy; 2026 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
             <div class="mt-4"><a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Política de tratamiento de datos</a><span class="text-gray-600 mx-2">|</span><a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso Terapeuta</a></div>
         </div>
     </footer>
@@ -134,7 +140,7 @@
     <div id="cookieBanner" class="bg-[#003366] text-white p-4 flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 shadow-2xl">
         <p class="text-sm text-center">
             Utilizamos cookies y datos de sesión para garantizar la funcionalidad del formulario y mejorar tu experiencia. Al continuar, aceptas nuestra
-            <a href="http://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de tratamiento de datos.</a>
+            <a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de tratamiento de datos.</a>
         </p>
         <button id="acceptCookies" class="bg-white text-[#003366] font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition-colors text-sm flex-shrink-0">Aceptar</button>
     </div>
@@ -173,8 +179,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     async function cargarGeodata() {
         try {
-            // AJUSTE: Usar la ruta absoluta a la raíz para asegurar que lo encuentre
-            const response = await fetch('/geodata.json'); 
+            // Lectura de la ruta relativa (el archivo geodata.json debe estar en la misma carpeta)
+            const response = await fetch('geodata.json'); 
             if (!response.ok) {
                  throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -182,31 +188,31 @@ document.addEventListener('DOMContentLoaded', async function() {
             poblarPaises();
         } catch (error) { 
             console.error('Error cargando geodata.json:', error); 
-            // Podrías mostrar un mensaje en el UI si es crítico
-            // alert("Hubo un problema cargando la lista de países.");
         }
     }
 
     function poblarPaises() {
         paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
-        const continentes = ['Norteamérica', 'Centroamérica', 'Suramérica'];
-        continentes.forEach(continente => {
+        // Leemos los continentes de forma 100% dinámica (igual que en parejas.html)
+        Object.keys(geodata).forEach(continente => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = continente;
-            Object.keys(geodata[continente]).sort().forEach(pais => {
-                const option = document.createElement('option');
-                option.value = pais;
-                option.textContent = pais;
-                optgroup.appendChild(option);
-            });
-            paisSelect.appendChild(optgroup);
+            if (geodata[continente]) {
+                Object.keys(geodata[continente]).sort().forEach(pais => {
+                    const option = document.createElement('option');
+                    option.value = pais;
+                    option.textContent = pais;
+                    optgroup.appendChild(option);
+                });
+                paisSelect.appendChild(optgroup);
+            }
         });
     }
 
     function poblarDepartamentos(pais) {
         departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
         let departamentos = [];
-        for (const cont in geodata) { if (geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
+        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
         departamentos.sort().forEach(depto => {
             const option = document.createElement('option');
             option.value = depto;
@@ -218,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function poblarMunicipios(pais, depto) {
         municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
         let municipios = [];
-        for (const cont in geodata) { if (geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
+        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
         municipios.sort().forEach(mun => {
             const option = document.createElement('option');
             option.value = mun;
@@ -288,10 +294,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             const edad = calcularEdad(this.value);
             edadInput.value = edad;
             adultoResponsableContainer.classList.toggle('hidden', edad >= 18);
+            
+            // LA CLAVE: Hacer los campos del acudiente obligatorios (incluyendo el teléfono)
             document.getElementById('nombreAcudiente').required = edad < 18;
             document.getElementById('tipoAcudiente').required = edad < 18;
             document.getElementById('documentoAcudiente').required = edad < 18;
             document.getElementById('telefonoAcudiente').required = edad < 18;
+            
             actualizarTipoDocumento();
         }
     });
