@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consentimiento Informado Digital - Caminos del Ser</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firma Digital - Caminos del Ser</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,362 +13,196 @@
         .btn-brand { background-color: #003366; color: white; padding: 12px 30px; border-radius: 9999px; font-weight: 600; transition: all 0.3s ease; }
         .btn-brand:hover { background-color: #002244; }
         .btn-brand:disabled { background-color: #99aabb; cursor: not-allowed; }
-        .card { background-color: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .input-styled, .select-styled {
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 10px 15px;
-            width: 100%;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .input-styled:focus, .select-styled:focus {
-            outline: none;
-            border-color: #003366;
-            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
-        }
-        #cookieBanner {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-            transform: translateY(100%); transition: transform 0.5s ease-out;
-        }
-        #cookieBanner.show { transform: translateY(0); }
+        .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        #firma-canvas { border: 2px solid #003366; background-color: #fafbfc; border-radius: 8px; display: block; margin: 0 auto; touch-action: none; width: 100%; height: 150px; }
     </style>
 </head>
 <body class="antialiased">
-
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex-shrink-0" title="Volver al inicio">
-                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-11 w-auto">
-            </a>
-            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366]">Atrás</a>
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-2 flex justify-between items-center">
+            <a href="https://www.caminosdelser.co" target="_blank" class="flex-shrink-0"><img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10"></a>
+            <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#003366] flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>Volver al Consentimiento</a>
         </div>
     </header>
-
     <main class="container mx-auto px-6 py-12">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Consentimiento Informado Individual</h1>
-            <p class="text-center text-gray-600 mb-8" id="page-subtitle">Por favor, completa tus datos para generar y aceptar los términos del servicio.</p>
-
-            <form id="demographicsForm" class="card space-y-6">
-                <h2 class="text-2xl font-bold border-b pb-3 text-[#003366]">1. Información del Paciente</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label for="fechaDiligenciamiento" class="block mb-2 font-medium">Fecha de Diligenciamiento</label><input type="date" id="fechaDiligenciamiento" name="fechaDiligenciamiento" class="input-styled bg-gray-100" readonly></div>
-                    <div><label for="nombreCompleto" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="nombreCompleto" name="nombreCompleto" class="input-styled" required></div>
-                    <div><label for="fechaNacimiento" class="block mb-2 font-medium">Fecha de Nacimiento</label><input type="date" id="fechaNacimiento" name="fechaNacimiento" class="input-styled" required></div>
-                    <div><label for="edad" class="block mb-2 font-medium">Edad</label><input type="text" id="edad" name="edad" class="input-styled bg-gray-100" readonly></div>
-                    <div><label for="pais" class="block mb-2 font-medium">País de Residencia</label><select id="pais" name="pais" class="select-styled" required></select></div>
-                    <div id="departamentoContainer" class="hidden"><label for="departamento" class="block mb-2 font-medium">Departamento</label><select id="departamento" name="departamento" class="select-styled"></select></div>
-                    <div id="municipioContainer" class="hidden"><label for="municipio" class="block mb-2 font-medium">Municipio / Ciudad</label><select id="municipio" name="municipio" class="select-styled"></select></div>
-                    <div id="ciudadContainer" class="hidden"><label for="ciudad" class="block mb-2 font-medium">Ciudad de Residencia</label><input type="text" id="ciudad" name="ciudad" class="input-styled"></div>
-                    <div><label for="tipoDocumento" class="block mb-2 font-medium">Tipo de Documento</label><select id="tipoDocumento" name="tipoDocumento" class="select-styled" required></select></div>
-                    <div><label for="documentoIdentidad" class="block mb-2 font-medium">Documento de Identidad</label><input type="text" id="documentoIdentidad" name="documentoIdentidad" class="input-styled" required></div>
-                    <div class="md:col-span-2"><label for="direccion" class="block mb-2 font-medium">Dirección de Residencia</label><input type="text" id="direccion" name="direccion" class="input-styled" required></div>
-                    <div><label for="telefonoContacto" class="block mb-2 font-medium">Teléfono de Contacto</label><input type="tel" id="telefonoContacto" name="telefonoContacto" class="input-styled" required></div>
-                    <div><label for="email" class="block mb-2 font-medium">Correo Electrónico</label><input type="email" id="email" name="email" class="input-styled" required></div>
-                    <div><label id="labelEps" for="eps" class="block mb-2 font-medium">EPS / Servicio de Salud</label><input type="text" id="eps" name="eps" class="input-styled" required></div>
-
-                    <div class="md:col-span-2 pt-4 border-t"><h3 class="text-lg font-semibold text-[#003366]">Contacto de Emergencia</h3></div>
-                    <div><label for="contactoEmergenciaNombre" class="block mb-2 font-medium">Nombre Completo</label><input type="text" id="contactoEmergenciaNombre" name="contactoEmergenciaNombre" class="input-styled" required></div>
-                    <div><label for="contactoEmergenciaTelefono" class="block mb-2 font-medium">Teléfono</label><input type="tel" id="contactoEmergenciaTelefono" name="contactoEmergenciaTelefono" class="input-styled" required></div>
-                </div>
-
-                <div id="adultoResponsableContainer" class="hidden pt-6 border-t mt-6 space-y-6">
-                     <h3 class="text-xl font-semibold text-red-700">Información del Adulto Responsable (Acudiente)</h3>
-                     <p class="text-sm text-gray-500">Al ser paciente menor de edad, se requiere la información de su representante legal.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label for="nombreAcudiente" class="block mb-2 font-medium">Nombre Completo del Acudiente</label><input type="text" id="nombreAcudiente" name="nombreAcudiente" class="input-styled"></div>
-                        <div>
-                            <label for="tipoAcudiente" class="block mb-2 font-medium">Tipo de Acudiente</label>
-                            <select id="tipoAcudiente" name="tipoAcudiente" class="select-styled">
-                                <option value="">Seleccione...</option>
-                                <option value="Papá">Papá</option><option value="Mamá">Mamá</option><option value="Abuelo">Abuelo</option><option value="Abuela">Abuela</option><option value="Tío">Tío</option><option value="Tía">Tía</option><option value="Hermano">Hermano</option><option value="Hermana">Hermana</option><option value="Representante Legal">Representante Legal</option><option value="Tutor Legal">Tutor Legal</option>
-                            </select>
-                        </div>
-                        <div><label for="documentoAcudiente" class="block mb-2 font-medium">Documento de Identidad del Acudiente</label><input type="text" id="documentoAcudiente" name="documentoAcudiente" class="input-styled"></div>
-                        
-                        <!-- ESTE ES EL CAMPO NUEVO INTEGRADO PERFECTAMENTE -->
-                        <div><label for="telefonoAcudiente" class="block mb-2 font-medium">Teléfono del Acudiente</label><input type="tel" id="telefonoAcudiente" name="telefonoAcudiente" class="input-styled"></div>
+        <div class="max-w-xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-center mb-4">Paso Final: Firma Digital</h1>
+            <p class="text-base md:text-lg text-gray-600 text-center mb-8">Por favor, firma en el recuadro o sube una imagen de tu firma para completar tu consentimiento.</p>
+            <form id="firmaForm">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4 text-[#003366]">Tu Firma</h2>
+                    <p class="mb-4 text-gray-600 text-sm">Al firmar, confirmas que has leído y aceptado los términos en la página anterior.</p>
+                    
+                    <div class="mb-4 flex justify-center w-full">
+                        <canvas id="firma-canvas" width="350" height="150" class="cursor-crosshair"></canvas>
                     </div>
-                </div>
-                <div id="form-error" class="text-red-600 text-center font-semibold hidden">Por favor, completa todos los campos requeridos.</div>
-                <div class="text-center pt-4">
-                    <button type="button" id="showConsentButton" class="btn-brand">Continuar y Leer Consentimiento</button>
+                    
+                    <!-- Botones de Acción: Borrar o Subir Imagen -->
+                    <div class="flex justify-center items-center space-x-4 mb-6">
+                        <button type="button" id="limpiarFirma" class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">
+                            Borrar Dibujo
+                        </button>
+                        <span class="text-gray-300">|</span>
+                        <label class="text-sm font-medium text-[#003366] hover:underline cursor-pointer flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Subir Imagen
+                            <input type="file" id="uploadFirma" accept="image/png, image/jpeg, image/jpg" class="hidden">
+                        </label>
+                    </div>
+
+                    <div id="server-error-message" class="hidden mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center"></div>
+                    <div id="success-message" class="hidden mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg text-center"></div>
+                    <div class="mt-8 text-center"><button type="submit" id="submitButton" class="btn-brand text-lg">Firmar y Enviar</button></div>
                 </div>
             </form>
-
-            <div id="consentimientoContainer" class="hidden card mt-8">
-                <h2 class="text-2xl font-bold border-b pb-3 mb-6 text-[#003366]">2. Términos del Consentimiento Informado</h2>
-                <div class="prose max-w-none space-y-4 text-gray-700">
-                    <p id="consentimientoIntro"></p>
-                    <div class="space-y-2"><h4 class="font-bold">2.1 Confidencialidad:</h4><p id="confidencialidadTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.2 Propósito de la Intervención:</h4><p>El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.3 Naturaleza del Proceso:</h4><p>Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.</p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.4 Proceso de evaluación:</h4><p id="evaluacionTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.5 Costos económicos:</h4><p id="costosTexto"></p></div>
-                    <div class="space-y-2"><h4 class="font-bold">2.6 Tratamiento de Datos:</h4><p>Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.</p></div>
-                </div>
-
-                <!-- SECCIÓN DE MODALIDAD Y DECLARACIÓN -->
-                <div class="mt-8 pt-6 border-t">
-                    <h3 class="font-bold text-lg mb-2 text-[#003366]">Modalidad de esta Sesión de Consentimiento</h3>
-                    <p class="text-sm text-gray-600 mb-4">Por favor, selecciona cómo se está llevando a cabo esta sesión.</p>
-                    <div class="flex items-center space-x-6 mb-6">
-                        <label class="flex items-center cursor-pointer font-medium"><input type="radio" name="modalidad" value="presencial" class="mr-2 h-4 w-4 text-[#003366] focus:ring-[#003366]" checked> Presencial</label>
-                        <label class="flex items-center cursor-pointer font-medium"><input type="radio" name="modalidad" value="virtual" class="mr-2 h-4 w-4 text-[#003366] focus:ring-[#003366]"> Virtual</label>
-                    </div>
-
-                    <h3 class="font-bold text-lg mb-4 text-[#003366]">Declaración y Aceptación Final</h3>
-                    <div class="flex items-start bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <input id="aceptoTerminos" name="aceptoTerminos" type="checkbox" class="mt-1 h-5 w-5 text-[#003366] border-gray-300 rounded focus:ring-[#003366] cursor-pointer">
-                        <label for="aceptoTerminos" id="labelAceptoTerminos" class="ml-3 block text-sm text-gray-700 leading-relaxed cursor-pointer"></label>
-                    </div>
-                </div>
-
-                <div id="consent-error" class="text-red-600 text-center font-semibold hidden mt-4">Debes aceptar los términos para poder continuar.</div>
-                <div class="text-center mt-6"><button type="button" id="continueToSignatureButton" class="btn-brand" disabled>Continuar a la Firma</button></div>
-            </div>
         </div>
     </main>
 
-    <footer class="bg-[#1a1a1a] text-white py-8 mt-16">
-        <div class="container mx-auto text-center">
-             <p class="text-gray-400">&copy; 2026 Jorge Arango Castaño - Caminos del Ser. Todos los derechos reservados.</p>
-            <div class="mt-4"><a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Política de tratamiento de datos</a><span class="text-gray-600 mx-2">|</span><a href="login.html" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">Acceso Terapeuta</a></div>
-        </div>
-    </footer>
-    
-    <div id="cookieBanner" class="bg-[#003366] text-white p-4 flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 shadow-2xl">
-        <p class="text-sm text-center">
-            Utilizamos cookies y datos de sesión para garantizar la funcionalidad del formulario y mejorar tu experiencia. Al continuar, aceptas nuestra
-            <a href="https://www.caminosdelser.co/politicadatos.html" target="_blank" class="text-white font-semibold underline hover:text-gray-200">Política de tratamiento de datos.</a>
-        </p>
-        <button id="acceptCookies" class="bg-white text-[#003366] font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition-colors text-sm flex-shrink-0">Aceptar</button>
-    </div>
-    
-<script>
-document.addEventListener('DOMContentLoaded', async function() {
-    const demographicsForm = document.getElementById('demographicsForm');
-    const consentimientoContainer = document.getElementById('consentimientoContainer');
-    const showConsentButton = document.getElementById('showConsentButton');
-    const continueToSignatureButton = document.getElementById('continueToSignatureButton');
-    const fechaNacimientoInput = document.getElementById('fechaNacimiento');
-    const edadInput = document.getElementById('edad');
-    const adultoResponsableContainer = document.getElementById('adultoResponsableContainer');
-    const paisSelect = document.getElementById('pais');
-    const tipoDocumentoSelect = document.getElementById('tipoDocumento');
-    const departamentoContainer = document.getElementById('departamentoContainer');
-    const municipioContainer = document.getElementById('municipioContainer');
-    const ciudadContainer = document.getElementById('ciudadContainer');
-    const departamentoSelect = document.getElementById('departamento');
-    const municipioSelect = document.getElementById('municipio');
-    const cookieBanner = document.getElementById('cookieBanner');
-    const acceptCookiesButton = document.getElementById('acceptCookies');
-    const labelEps = document.getElementById('labelEps');
-
-    let geodata = {};
-
-    if (localStorage.getItem('cookiesAccepted') !== 'true') {
-        setTimeout(() => { cookieBanner.classList.add('show'); }, 500);
-    }
-    acceptCookiesButton.addEventListener('click', () => {
-        localStorage.setItem('cookiesAccepted', 'true');
-        cookieBanner.classList.remove('show');
-    });
-
-    document.getElementById('fechaDiligenciamiento').valueAsDate = new Date();
-    
-    async function cargarGeodata() {
-        try {
-            // Lectura de la ruta relativa (el archivo geodata.json debe estar en la misma carpeta)
-            const response = await fetch('geodata.json'); 
-            if (!response.ok) {
-                 throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            geodata = await response.json();
-            poblarPaises();
-        } catch (error) { 
-            console.error('Error cargando geodata.json:', error); 
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessionData = sessionStorage.getItem('consentimiento_demograficos');
+        if (!sessionData) {
+            window.location.href = 'index.html';
+            return;
         }
-    }
 
-    function poblarPaises() {
-        paisSelect.innerHTML = '<option value="">Seleccione un país</option>';
-        // Leemos los continentes de forma 100% dinámica (igual que en parejas.html)
-        Object.keys(geodata).forEach(continente => {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = continente;
-            if (geodata[continente]) {
-                Object.keys(geodata[continente]).sort().forEach(pais => {
-                    const option = document.createElement('option');
-                    option.value = pais;
-                    option.textContent = pais;
-                    optgroup.appendChild(option);
+        const canvas = document.getElementById('firma-canvas');
+        const ctx = canvas.getContext('2d');
+        const firmaForm = document.getElementById('firmaForm');
+        const submitButton = document.getElementById('submitButton');
+        const serverErrorDiv = document.getElementById('server-error-message');
+        const successDiv = document.getElementById('success-message');
+        
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function resizeCanvas() {
+            const ratio = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#003366';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function getEventPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches && e.touches[0]) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        const startDrawing = (e) => { isDrawing = true; const pos = getEventPosition(e);[lastX, lastY] = [pos.x, pos.y]; };
+        const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getEventPosition(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(pos.x, pos.y); ctx.stroke();[lastX, lastY] = [pos.x, pos.y]; };
+        const stopDrawing = () => isDrawing = false;
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        document.getElementById('limpiarFirma').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); serverErrorDiv.classList.add('hidden'); successDiv.classList.add('hidden'); };
+        
+        // Lógica para inyectar la imagen subida en el canvas
+        document.getElementById('uploadFirma').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Calculamos la escala para que la firma quepa perfecta sin deformarse
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const w = img.width * scale;
+                    const h = img.height * scale;
+                    const x = (canvas.width / 2) - (w / 2);
+                    const y = (canvas.height / 2) - (h / 2);
+                    ctx.drawImage(img, x, y, w, h);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+        const isCanvasEmpty = () => !new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer).some(color => color !== 0);
+
+        firmaForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (isCanvasEmpty()) { serverErrorDiv.textContent = 'Por favor, realiza o sube tu firma para continuar.'; serverErrorDiv.classList.remove('hidden'); return; }
+            
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+
+            try {
+                const datosCrudos = JSON.parse(sessionData);
+                const firmaDigital = canvas.toDataURL('image/png');
+
+                const finalData = {
+                    demograficos: {
+                        nombre: datosCrudos.nombreCompleto,
+                        email: datosCrudos.email,
+                        fechaDiligenciamiento: datosCrudos.fechaDiligenciamiento,
+                        fechaNacimiento: datosCrudos.fechaNacimiento,
+                        edad: datosCrudos.edad,
+                        pais: datosCrudos.pais,
+                        departamento: datosCrudos.departamento || null,
+                        ciudad: datosCrudos.municipio || datosCrudos.ciudad || null,
+                        direccion: datosCrudos.direccion,
+                        eps: datosCrudos.eps || null, 
+                        tipoDocumento: datosCrudos.tipoDocumento,
+                        documentoIdentidad: datosCrudos.documentoIdentidad,
+                        telefonoContacto: datosCrudos.telefonoContacto,
+                        contactoEmergenciaNombre: datosCrudos.contactoEmergenciaNombre,
+                        contactoEmergenciaTelefono: datosCrudos.contactoEmergenciaTelefono,
+                        nombreAcudiente: datosCrudos.nombreAcudiente || null,
+                        tipoAcudiente: datosCrudos.tipoAcudiente || null,
+                        documentoAcudiente: datosCrudos.documentoAcudiente || null,
+                        telefonoAcudiente: datosCrudos.telefonoAcudiente || null
+                    },
+                    consentimiento: {
+                        fechaAceptacion: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        modalidad: datosCrudos.modalidad || 'presencial' // APLICADO
+                    },
+                    firmaDigital: firmaDigital
+                };
+
+                // APUNTANDO A LA API UNIFICADA
+                const response = await fetch('/api/consentimientos?action=saveIndividual', {
+                    method: 'POST',
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' }
                 });
-                paisSelect.appendChild(optgroup);
+
+                if (response.ok) {
+                    sessionStorage.removeItem('consentimiento_demograficos');
+                    successDiv.textContent = '¡Consentimiento enviado con éxito! Gracias por tu confianza.';
+                    successDiv.classList.remove('hidden');
+                    document.getElementById('limpiarFirma').disabled = true;
+                    submitButton.textContent = 'Enviado';
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Hubo un problema en el servidor.');
+                }
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                serverErrorDiv.textContent = `Error: ${error.message}`;
+                serverErrorDiv.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Firmar y Enviar';
             }
         });
-    }
-
-    function poblarDepartamentos(pais) {
-        departamentoSelect.innerHTML = '<option value="">Seleccione Departamento</option>';
-        let departamentos = [];
-        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais]) { departamentos = Object.keys(geodata[cont][pais]); break; } }
-        departamentos.sort().forEach(depto => {
-            const option = document.createElement('option');
-            option.value = depto;
-            option.textContent = depto;
-            departamentoSelect.appendChild(option);
-        });
-    }
-
-    function poblarMunicipios(pais, depto) {
-        municipioSelect.innerHTML = '<option value="">Seleccione Municipio</option>';
-        let municipios = [];
-        for (const cont in geodata) { if (geodata[cont] && geodata[cont][pais] && geodata[cont][pais][depto]) { municipios = geodata[cont][pais][depto]; break; } }
-        municipios.sort().forEach(mun => {
-            const option = document.createElement('option');
-            option.value = mun;
-            option.textContent = mun;
-            municipioSelect.appendChild(option);
-        });
-    }
-
-    paisSelect.addEventListener('change', () => {
-        const pais = paisSelect.value;
-        departamentoContainer.classList.add('hidden');
-        municipioContainer.classList.add('hidden');
-        ciudadContainer.classList.add('hidden');
-        
-        if (pais === 'Colombia') {
-            poblarDepartamentos(pais);
-            departamentoContainer.classList.remove('hidden');
-            labelEps.textContent = 'EPS';
-        } else if (pais) {
-            ciudadContainer.classList.remove('hidden');
-            labelEps.textContent = 'Servicio de Salud';
-        } else {
-            labelEps.textContent = 'EPS / Servicio de Salud';
-        }
-        
-        actualizarTipoDocumento();
     });
-
-    departamentoSelect.addEventListener('change', () => {
-        municipioContainer.classList.remove('hidden');
-        poblarMunicipios(paisSelect.value, departamentoSelect.value);
-    });
-    
-    await cargarGeodata();
-
-    function calcularEdad(fechaNacimiento) {
-        const hoy = new Date();
-        const nacimiento = new Date(fechaNacimiento);
-        let edad = hoy.getFullYear() - nacimiento.getFullYear();
-        const mes = hoy.getMonth() - nacimiento.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) { edad--; }
-        return edad;
-    }
-    
-    function actualizarTipoDocumento() {
-        const pais = paisSelect.value;
-        const edad = parseInt(edadInput.value, 10);
-        tipoDocumentoSelect.innerHTML = '';
-        let opciones = [];
-        if (isNaN(edad)) { 
-             opciones = pais === 'Colombia' ? ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'] : ['Documento Nacional de Identidad', 'Pasaporte'];
-        } else if (edad < 18) {
-            opciones = ['Tarjeta de Identidad'];
-        } else {
-            opciones = pais === 'Colombia' ? ['Cédula de Ciudadanía', 'Cédula de Extranjería', 'Pasaporte'] : ['Documento Nacional de Identidad', 'Pasaporte'];
-        }
-        opciones.forEach(op => {
-            const option = document.createElement('option');
-            option.value = op;
-            option.textContent = op;
-            tipoDocumentoSelect.appendChild(option);
-        });
-    }
-
-    fechaNacimientoInput.addEventListener('change', function() {
-        if (this.value) {
-            const edad = calcularEdad(this.value);
-            edadInput.value = edad;
-            adultoResponsableContainer.classList.toggle('hidden', edad >= 18);
-            
-            // LA CLAVE: Hacer los campos del acudiente obligatorios (incluyendo el teléfono)
-            document.getElementById('nombreAcudiente').required = edad < 18;
-            document.getElementById('tipoAcudiente').required = edad < 18;
-            document.getElementById('documentoAcudiente').required = edad < 18;
-            document.getElementById('telefonoAcudiente').required = edad < 18;
-            
-            actualizarTipoDocumento();
-        }
-    });
-
-    // Función para actualizar dinámicamente el texto de aceptación final
-    function updateDeclaracionText() {
-        const nombre = document.getElementById('nombreCompleto').value || '[Nombre del Paciente]';
-        const modalidad = document.querySelector('input[name="modalidad"]:checked').value;
-        const labelObj = document.getElementById('labelAceptoTerminos');
-        
-        labelObj.innerHTML = `Declaro y doy fe de que yo, <strong>${nombre}</strong>, he leído y comprendido este documento durante una sesión <strong>${modalidad}</strong> con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción. Al marcar esta casilla, acepto todos los términos descritos anteriormente.`;
-    }
-
-    // Escuchar cambios en la modalidad
-    document.querySelectorAll('input[name="modalidad"]').forEach(radio => {
-        radio.addEventListener('change', updateDeclaracionText);
-    });
-
-    showConsentButton.addEventListener('click', function() {
-        if (!demographicsForm.checkValidity()) {
-            demographicsForm.reportValidity();
-            document.getElementById('form-error').classList.remove('hidden');
-            return;
-        }
-        document.getElementById('form-error').classList.add('hidden');
-        demographicsForm.classList.add('hidden');
-        consentimientoContainer.classList.remove('hidden');
-        document.getElementById('page-subtitle').textContent = "Por favor, lee y acepta los siguientes términos para continuar.";
-        window.scrollTo(0, 0);
-
-        const formData = new FormData(demographicsForm);
-        const datos = Object.fromEntries(formData.entries());
-        const esMenor = parseInt(datos.edad, 10) < 18;
-
-        document.getElementById('consentimientoIntro').textContent = esMenor ? `Yo, ${datos.nombreAcudiente}, con documento de identidad ${datos.documentoAcudiente}, actuando como acudiente en calidad de ${datos.tipoAcudiente}, de ${datos.nombreCompleto}, con documento de identidad ${datos.documentoIdentidad}.` : `Yo, ${datos.nombreCompleto}, identificado/a con documento de identidad ${datos.documentoIdentidad}, declaro que:`;
-        document.getElementById('confidencialidadTexto').textContent = esMenor ? 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente menor de edad, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.' : 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.';
-        document.getElementById('evaluacionTexto').textContent = esMenor ? 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.' : 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.';
-        document.getElementById('costosTexto').textContent = esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.';
-        
-        updateDeclaracionText();
-    });
-
-    const aceptoTerminosCheckbox = document.getElementById('aceptoTerminos');
-    aceptoTerminosCheckbox.addEventListener('change', function() {
-        continueToSignatureButton.disabled = !this.checked;
-        if (this.checked) document.getElementById('consent-error').classList.add('hidden');
-    });
-
-    continueToSignatureButton.addEventListener('click', function() {
-        if (!aceptoTerminosCheckbox.checked) {
-            document.getElementById('consent-error').classList.remove('hidden');
-            return;
-        }
-        const formData = new FormData(demographicsForm);
-        const datosDemograficos = Object.fromEntries(formData.entries());
-        // Agregamos la modalidad a la memoria del sistema
-        datosDemograficos.modalidad = document.querySelector('input[name="modalidad"]:checked').value;
-
-        try {
-            sessionStorage.setItem('consentimiento_demograficos', JSON.stringify(datosDemograficos));
-            window.location.href = 'firma.html';
-        } catch (error) {
-            console.error("Error al guardar en sessionStorage:", error);
-            document.getElementById('consent-error').textContent = "Hubo un error al preparar los datos. Intenta de nuevo.";
-            document.getElementById('consent-error').classList.remove('hidden');
-        }
-    });
-});
-</script>
+    </script>
 </body>
 </html>
