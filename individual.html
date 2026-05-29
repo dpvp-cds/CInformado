@@ -173,10 +173,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     async function cargarGeodata() {
         try {
-            const response = await fetch('geodata.json');
+            // AJUSTE: Usar la ruta absoluta a la raíz para asegurar que lo encuentre
+            const response = await fetch('/geodata.json'); 
+            if (!response.ok) {
+                 throw new Error(`HTTP error! status: ${response.status}`);
+            }
             geodata = await response.json();
             poblarPaises();
-        } catch (error) { console.error('Error cargando geodata.json:', error); }
+        } catch (error) { 
+            console.error('Error cargando geodata.json:', error); 
+            // Podrías mostrar un mensaje en el UI si es crítico
+            // alert("Hubo un problema cargando la lista de países.");
+        }
     }
 
     function poblarPaises() {
