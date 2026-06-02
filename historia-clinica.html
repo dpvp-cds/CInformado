@@ -380,7 +380,7 @@
             <svg class="w-6 h-6 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <div>
                 <p class="font-bold text-sm">Borrador Restaurado</p>
-                <p class="text-xs">Se recuperó información no guardada.</p>
+                <p class="text-xs" id="toastBorradorDesc">Se recuperó información no guardada.</p>
             </div>
         </div>
     </main>
@@ -714,7 +714,8 @@
         function saveDraftPlan() { if(draftPlanKey) localStorage.setItem(draftPlanKey, JSON.stringify(planTrabajo)); }
 
         function restoreDrafts() {
-            let restored = false;
+            let restoredItems = [];
+            
             const draftCero = localStorage.getItem(draftCeroKey);
             if (draftCero) {
                 try {
@@ -736,13 +737,13 @@
                     document.getElementById('nutricion').value = data.nutricion || '';
                     document.getElementById('cierreSesionCero').value = data.cierreSesionCero || '';
                     document.getElementById('compromisoStrikes').checked = data.compromisoStrikes || false;
-                    restored = true;
+                    restoredItems.push('Sesión Cero');
                 } catch(e) {}
             }
 
             const draftPlan = localStorage.getItem(draftPlanKey);
             if (draftPlan) {
-                try { planTrabajo = JSON.parse(draftPlan); renderPlan(); restored = true; } catch(e) {}
+                try { planTrabajo = JSON.parse(draftPlan); renderPlan(); restoredItems.push('Plan de Trabajo'); } catch(e) {}
             }
 
             const draftEvo = localStorage.getItem(draftEvoKey);
@@ -758,7 +759,7 @@
                     if(data.pruebaResultados) document.getElementById('pruebaResultados').value = data.pruebaResultados;
                     if(data.cierre) document.getElementById('evoCierre').value = data.cierre;
                     if(data.strikeAction) { const r = document.querySelector(`input[name="strikeAction"][value="${data.strikeAction}"]`); if(r) r.checked = true; }
-                    restored = true;
+                    restoredItems.push('Bitácora/Evolución');
                 } catch(e) {}
             }
             
@@ -769,14 +770,22 @@
                     if(data.perfil) document.getElementById('perfilEjecutivo').value = data.perfil;
                     if(data.proposito) document.getElementById('propositoVida').value = data.proposito;
                 } catch(e) { document.getElementById('perfilEjecutivo').value = draftPerfil; }
-                restored = true;
+                restoredItems.push('Perfil y Propósito');
             }
 
-            if(restored) {
+            if(restoredItems.length > 0) {
                 resizeAllTextareas();
+                
+                // Actualizamos el texto dinámicamente antes de mostrar la alerta
+                const descEl = document.getElementById('toastBorradorDesc');
+                if (descEl) {
+                    descEl.textContent = 'Recuperado en: ' + restoredItems.join(', ') + '.';
+                }
+
                 const toast = document.getElementById('toastBorrador');
                 toast.classList.remove('translate-y-20', 'opacity-0');
-                setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 4000);
+                // Extendimos el tiempo a 6 segundos para que haya tiempo de leerlo
+                setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 6000);
             }
         }
 
