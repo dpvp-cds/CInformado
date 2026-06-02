@@ -537,6 +537,7 @@
         let evoluciones = [];
         let planTrabajo = [];
         let globalEmailPaciente = '';
+        let globalFechaConsentimiento = null; // NUEVA VARIABLE PARA SESION 0
         
         let draftCeroKey = '';
         let draftPlanKey = '';
@@ -551,6 +552,12 @@
             if (!fechaStr) return '';
             const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             
+            // NUEVO: Manejo seguro de fechas ISO provenientes del consentimiento (ej: 2024-05-12T10:00:00Z)
+            if (fechaStr.includes('T')) {
+                const [ano, mes, dia] = fechaStr.split('T')[0].split('-');
+                return `${ano} - ${meses[parseInt(mes, 10) - 1]} - ${dia}`;
+            }
+
             if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
                 const [ano, mes, dia] = fechaStr.split('-');
                 return `${ano} - ${meses[parseInt(mes, 10) - 1]} - ${dia}`;
@@ -807,6 +814,12 @@
                 }
                 
                 globalIsParejaForEdit = isPareja;
+                
+                // NUEVO: CAPTURAR LA FECHA DE LA FIRMA PARA LA SESIÓN 0
+                globalFechaConsentimiento = (data.consentimiento && data.consentimiento.fechaAceptacion) 
+                                            || data.fechaDiligenciamiento 
+                                            || (data.demograficos ? data.demograficos.fechaDiligenciamiento : null);
+
                 let nombre, documento, edad, telefono;
                 
                 if (isPareja) {
@@ -913,7 +926,7 @@
                             }
 
                             if (histData.planTrabajo && histData.planTrabajo.length > 0) planTrabajo = histData.planTrabajo;
-                            if(histData.evoluciones && histData.evoluciones.length > 0) { evoluciones = histData.evoluciones; renderTimeline(); }
+                            if(histData.evoluciones && histData.evoluciones.length > 0) { evoluciones = histData.evoluciones; }
                             if(histData.strikes !== undefined) { currentStrikes = histData.strikes; updateStrikeUI(); }
                             
                             setTimeout(resizeAllTextareas, 100);
@@ -924,6 +937,9 @@
                 renderPlan();
                 setupAutoSave();
                 restoreDrafts();
+                
+                // NUEVO: Llama al renderizado SIEMPRE para que se pinte la Sesión 0 incluso si no hay otras sesiones
+                renderTimeline();
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
@@ -1128,10 +1144,17 @@
 
         function renderTimeline() {
             const container = document.getElementById('timelineContainer');
-            if (evoluciones.length === 0) { document.getElementById('emptyTimeline').classList.remove('hidden'); return; }
+            
+            // NUEVO: Verificamos que si no hay evoluciones PERO SÍ hay Sesión 0, no oculte la línea de tiempo
+            if (evoluciones.length === 0 && !globalFechaConsentimiento) { 
+                document.getElementById('emptyTimeline').classList.remove('hidden'); 
+                return; 
+            }
+            
             document.getElementById('emptyTimeline').classList.add('hidden');
             Array.from(container.children).forEach(child => { if(child.id !== 'emptyTimeline') container.removeChild(child); });
 
+            // Renderizamos las evoluciones normales (más recientes arriba)
             [...evoluciones].reverse().forEach((evo) => {
                 const card = document.createElement('div');
                 card.className = `timeline-card relative z-10 flex items-start group mb-4 print:mb-4 print:border-b print:border-gray-200 print:pb-4`;
@@ -1173,6 +1196,27 @@
                     </div>`;
                 container.appendChild(card);
             });
+            
+            // NUEVO: Inyectamos la Sesión 0 al final de todo
+            if (globalFechaConsentimiento) {
+                const cardCero = document.createElement('div');
+                cardCero.className = `timeline-card relative z-10 flex items-start group mb-4 print:mb-4 print:border-b print:border-gray-200 print:pb-4 cursor-default`; 
+                const fechaAmigableCero = formatearFechaAmigable(globalFechaConsentimiento);
+                
+                cardCero.innerHTML = `
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-green-600 shadow shrink-0 print:hidden">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div class="ml-4 w-full bg-green-50/60 p-4 rounded-xl border border-green-200 print:shadow-none print:border-none print:p-0 print:ml-0">
+                        <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
+                            <span class="font-bold text-green-800 text-sm">${fechaAmigableCero}</span>
+                            <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded shadow-sm border border-green-300">Admisión CInformado</span>
+                        </div>
+                        <h4 class="font-bold text-green-900 text-sm mb-1">Sesión 0: Consentimiento Informado</h4>
+                        <p class="text-sm text-green-800 font-medium">El paciente aceptó los términos legales, políticas de tratamiento de datos y firmó digitalmente el consentimiento que autoriza el inicio del proceso psicológico.</p>
+                    </div>`;
+                container.appendChild(cardCero);
+            }
         }
 
         function openModal(evoId) {
