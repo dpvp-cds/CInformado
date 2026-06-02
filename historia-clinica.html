@@ -1203,17 +1203,40 @@
                 cardCero.className = `timeline-card relative z-10 flex items-start group mb-4 print:mb-4 print:border-b print:border-gray-200 print:pb-4 cursor-default`; 
                 const fechaAmigableCero = formatearFechaAmigable(globalFechaConsentimiento);
                 
+                // Obtener datos dinámicos de la Sesión Cero para mostrar pago y motivo
+                const motivoCero = document.getElementById('motivoConsulta').value.trim();
+                const valorCero = document.getElementById('valorSesionCero').value;
+                const pagadoCero = document.getElementById('pagadoSesionCero').checked;
+                
+                // Extraer primeras 20 palabras del motivo
+                let snippetMotivo = "El paciente firmó el consentimiento para iniciar el proceso psicológico. Falta registrar motivo de consulta.";
+                if (motivoCero) {
+                    const words = motivoCero.split(/\s+/);
+                    snippetMotivo = words.slice(0, 20).join(" ") + (words.length > 20 ? "..." : "");
+                }
+
+                // Generar etiqueta visual del pago igual a la de Evolución
+                let badgePagoCero = '';
+                if (valorCero && Number(valorCero) > 0) {
+                    const pagoColor = pagadoCero ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200';
+                    const pagoIcon = pagadoCero ? '✓ Pagado' : '⏳ Pendiente';
+                    badgePagoCero = `<span class="print:hidden text-xs font-bold ${pagoColor} px-2 py-0.5 rounded ml-2 border shadow-sm">${formatCurrency(valorCero)} - ${pagoIcon}</span>`;
+                }
+
                 cardCero.innerHTML = `
                     <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-green-600 shadow shrink-0 print:hidden">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div class="ml-4 w-full bg-green-50/60 p-4 rounded-xl border border-green-200 print:shadow-none print:border-none print:p-0 print:ml-0">
                         <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
-                            <span class="font-bold text-green-800 text-sm">${fechaAmigableCero}</span>
-                            <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded shadow-sm border border-green-300">Admisión CInformado</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-green-800 text-sm">${fechaAmigableCero}</span>
+                                ${badgePagoCero}
+                            </div>
+                            <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded shadow-sm border border-green-300">Sesión Diagnóstica</span>
                         </div>
-                        <h4 class="font-bold text-green-900 text-sm mb-1">Sesión 0: Consentimiento Informado</h4>
-                        <p class="text-sm text-green-800 font-medium">El paciente aceptó los términos legales, políticas de tratamiento de datos y firmó digitalmente el consentimiento que autoriza el inicio del proceso psicológico.</p>
+                        <h4 class="font-bold text-green-900 text-sm mb-1">Sesión 0: Motivo de Consulta</h4>
+                        <p class="text-sm text-green-800 font-medium italic">"${snippetMotivo}"</p>
                     </div>`;
                 container.appendChild(cardCero);
             }
