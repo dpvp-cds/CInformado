@@ -1108,6 +1108,39 @@
         function addPlanRow() { planTrabajo.push({ sesion: `Sesión ${planTrabajo.length + 1}`, tema: '', objetivo: '', completado: false }); renderPlan(); saveDraftPlan(); }
         function removePlanRow(index) { planTrabajo.splice(index, 1); if (planTrabajo.length === 0) planTrabajo.push({ sesion: 'Sesión 1', tema: '', objetivo: '', completado: false }); renderPlan(); saveDraftPlan(); }
 
+        function printPlanOnly() {
+            // Poblar el nombre del paciente
+            const nombrePaciente = document.getElementById('pacienteNombre').textContent;
+            document.getElementById('printPlanPacienteName').textContent = 'PACIENTE: ' + nombrePaciente;
+            
+            // Poblar la tabla con el plan actual
+            const tbody = document.getElementById('printPlanTableBody');
+            tbody.innerHTML = '';
+            
+            planTrabajo.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="border border-gray-300 p-3 text-center font-bold text-gray-700">${index + 1}</td>
+                    <td class="border border-gray-300 p-3 whitespace-pre-wrap text-gray-800">${item.tema || ''}</td>
+                    <td class="border border-gray-300 p-3 whitespace-pre-wrap text-gray-800">${item.objetivo || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Activar la clase en el body para ocultar la HC completa y mostrar solo la hoja de ruta
+            document.body.classList.add('print-mode-plan');
+            
+            // Retraso minúsculo para asegurar que el navegador aplique los estilos antes de abrir PDF
+            setTimeout(() => {
+                window.print();
+                
+                // Remover la clase inmediatamente después de enviar la orden de impresión
+                setTimeout(() => {
+                    document.body.classList.remove('print-mode-plan');
+                }, 500);
+            }, 100);
+        }
+
         async function savePlan() {
             const id = new URLSearchParams(window.location.search).get('id');
             const btn = document.getElementById('btnSavePlan');
