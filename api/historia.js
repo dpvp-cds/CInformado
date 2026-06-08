@@ -1,5 +1,6 @@
 import { db } from '../lib/firebaseAdmin.js';
 import { verifyAuth } from '../lib/auth.js';
+import { sanitizePayload } from '../lib/sanitize.js';
 
 export default async function handler(request, response) {
     // 🛡️ CONTROL DE SEGURIDAD
@@ -21,7 +22,8 @@ export default async function handler(request, response) {
         }
 
         if (request.method === 'POST') {
-            const data = request.body;
+            // 🛡️ SANITIZACIÓN: Filtramos todos los campos de texto ingresados por el terapeuta
+            const data = sanitizePayload(request.body);
 
             switch (action) {
                 case 'saveHistoria':
