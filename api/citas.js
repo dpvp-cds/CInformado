@@ -1,12 +1,11 @@
 import { db } from '../lib/firebaseAdmin.js';
 import { Resend } from 'resend';
 import { Buffer } from 'buffer';
+import { verifyAuth } from '../lib/auth.js';
 
 // Helper para formatear fechas al estándar iCalendar (UTC)
 function formatICSDate(dateStr, timeStr) {
-    // Asumimos zona horaria de Colombia (UTC-5)
     const localDate = new Date(`${dateStr}T${timeStr}:00-05:00`);
-    // Duración ajustada a 1 hora y 30 minutos (90 minutos)
     const endLocalDate = new Date(localDate.getTime() + 90 * 60 * 1000); 
 
     const toUTC = (d) => {
@@ -22,6 +21,10 @@ function formatICSDate(dateStr, timeStr) {
 }
 
 export default async function handler(request, response) {
+    // 🛡️ CONTROL DE SEGURIDAD
+    if (!verifyAuth(request)) {
+        return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
+    }
     
     // =======================================================
     // BLOQUE GET: LECTURA PARA EL CALENDARIO
@@ -141,26 +144,22 @@ export default async function handler(request, response) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
             }
 
-            // 1. Guardar la cita y enlaces/direcciones en la base de datos
             await db.collection('historias_clinicas').doc(pacienteId).set({
                 proximaCita: { fecha, hora },
                 enlaceMeet: enlaceMeet || '',
                 direccionConsultorio: direccionConsultorio || ''
             }, { merge: true });
 
-            // 2. Lógica de Correos y Calendario (.ics)
             const resendApiKey = process.env.RESEND2_API_KEY;
             if (resendApiKey) {
                 const resend = new Resend(resendApiKey);
                 const icsDates = formatICSDate(fecha, hora);
                 
-                // Formateo seguro del enlace de Meet
                 let meetUrl = enlaceMeet ? enlaceMeet.trim() : '';
                 if (meetUrl && !meetUrl.startsWith('http')) {
                     meetUrl = 'https://' + meetUrl;
                 }
 
-                // Configuración de Textos y Ubicación según Modalidad
                 let meetDescription = '';
                 let locationStr = '';
                 let emailLocationHtml = '';
@@ -191,12 +190,10 @@ export default async function handler(request, response) {
                     extraUrlStr = `\r\nURL:${meetUrl}\r\nCONFERENCE;VALUE=URI:${meetUrl}\r\nX-GOOGLE-CONFERENCE:${meetUrl}`;
                 }
 
-                // 1. Limpieza de seguridad para evitar que saltos de línea rompan el archivo .ics
                 const safeDescription = meetDescription.replace(/\r?\n/g, '\\n');
                 const safeLocation = locationStr.replace(/\r?\n/g, ', ');
                 const safeName = nombrePaciente.replace(/["\r\n]/g, '');
 
-                // Construcción de archivo .ics garantizando estándar \r\n y etiquetas nativas
                 const icsLines = [
                     'BEGIN:VCALENDAR',
                     'VERSION:2.0',
@@ -237,7 +234,6 @@ export default async function handler(request, response) {
                 });
                 const primerNombre = nombrePaciente.split(' ')[0];
 
-                // A. CORREO PARA EL PACIENTE
                 await resend.emails.send({
                     from: 'Citas Caminos del Ser <caminosdelser@emcotic.com>',
                     to: emailPaciente,
@@ -263,7 +259,6 @@ export default async function handler(request, response) {
                             </div>
                         </div>
                     `,
-                    // 2. Especificación explícita del MIME TYPE para que los correos lo reconozcan
                     attachments: [{ 
                         filename: 'invitacion-sesion.ics', 
                         content: icsBuffer,
@@ -271,7 +266,6 @@ export default async function handler(request, response) {
                     }]
                 });
 
-                // B. CORREO PARA EL TERAPEUTA
                 await resend.emails.send({
                     from: 'Sistema de Citas <caminosdelser@emcotic.com>',
                     to: 'caminosdelser@emcotic.com',
@@ -288,7 +282,6 @@ export default async function handler(request, response) {
                             <p>El archivo de calendario está adjunto para que lo agregues a tu agenda personal. <strong>Verás al paciente en tu lista de invitados.</strong></p>
                         </div>
                     `,
-                    // 2. Especificación explícita del MIME TYPE
                     attachments: [{ 
                         filename: 'invitacion-sesion.ics', 
                         content: icsBuffer,
