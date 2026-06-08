@@ -29,12 +29,10 @@
                     <span class="text-lg mr-1">$</span> Pagos
                 </a>
                 
-                <!-- BOTÓN MANUAL DE USUARIO -->
                 <a href="manual-usuario.html" class="flex items-center text-purple-700 font-bold hover:text-purple-900 transition-colors bg-purple-50 px-4 py-2 rounded-full border border-purple-200 shadow-sm text-sm" title="Ver y descargar Manual de Usuario">
                     📖 Manual
                 </a>
 
-                <!-- BOTÓN DE BACKUP -->
                 <button onclick="window.open('/api/vault', '_blank')" class="flex items-center text-gray-600 hover:text-[#003366] transition-colors px-4 py-2 rounded-full bg-gray-100 hover:bg-blue-50 font-bold text-sm shadow-sm border border-gray-200" title="Descargar copia de seguridad completa">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     Backup
@@ -48,6 +46,30 @@
 
     <main class="flex-grow container mx-auto px-6 py-8 max-w-7xl">
         
+        <!-- ========================================== -->
+        <!-- BANNER DE PRUEBA: LUNES 14:10 -->
+        <!-- ========================================== -->
+        <div id="backupReminderBanner" class="hidden mb-8 bg-red-50 border-l-4 border-red-600 p-4 sm:p-6 rounded-r-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ring-1 ring-red-100">
+            <div class="flex items-start">
+                <div class="bg-red-100 p-2 rounded-full mr-4 flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-red-800 font-bold text-lg">Recordatorio de Seguridad Legal (TEST LUNES 14:10)</h3>
+                    <p class="text-red-700 text-sm mt-1">Ya pasaron las 14:10 del lunes. Es tu deber realizar y custodiar el backup de seguridad semanal.</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <button onclick="window.open('/api/vault', '_blank')" class="flex-1 md:flex-none bg-white text-red-600 border border-red-300 hover:bg-red-50 px-4 py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors text-center whitespace-nowrap">
+                    1. Descargar .json
+                </button>
+                <button onclick="confirmarBackupSemanal()" class="flex-1 md:flex-none bg-red-600 text-white hover:bg-red-700 px-4 py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors text-center whitespace-nowrap">
+                    2. Ya lo guardé
+                </button>
+            </div>
+        </div>
+        <!-- ========================================== -->
+
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-[#003366]">Expedientes de Pacientes</h1>
@@ -101,8 +123,7 @@
         let allPatients = []; // Array global para guardar los pacientes y poder filtrarlos
 
         document.addEventListener('DOMContentLoaded', () => {
-            const isAuthenticated = sessionStorage.getItem('consultorAuth');
-            if (isAuthenticated !== 'true') {
+            if (sessionStorage.getItem('consultorAuth') !== 'true') {
                 window.location.href = 'login.html';
                 return;
             }
@@ -114,8 +135,55 @@
             // Escuchar cambios en el selector de ordenamiento
             document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
 
+            // Iniciar flujos
             fetchPatients();
+            evaluarRecordatorioBackup();
+            
+            // Refrescar la evaluación cada minuto para que salte a las 14:10 exactas
+            setInterval(evaluarRecordatorioBackup, 60000);
         });
+
+        // =========================================================
+        // LÓGICA DE RECORDATORIO DE BACKUP (MODO PRUEBA LUNES 14:10)
+        // =========================================================
+        function evaluarRecordatorioBackup() {
+            const now = new Date();
+            const currentDay = now.getDay(); // 0 = Dom, 1 = Lun, ... 5 = Vie, 6 = Sab
+            
+            // Lógica para encontrar el timestamp del último Lunes a las 14:10
+            let daysSinceMonday = currentDay - 1;
+            if (daysSinceMonday < 0) {
+                daysSinceMonday += 7; 
+            }
+            
+            const lastMondayTarget = new Date(now);
+            lastMondayTarget.setDate(now.getDate() - daysSinceMonday);
+            lastMondayTarget.setHours(14, 10, 0, 0); // Fija a las 14:10:00
+
+            // Caso especial: Si hoy es lunes pero aún no son las 14:10, el "último lunes" fue hace 7 días.
+            if (currentDay === 1 && (now.getHours() < 14 || (now.getHours() === 14 && now.getMinutes() < 10))) {
+                lastMondayTarget.setDate(lastMondayTarget.getDate() - 7);
+            }
+
+            const targetTimestamp = lastMondayTarget.getTime();
+            const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
+            const banner = document.getElementById('backupReminderBanner');
+
+            // Si el terapeuta no ha confirmado después de esa fecha/hora crítica, mostramos el banner.
+            if (lastConfirmedTimestamp < targetTimestamp) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function confirmarBackupSemanal() {
+            if(confirm('¿Confirmas bajo tu responsabilidad profesional que has descargado el archivo Backup (.json) más reciente y lo has custodiado en un entorno seguro?')) {
+                localStorage.setItem('cinformado_last_backup', Date.now().toString());
+                document.getElementById('backupReminderBanner').classList.add('hidden');
+            }
+        }
+        // =========================================================
 
         const formatDate = (isoString) => {
             if (!isoString) return 'Fecha desconocida';
@@ -150,9 +218,10 @@
             }
         }
 
+        // LÓGICA DE ORDENAMIENTO
         function applySortAndRender() {
             const sortValue = document.getElementById('sortFilter').value;
-            let sortedPatients = [...allPatients];
+            let sortedPatients = [...allPatients]; // Creamos una copia para no alterar el original
 
             if (sortValue === 'alpha') {
                 sortedPatients.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -162,6 +231,7 @@
                 sortedPatients.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             } else if (sortValue === 'tipo') {
                 sortedPatients.sort((a, b) => {
+                    // Primero por tipo, luego alfabéticamente
                     if (a.tipo === b.tipo) {
                         return a.nombre.localeCompare(b.nombre);
                     }
@@ -172,6 +242,7 @@
             renderTable(sortedPatients);
         }
 
+        // DIBUJAR LA TABLA
         function renderTable(patientsArray) {
             const tbody = document.getElementById('patientsTableBody');
             tbody.innerHTML = '';
@@ -194,10 +265,10 @@
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 Historia Clínica
                             </a>
-                            <a href="detalle-consentimiento.html?id=${p.id}" class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center transition-colors">
-                                📄 Consentimiento
-                            </a>
-                            <button onclick="archivePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-amber-500 hover:text-amber-700 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Archivar Expediente (Ley 1090)">
+                            <button onclick="window.location.href='detalle-consentimiento.html?id=${p.id}&tipo=${p.tipo}'" class="text-[#003366] hover:bg-blue-50 p-1.5 rounded transition-colors" title="Ver Detalle">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                            <button onclick="archivePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-amber-600 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Archivar Expediente (Ley 1090)">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                             </button>
                         </div>
@@ -208,7 +279,7 @@
         }
 
         async function archivePatient(id, nombre) {
-            if (confirm(`⚠️ CUSTODIA LEGAL ⚠️\n\n¿Estás seguro de que deseas archivar a ${nombre}?\n\nEl expediente desaparecerá de tu vista principal, pero se conservará en la base de datos para cumplir con la custodia legal (Ley 1090).`)) {
+            if (confirm(`¿Estás seguro de que deseas archivar a ${nombre}?\n\nEl expediente desaparecerá de tu vista principal, pero se conservará en la base de datos para cumplir con la custodia legal (Ley 1090).`)) {
                 try {
                     const response = await fetch(`/api/consentimientos?action=archive`, { 
                         method: 'POST',
@@ -217,15 +288,15 @@
                     });
                     
                     if (response.ok) {
-                        alert('Expediente archivado correctamente.');
+                        alert('Expediente archivado correctamente. Custodia legal mantenida.');
                         window.location.reload();
                     } else {
-                        const err = await response.json();
-                        alert('Error al archivar: ' + err.message);
+                        const errorData = await response.json();
+                        alert(`Error al archivar: ${errorData.message}`);
                     }
                 } catch (error) {
                     console.error('Error al archivar:', error);
-                    alert('Error de conexión al intentar archivar el expediente.');
+                    alert('Hubo un error de conexión al intentar archivar el expediente.');
                 }
             }
         }
