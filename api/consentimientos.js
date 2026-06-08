@@ -1,4 +1,5 @@
 import { db } from '../lib/firebaseAdmin.js';
+import { verifyAuth } from '../lib/auth.js';
 import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
@@ -245,6 +246,16 @@ async function crearPDFParejas(datos) {
 export default async function handler(request, response) {
     const action = request.query.action;
 
+    // 🛡️ CONTROL DE SEGURIDAD: Determinar si la acción es pública (realizada por el paciente)
+    const isPublicAction = (request.method === 'POST' && (action === 'saveIndividual' || action === 'savePareja'));
+
+    // 🛡️ Si NO es pública (es decir, consultas, edición, borrado), exigimos Token JWT
+    if (!isPublicAction) {
+        if (!verifyAuth(request)) {
+            return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
+        }
+    }
+
     try {
         if (request.method === 'GET') {
             if (action === 'getAll') {
@@ -337,7 +348,7 @@ export default async function handler(request, response) {
                     };
                     const mailToTerapeuta = {
                         from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
-                        to: 'caminosdelser@emcotic.com', // CUC REMOVED
+                        to: 'caminosdelser@emcotic.com', 
                         subject: `Nuevo Consentimiento Firmado: ${dataToSave.demograficos.nombre}`,
                         html: `<p>Has recibido un consentimiento firmado de <strong>${dataToSave.demograficos.nombre}</strong>.</p><p>Revisa el PDF adjunto para ver los datos completos y la firma.</p>`,
                         attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
@@ -359,7 +370,7 @@ export default async function handler(request, response) {
                     const correos = [
                         { to: dataToSave.paciente1.email, subject: 'Copia de Consentimiento de Pareja' },
                         { to: dataToSave.paciente2.email, subject: 'Copia de Consentimiento de Pareja' },
-                        { to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } // CUC REMOVED
+                        { to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } 
                     ];
 
                     const emailPromises = correos.map(correo => resend.emails.send({
