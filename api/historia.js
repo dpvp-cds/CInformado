@@ -26,8 +26,19 @@ export default async function handler(request, response) {
                 if (!docHist.exists) return response.status(404).json({ message: 'Historia no encontrada.' });
                 
                 const dataHist = docHist.data();
-                const evolucion = (dataHist.evoluciones || []).find(e => e.id === evoId);
-                if (!evolucion) return response.status(404).json({ message: 'Sesión no encontrada.' });
+                let fechaEvo, cierreEvo, yaFirmadoEvo;
+
+                if (evoId === 'sesionCero') {
+                    fechaEvo = dataHist.fechaSesionCero || new Date().toISOString().split('T')[0];
+                    cierreEvo = dataHist.cierreSesionCero || 'Encuadre y diagnóstico inicial (Sesión 0).';
+                    yaFirmadoEvo = !!dataHist.firmaSesionCero;
+                } else {
+                    const evolucion = (dataHist.evoluciones || []).find(e => e.id === evoId);
+                    if (!evolucion) return response.status(404).json({ message: 'Sesión no encontrada.' });
+                    fechaEvo = evolucion.fecha;
+                    cierreEvo = evolucion.cierre || 'Continuación de proceso terapéutico.';
+                    yaFirmadoEvo = !!evolucion.firmaPaciente;
+                }
 
                 // Traer nombre del paciente desde consents
                 let nombrePaciente = "Paciente";
@@ -46,10 +57,10 @@ export default async function handler(request, response) {
 
                 // Devolvemos solo lo necesario, NO toda la historia
                 return response.status(200).json({
-                    fecha: evolucion.fecha,
-                    cierre: evolucion.cierre || 'Continuación de proceso terapéutico.',
+                    fecha: fechaEvo,
+                    cierre: cierreEvo,
                     nombre: nombrePaciente,
-                    yaFirmado: !!evolucion.firmaPaciente
+                    yaFirmado: yaFirmadoEvo
                 });
             }
 
@@ -74,16 +85,28 @@ export default async function handler(request, response) {
                 const doc = await docRef.get();
                 if (!doc.exists) return response.status(404).json({ message: 'Historia no encontrada.' });
 
-                let evoluciones = doc.data().evoluciones || [];
-                const evoIndex = evoluciones.findIndex(e => e.id === data.evoId);
-                if (evoIndex === -1) return response.status(404).json({ message: 'Evolución no encontrada.' });
+                const dataHist = doc.data();
+                let fechaSesionMail = "";
 
-                // Actualizar la evolución con la firma y metadatos
-                evoluciones[evoIndex].firmaPaciente = data.firmaDigital;
-                evoluciones[evoIndex].fechaFirmaPaciente = new Date().toISOString();
-                evoluciones[evoIndex].userAgentFirma = request.headers['user-agent'] || 'Desconocido';
+                if (data.evoId === 'sesionCero') {
+                    await docRef.set({
+                        firmaSesionCero: data.firmaDigital,
+                        fechaFirmaSesionCero: new Date().toISOString(),
+                        userAgentFirmaSesionCero: request.headers['user-agent'] || 'Desconocido'
+                    }, { merge: true });
+                    fechaSesionMail = dataHist.fechaSesionCero || new Date().toISOString().split('T')[0];
+                } else {
+                    let evoluciones = dataHist.evoluciones || [];
+                    const evoIndex = evoluciones.findIndex(e => e.id === data.evoId);
+                    if (evoIndex === -1) return response.status(404).json({ message: 'Evolución no encontrada.' });
 
-                await docRef.set({ evoluciones: evoluciones }, { merge: true });
+                    evoluciones[evoIndex].firmaPaciente = data.firmaDigital;
+                    evoluciones[evoIndex].fechaFirmaPaciente = new Date().toISOString();
+                    evoluciones[evoIndex].userAgentFirma = request.headers['user-agent'] || 'Desconocido';
+
+                    await docRef.set({ evoluciones: evoluciones }, { merge: true });
+                    fechaSesionMail = evoluciones[evoIndex].fecha;
+                }
 
                 // --- ENVÍO DE CORREOS DE CONFIRMACIÓN (RESEND) ---
                 const resendApiKey = process.env.RESEND2_API_KEY;
@@ -106,7 +129,7 @@ export default async function handler(request, response) {
                     }
 
                     if (emailPaciente) {
-                        const fechaSesion = new Date(`${evoluciones[evoIndex].fecha}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const fechaSesion = new Date(`${fechaSesionMail}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
                         
                         const htmlContent = `
                             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
