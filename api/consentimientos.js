@@ -1,5 +1,6 @@
 import { db } from '../lib/firebaseAdmin.js';
 import { verifyAuth } from '../lib/auth.js';
+import { sanitizePayload } from '../lib/sanitize.js';
 import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
@@ -249,7 +250,7 @@ export default async function handler(request, response) {
     // 🛡️ CONTROL DE SEGURIDAD: Determinar si la acción es pública (realizada por el paciente)
     const isPublicAction = (request.method === 'POST' && (action === 'saveIndividual' || action === 'savePareja'));
 
-    // 🛡️ Si NO es pública (es decir, consultas, edición, borrado), exigimos Token JWT
+    // 🛡️ Si NO es pública, exigimos Token JWT
     if (!isPublicAction) {
         if (!verifyAuth(request)) {
             return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
@@ -315,12 +316,14 @@ export default async function handler(request, response) {
         }
 
         if (request.method === 'POST') {
-            const data = request.body;
+            // 🛡️ SANITIZACIÓN: Filtramos todos los campos de texto ingresados
+            const data = sanitizePayload(request.body);
+            
             const resendApiKey = process.env.RESEND2_API_KEY;
             const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
             if (action === 'updateDemographics') {
-                const { id, isPareja, datos } = request.body;
+                const { id, isPareja, datos } = data; // Data ya está sanitizada
                 if (!id || !datos) return response.status(400).json({ message: 'Faltan datos.' });
                 
                 if (isPareja) {
