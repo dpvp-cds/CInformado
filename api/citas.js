@@ -2,6 +2,7 @@ import { db } from '../lib/firebaseAdmin.js';
 import { Resend } from 'resend';
 import { Buffer } from 'buffer';
 import { verifyAuth } from '../lib/auth.js';
+import { sanitizePayload } from '../lib/sanitize.js';
 
 // Helper para formatear fechas al estándar iCalendar (UTC)
 function formatICSDate(dateStr, timeStr) {
@@ -138,7 +139,9 @@ export default async function handler(request, response) {
     // =======================================================
     else if (request.method === 'POST') {
         try {
-            const { pacienteId, emailPaciente, nombrePaciente, fecha, hora, enlaceMeet, isPresencial, direccionConsultorio } = request.body;
+            // 🛡️ SANITIZACIÓN: Filtramos todos los campos de texto ingresados
+            const sanitizedBody = sanitizePayload(request.body);
+            const { pacienteId, emailPaciente, nombrePaciente, fecha, hora, enlaceMeet, isPresencial, direccionConsultorio } = sanitizedBody;
 
             if (!pacienteId || !emailPaciente || !fecha || !hora) {
                 return response.status(400).json({ message: 'Faltan datos críticos para agendar la cita.' });
