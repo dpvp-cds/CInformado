@@ -14,9 +14,8 @@ function setupPdfBuilder(pdfDoc, font, boldFont) {
     const margin = 50;
     const maxWidth = width - 2 * margin;
     let y = height - margin;
-    const brandColor = rgb(0, 0.2, 0.4); // Azul Corporativo #003366
+    const brandColor = rgb(0, 0.2, 0.4); 
 
-    // Función mágica: Revisa si hay espacio, si no, salta de página y pone el membrete
     const checkPageBreak = (neededSpace) => {
         if (y < margin + neededSpace) {
             page = pdfDoc.addPage();
@@ -139,7 +138,6 @@ function setupPdfBuilder(pdfDoc, font, boldFont) {
     };
 
     drawHeader();
-    
     return { drawTitle, drawSubTitle, drawTextWrap, drawClause, drawDetail, drawSignature, drawDualSignatures };
 }
 
@@ -153,7 +151,6 @@ async function crearPDFConsentimiento(datos) {
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
     const doc = setupPdfBuilder(pdfDoc, font, boldFont);
-    
     doc.drawTitle('Consentimiento Informado Digital');
     
     const esMenor = parseInt(demograficos.edad, 10) < 18;
@@ -200,7 +197,6 @@ async function crearPDFParejas(datos) {
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
     const doc = setupPdfBuilder(pdfDoc, font, boldFont);
-
     doc.drawTitle('Consentimiento - Terapia de Pareja');
     
     const intro = `Nosotros, ${paciente1.nombre} (Doc: ${paciente1.documentoIdentidad}) y ${paciente2.nombre} (Doc: ${paciente2.documentoIdentidad}), declaramos voluntariamente que:`;
@@ -245,12 +241,14 @@ async function crearPDFParejas(datos) {
 // CONTROLADOR MAESTRO DE CONSENTIMIENTOS
 // =======================================================
 export default async function handler(request, response) {
+    // 1. Desactivar el caché para proteger los datos (NO-STORE)
+    response.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+    
     const action = request.query.action;
 
-    // 🛡️ CONTROL DE SEGURIDAD: Determinar si la acción es pública (realizada por el paciente)
+    // 🛡️ CONTROL DE SEGURIDAD JWT (Fuerza Bruta y Acceso No Autorizado)
     const isPublicAction = (request.method === 'POST' && (action === 'saveIndividual' || action === 'savePareja'));
 
-    // 🛡️ Si NO es pública, exigimos Token JWT
     if (!isPublicAction) {
         if (!verifyAuth(request)) {
             return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
@@ -323,7 +321,7 @@ export default async function handler(request, response) {
             const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
             if (action === 'updateDemographics') {
-                const { id, isPareja, datos } = data; // Data ya está sanitizada
+                const { id, isPareja, datos } = data;
                 if (!id || !datos) return response.status(400).json({ message: 'Faltan datos.' });
                 
                 if (isPareja) {
@@ -389,6 +387,9 @@ export default async function handler(request, response) {
             }
         }
 
+        // =======================================================
+        // ELIMINACIÓN TOTAL RESTAURADA (HARD DELETE)
+        // =======================================================
         if (request.method === 'DELETE' && action === 'delete') {
             const { id } = request.query;
             if (!id) return response.status(400).json({ message: 'Falta el ID del expediente.' });
