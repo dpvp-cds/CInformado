@@ -1,6 +1,12 @@
 import { db } from '../lib/firebaseAdmin.js';
+import { verifyAuth } from '../lib/auth.js';
 
 export default async function handler(request, response) {
+    // 🛡️ CONTROL DE SEGURIDAD
+    if (!verifyAuth(request)) {
+        return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
+    }
+
     const { action, id } = request.query;
 
     try {
