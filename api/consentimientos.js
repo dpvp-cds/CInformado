@@ -5,9 +5,6 @@ import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
 
-// =======================================================
-// MOTOR DE PAGINACIÓN Y DISEÑO PARA PDFs
-// =======================================================
 function setupPdfBuilder(pdfDoc, font, boldFont) {
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
@@ -141,9 +138,6 @@ function setupPdfBuilder(pdfDoc, font, boldFont) {
     return { drawTitle, drawSubTitle, drawTextWrap, drawClause, drawDetail, drawSignature, drawDualSignatures };
 }
 
-// =======================================================
-// GENERADORES DE PDF 
-// =======================================================
 async function crearPDFConsentimiento(datos) {
     const { demograficos, firmaDigital } = datos;
     const pdfDoc = await PDFDocument.create();
@@ -237,16 +231,13 @@ async function crearPDFParejas(datos) {
     return await pdfDoc.save();
 }
 
-// =======================================================
-// CONTROLADOR MAESTRO DE CONSENTIMIENTOS
-// =======================================================
 export default async function handler(request, response) {
-    // 1. Desactivar el caché para proteger los datos (NO-STORE)
+    // 1. DESACTIVAR EL CACHÉ ABSOLUTAMENTE PARA EVITAR FUGAS DE DATOS EN VERCEL
     response.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
     
     const action = request.query.action;
 
-    // 🛡️ CONTROL DE SEGURIDAD JWT (Fuerza Bruta y Acceso No Autorizado)
+    // 🛡️ CONTROL DE SEGURIDAD JWT (Evita Fuerza Bruta y Accesos No Autorizados)
     const isPublicAction = (request.method === 'POST' && (action === 'saveIndividual' || action === 'savePareja'));
 
     if (!isPublicAction) {
@@ -314,7 +305,7 @@ export default async function handler(request, response) {
         }
 
         if (request.method === 'POST') {
-            // 🛡️ SANITIZACIÓN: Filtramos todos los campos de texto ingresados
+            // 🛡️ SANITIZACIÓN EXTREMA: Filtramos todos los campos de texto ingresados contra ataques XSS
             const data = sanitizePayload(request.body);
             
             const resendApiKey = process.env.RESEND2_API_KEY;
@@ -387,9 +378,6 @@ export default async function handler(request, response) {
             }
         }
 
-        // =======================================================
-        // ELIMINACIÓN TOTAL RESTAURADA (HARD DELETE)
-        // =======================================================
         if (request.method === 'DELETE' && action === 'delete') {
             const { id } = request.query;
             if (!id) return response.status(400).json({ message: 'Falta el ID del expediente.' });
