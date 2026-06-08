@@ -10,6 +10,8 @@
         body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
         .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
         .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e5e7eb; }
+        /* Ocultar el modal de backup por defecto */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -20,7 +22,6 @@
                 <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
             </a>
             
-            <!-- MENÚ DE NAVEGACIÓN PRINCIPAL -->
             <div class="flex flex-wrap justify-center items-center gap-3">
                 <a href="portal-citas.html" class="flex items-center text-indigo-600 font-bold hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm text-sm">
                     🗓️ Agenda
@@ -28,16 +29,13 @@
                 <a href="portal-pagos.html" class="flex items-center text-green-700 font-bold hover:text-green-900 transition-colors bg-green-50 px-4 py-2 rounded-full border border-green-200 shadow-sm text-sm">
                     <span class="text-lg mr-1">$</span> Pagos
                 </a>
-                
                 <a href="manual-usuario.html" class="flex items-center text-purple-700 font-bold hover:text-purple-900 transition-colors bg-purple-50 px-4 py-2 rounded-full border border-purple-200 shadow-sm text-sm" title="Ver y descargar Manual de Usuario">
                     📖 Manual
                 </a>
-
                 <button onclick="window.open('/api/vault', '_blank')" class="flex items-center text-gray-600 hover:text-[#003366] transition-colors px-4 py-2 rounded-full bg-gray-100 hover:bg-blue-50 font-bold text-sm shadow-sm border border-gray-200" title="Descargar copia de seguridad completa">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     Backup
                 </button>
-                
                 <span class="border-l h-6 border-gray-300 hidden md:block"></span>
                 <button id="logoutButton" class="text-sm font-bold text-red-600 hover:text-red-800 transition-colors px-2">Cerrar Sesión</button>
             </div>
@@ -46,17 +44,15 @@
 
     <main class="flex-grow container mx-auto px-6 py-8 max-w-7xl relative">
         
-        <!-- BANNER INFORMATIVO (NO INTRUSIVO) -->
         <div id="backupInfoBanner" class="mb-8 bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center text-[#003366]">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span class="text-sm font-semibold">Próxima actualización legal (Backup): <strong>Lunes a las 14:25</strong></span>
+                <span class="text-sm font-semibold">Próxima actualización legal (Backup): <strong>Viernes a las 16:00</strong></span>
             </div>
             <button onclick="window.open('/api/vault', '_blank')" class="text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-4 py-1.5 rounded-full font-bold transition-colors">
                 Descargar ahora
             </button>
         </div>
-        <!-- ========================================== -->
 
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
@@ -92,7 +88,7 @@
                         </tr>
                     </thead>
                     <tbody id="patientsTableBody">
-                        <!-- Las filas se inyectan aquí via JS -->
+                        <!-- Renderizado por JS -->
                     </tbody>
                 </table>
             </div>
@@ -103,17 +99,16 @@
             <p class="text-xl font-bold text-[#003366] mb-2">Tu base de datos está limpia.</p>
             <p class="text-sm text-gray-500">Los consentimientos e historias clínicas que se firmen aparecerán aquí.</p>
         </div>
-
     </main>
 
-    <!-- VENTANA EMERGENTE INTRUSIVA DE BACKUP -->
+    <!-- MODAL DE BACKUP OBLIGATORIO -->
     <div id="backupModal" class="fixed inset-0 bg-[#003366] bg-opacity-95 hidden z-[100] flex justify-center items-center px-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col relative p-8 text-center transform scale-100">
             <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <svg class="w-10 h-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
             <h2 class="text-2xl font-bold text-red-700 mb-3">¡Copia de Seguridad Requerida!</h2>
-            <p class="text-gray-600 mb-8 text-sm font-medium">Por cumplimiento de la Ley 1090, es tu deber realizar y custodiar el backup. No puedes continuar usando el sistema hasta confirmar la descarga.</p>
+            <p class="text-gray-600 mb-8 text-sm font-medium">Por cumplimiento de la Ley 1090, es tu deber realizar y custodiar el backup semanal. No puedes continuar usando el sistema hasta confirmar la descarga.</p>
             
             <div class="space-y-4">
                 <button onclick="window.open('/api/vault', '_blank')" class="w-full bg-white border-2 border-[#003366] text-[#003366] hover:bg-blue-50 py-3 rounded-xl font-bold text-[15px] transition-colors flex items-center justify-center shadow-sm">
@@ -145,29 +140,23 @@
             fetchPatients();
             evaluarRecordatorioBackup();
             
-            // Refrescar la evaluación cada 60 segundos
             setInterval(evaluarRecordatorioBackup, 60000);
         });
 
-        // =========================================================
-        // LÓGICA DE RECORDATORIO DE BACKUP (MODO PRUEBA LUNES 14:25)
-        // =========================================================
         function evaluarRecordatorioBackup() {
             const now = new Date();
-            const currentDay = now.getDay(); // 0 = Dom, 1 = Lun, ... 6 = Sab
+            const currentDay = now.getDay(); 
             
-            // Lógica para encontrar el timestamp del último Lunes a las 14:25
-            let daysSinceMonday = currentDay - 1;
-            if (daysSinceMonday < 0) {
-                daysSinceMonday += 7; 
+            let daysSinceFriday = currentDay - 5;
+            if (daysSinceFriday < 0) {
+                daysSinceFriday += 7; 
             }
             
             const targetDate = new Date(now);
-            targetDate.setDate(now.getDate() - daysSinceMonday);
-            targetDate.setHours(14, 25, 0, 0); // Fija a las 14:25:00
+            targetDate.setDate(now.getDate() - daysSinceFriday);
+            targetDate.setHours(16, 0, 0, 0); 
 
-            // Caso especial: Si hoy es lunes pero aún no son las 14:25, el "último lunes" fue hace 7 días.
-            if (currentDay === 1 && (now.getHours() < 14 || (now.getHours() === 14 && now.getMinutes() < 25))) {
+            if (currentDay === 5 && now.getHours() < 16) {
                 targetDate.setDate(targetDate.getDate() - 7);
             }
 
@@ -176,13 +165,12 @@
             
             const modal = document.getElementById('backupModal');
 
-            // Si el terapeuta no ha confirmado después de esa fecha/hora crítica, mostramos el MODAL.
             if (lastConfirmedTimestamp < targetTimestamp) {
                 modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Bloquear scroll
+                document.body.style.overflow = 'hidden'; 
             } else {
                 modal.classList.add('hidden');
-                document.body.style.overflow = 'auto'; // Restaurar scroll
+                document.body.style.overflow = 'auto'; 
             }
         }
 
@@ -193,7 +181,6 @@
                 document.body.style.overflow = 'auto';
             }
         }
-        // =========================================================
 
         const formatDate = (isoString) => {
             if (!isoString) return 'Fecha desconocida';
@@ -259,7 +246,7 @@
                     ? '<span class="bg-fuchsia-100 text-fuchsia-800 text-xs font-bold px-2.5 py-1 rounded border border-fuchsia-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Pareja</span>' 
                     : '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded border border-blue-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Individual</span>';
 
-                // CAMBIOS APLICADOS: Botón explícito de Consentimiento y Botón Ámbar de Archivar
+                // CORRECCIÓN: El title de la papelera ahora dice 'Eliminar Expediente Permanentemente'
                 tr.innerHTML = `
                     <td class="px-6 py-4">${tipoBadge}</td>
                     <td class="px-6 py-4 font-bold text-gray-800">${p.nombre}</td>
@@ -273,8 +260,8 @@
                             <a href="detalle-consentimiento.html?id=${p.id}" class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center transition-colors">
                                 📄 Consentimiento
                             </a>
-                            <button onclick="archivePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-amber-600 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Archivar Expediente (Soft Delete Ley 1090)">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                            <button onclick="deletePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors" title="Eliminar Expediente Permanentemente">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                     </td>
@@ -283,25 +270,19 @@
             });
         }
 
-        async function archivePatient(id, nombre) {
-            if (confirm(`¿Estás seguro de que deseas archivar a ${nombre}?\n\nEl expediente desaparecerá de tu vista principal, pero se conservará seguro en la base de datos para cumplir con la custodia legal (Ley 1090).`)) {
+        async function deletePatient(id, nombre) {
+            if (confirm(`⚠️ ALERTA DE BORRADO ⚠️\n\n¿Estás seguro de que deseas eliminar a ${nombre}?\n\nEsta acción borrará PERMANENTEMENTE su consentimiento legal y toda su historia clínica. Esta acción no se puede deshacer.`)) {
                 try {
-                    const response = await fetch(`/api/consentimientos?action=archive`, { 
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: id })
-                    });
-                    
+                    const response = await fetch(`/api/consentimientos?action=delete&id=${id}`, { method: 'DELETE' });
                     if (response.ok) {
-                        alert('Expediente archivado correctamente. Custodia legal mantenida.');
+                        alert('Expediente eliminado correctamente.');
                         window.location.reload();
                     } else {
-                        const errorData = await response.json();
-                        alert(`Error al archivar: ${errorData.message}`);
+                        const err = await response.json();
+                        alert('Error al eliminar: ' + err.message);
                     }
                 } catch (error) {
-                    console.error('Error al archivar:', error);
-                    alert('Hubo un error de conexión al intentar archivar el expediente.');
+                    alert('Error de conexión.');
                 }
             }
         }
