@@ -1,6 +1,12 @@
 import { db } from '../lib/firebaseAdmin.js';
+import { verifyAuth } from '../lib/auth.js';
 
 export default async function handler(request, response) {
+    // 🛡️ CONTROL DE SEGURIDAD
+    if (!verifyAuth(request)) {
+        return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
+    }
+
     if (request.method !== 'GET') {
         return response.status(405).json({ message: 'Método no permitido. Solo GET.' });
     }
@@ -19,13 +25,11 @@ export default async function handler(request, response) {
             const data = doc.data();
             const d = data.demograficos || data || {};
             
-            // Retrocompatibilidad: Si es una pareja guardada en febrero
             if (data.tipo === 'pareja' || d.nombreCompleto1 !== undefined || d.nombre1 !== undefined) {
                 const n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'Paciente 1';
                 const n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'Paciente 2';
                 patientsMap[doc.id] = `${n1.split(' ')[0]} y ${n2.split(' ')[0]}`;
             } else {
-                // Paciente individual normal
                 patientsMap[doc.id] = d.nombreCompleto || d.nombre || 'Paciente Sin Nombre';
             }
         });
@@ -36,11 +40,9 @@ export default async function handler(request, response) {
             let n1, n2;
             
             if (data.paciente1 && typeof data.paciente1 === 'object') {
-                // Estructura Nueva
                 n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'Paciente 1';
                 n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'Paciente 2';
             } else {
-                // Estructura Vieja
                 const d = data.demograficos || data || {};
                 n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'Paciente 1';
                 n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'Paciente 2';
@@ -58,7 +60,6 @@ export default async function handler(request, response) {
             const nombre = patientsMap[pacienteId] || 'Paciente sin registro demográfico';
             const pagosPaciente = [];
 
-            // A. Pagos de Sesión Cero
             if (data.fechaSesionCero && data.valorSesionCero && Number(data.valorSesionCero) > 0 && data.pagadoSesionCero === true) {
                 pagosPaciente.push({
                     fecha: data.fechaSesionCero,
@@ -67,7 +68,6 @@ export default async function handler(request, response) {
                 });
             }
 
-            // B. Pagos de la Bitácora (Evoluciones)
             if (data.evoluciones && Array.isArray(data.evoluciones)) {
                 data.evoluciones.forEach(evo => {
                     if (evo.fecha && evo.valor && Number(evo.valor) > 0 && evo.pagado === true) {
@@ -80,7 +80,6 @@ export default async function handler(request, response) {
                 });
             }
 
-            // C. Si el paciente tiene al menos 1 pago, lo agregamos al resumen general
             if (pagosPaciente.length > 0) {
                 pagosTotales.push({ pacienteId, nombre, pagos: pagosPaciente });
             }
