@@ -44,29 +44,17 @@
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-6 py-8 max-w-7xl">
+    <main class="flex-grow container mx-auto px-6 py-8 max-w-7xl relative">
         
-        <!-- ========================================== -->
-        <!-- BANNER DE PRUEBA: LUNES 14:10 -->
-        <!-- ========================================== -->
-        <div id="backupReminderBanner" class="hidden mb-8 bg-red-50 border-l-4 border-red-600 p-4 sm:p-6 rounded-r-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ring-1 ring-red-100">
-            <div class="flex items-start">
-                <div class="bg-red-100 p-2 rounded-full mr-4 flex-shrink-0">
-                    <svg class="h-6 w-6 text-red-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-red-800 font-bold text-lg">Recordatorio de Seguridad Legal (TEST LUNES 14:10)</h3>
-                    <p class="text-red-700 text-sm mt-1">Ya pasaron las 14:10 del lunes. Es tu deber realizar y custodiar el backup de seguridad semanal.</p>
-                </div>
+        <!-- BANNER INFORMATIVO (NO INTRUSIVO) -->
+        <div id="backupInfoBanner" class="mb-8 bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center text-[#003366]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-semibold">Próxima actualización legal (Backup): <strong>Lunes a las 14:25</strong></span>
             </div>
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <button onclick="window.open('/api/vault', '_blank')" class="flex-1 md:flex-none bg-white text-red-600 border border-red-300 hover:bg-red-50 px-4 py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors text-center whitespace-nowrap">
-                    1. Descargar .json
-                </button>
-                <button onclick="confirmarBackupSemanal()" class="flex-1 md:flex-none bg-red-600 text-white hover:bg-red-700 px-4 py-2.5 rounded-lg font-bold text-sm shadow-sm transition-colors text-center whitespace-nowrap">
-                    2. Ya lo guardé
-                </button>
-            </div>
+            <button onclick="window.open('/api/vault', '_blank')" class="text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-4 py-1.5 rounded-full font-bold transition-colors">
+                Descargar ahora
+            </button>
         </div>
         <!-- ========================================== -->
 
@@ -76,7 +64,6 @@
                 <p class="text-sm text-gray-500 mt-1">Gestión de historias clínicas y consentimientos informados.</p>
             </div>
             
-            <!-- FILTRO Y ORDENAMIENTO -->
             <div class="flex items-center bg-white p-2 rounded-xl shadow-sm border border-gray-200">
                 <label for="sortFilter" class="text-sm font-bold text-gray-700 mr-3 ml-2 whitespace-nowrap">Ordenar por:</label>
                 <select id="sortFilter" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg focus:ring-[#003366] focus:border-[#003366] px-3 py-2 outline-none cursor-pointer">
@@ -119,8 +106,29 @@
 
     </main>
 
+    <!-- VENTANA EMERGENTE INTRUSIVA DE BACKUP -->
+    <div id="backupModal" class="fixed inset-0 bg-[#003366] bg-opacity-95 hidden z-[100] flex justify-center items-center px-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col relative p-8 text-center transform scale-100">
+            <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <svg class="w-10 h-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-red-700 mb-3">¡Copia de Seguridad Requerida!</h2>
+            <p class="text-gray-600 mb-8 text-sm font-medium">Por cumplimiento de la Ley 1090, es tu deber realizar y custodiar el backup. No puedes continuar usando el sistema hasta confirmar la descarga.</p>
+            
+            <div class="space-y-4">
+                <button onclick="window.open('/api/vault', '_blank')" class="w-full bg-white border-2 border-[#003366] text-[#003366] hover:bg-blue-50 py-3 rounded-xl font-bold text-[15px] transition-colors flex items-center justify-center shadow-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Paso 1: Descargar Backup (.json)
+                </button>
+                <button onclick="confirmarBackupSemanal()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[15px] transition-colors shadow-lg shadow-red-600/30">
+                    Paso 2: Ya lo guardé
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let allPatients = []; // Array global para guardar los pacientes y poder filtrarlos
+        let allPatients = []; 
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') {
@@ -132,55 +140,57 @@
                 window.location.href = 'login.html';
             });
 
-            // Escuchar cambios en el selector de ordenamiento
             document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
 
-            // Iniciar flujos
             fetchPatients();
             evaluarRecordatorioBackup();
             
-            // Refrescar la evaluación cada minuto para que salte a las 14:10 exactas
+            // Refrescar la evaluación cada 60 segundos
             setInterval(evaluarRecordatorioBackup, 60000);
         });
 
         // =========================================================
-        // LÓGICA DE RECORDATORIO DE BACKUP (MODO PRUEBA LUNES 14:10)
+        // LÓGICA DE RECORDATORIO DE BACKUP (MODO PRUEBA LUNES 14:25)
         // =========================================================
         function evaluarRecordatorioBackup() {
             const now = new Date();
-            const currentDay = now.getDay(); // 0 = Dom, 1 = Lun, ... 5 = Vie, 6 = Sab
+            const currentDay = now.getDay(); // 0 = Dom, 1 = Lun, ... 6 = Sab
             
-            // Lógica para encontrar el timestamp del último Lunes a las 14:10
+            // Lógica para encontrar el timestamp del último Lunes a las 14:25
             let daysSinceMonday = currentDay - 1;
             if (daysSinceMonday < 0) {
                 daysSinceMonday += 7; 
             }
             
-            const lastMondayTarget = new Date(now);
-            lastMondayTarget.setDate(now.getDate() - daysSinceMonday);
-            lastMondayTarget.setHours(14, 10, 0, 0); // Fija a las 14:10:00
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() - daysSinceMonday);
+            targetDate.setHours(14, 25, 0, 0); // Fija a las 14:25:00
 
-            // Caso especial: Si hoy es lunes pero aún no son las 14:10, el "último lunes" fue hace 7 días.
-            if (currentDay === 1 && (now.getHours() < 14 || (now.getHours() === 14 && now.getMinutes() < 10))) {
-                lastMondayTarget.setDate(lastMondayTarget.getDate() - 7);
+            // Caso especial: Si hoy es lunes pero aún no son las 14:25, el "último lunes" fue hace 7 días.
+            if (currentDay === 1 && (now.getHours() < 14 || (now.getHours() === 14 && now.getMinutes() < 25))) {
+                targetDate.setDate(targetDate.getDate() - 7);
             }
 
-            const targetTimestamp = lastMondayTarget.getTime();
+            const targetTimestamp = targetDate.getTime();
             const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
-            const banner = document.getElementById('backupReminderBanner');
+            
+            const modal = document.getElementById('backupModal');
 
-            // Si el terapeuta no ha confirmado después de esa fecha/hora crítica, mostramos el banner.
+            // Si el terapeuta no ha confirmado después de esa fecha/hora crítica, mostramos el MODAL.
             if (lastConfirmedTimestamp < targetTimestamp) {
-                banner.classList.remove('hidden');
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Bloquear scroll
             } else {
-                banner.classList.add('hidden');
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Restaurar scroll
             }
         }
 
         function confirmarBackupSemanal() {
             if(confirm('¿Confirmas bajo tu responsabilidad profesional que has descargado el archivo Backup (.json) más reciente y lo has custodiado en un entorno seguro?')) {
                 localStorage.setItem('cinformado_last_backup', Date.now().toString());
-                document.getElementById('backupReminderBanner').classList.add('hidden');
+                document.getElementById('backupModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
             }
         }
         // =========================================================
@@ -209,7 +219,6 @@
                     document.getElementById('emptyState').classList.remove('hidden');
                 } else {
                     document.getElementById('tableContainer').classList.remove('hidden');
-                    // Aplicamos el ordenamiento por defecto (Alfabético)
                     applySortAndRender();
                 }
             } catch (error) {
@@ -218,10 +227,9 @@
             }
         }
 
-        // LÓGICA DE ORDENAMIENTO
         function applySortAndRender() {
             const sortValue = document.getElementById('sortFilter').value;
-            let sortedPatients = [...allPatients]; // Creamos una copia para no alterar el original
+            let sortedPatients = [...allPatients]; 
 
             if (sortValue === 'alpha') {
                 sortedPatients.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -231,10 +239,7 @@
                 sortedPatients.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             } else if (sortValue === 'tipo') {
                 sortedPatients.sort((a, b) => {
-                    // Primero por tipo, luego alfabéticamente
-                    if (a.tipo === b.tipo) {
-                        return a.nombre.localeCompare(b.nombre);
-                    }
+                    if (a.tipo === b.tipo) { return a.nombre.localeCompare(b.nombre); }
                     return a.tipo.localeCompare(b.tipo);
                 });
             }
@@ -242,7 +247,6 @@
             renderTable(sortedPatients);
         }
 
-        // DIBUJAR LA TABLA
         function renderTable(patientsArray) {
             const tbody = document.getElementById('patientsTableBody');
             tbody.innerHTML = '';
@@ -255,6 +259,7 @@
                     ? '<span class="bg-fuchsia-100 text-fuchsia-800 text-xs font-bold px-2.5 py-1 rounded border border-fuchsia-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Pareja</span>' 
                     : '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded border border-blue-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Individual</span>';
 
+                // CAMBIOS APLICADOS: Botón explícito de Consentimiento y Botón Ámbar de Archivar
                 tr.innerHTML = `
                     <td class="px-6 py-4">${tipoBadge}</td>
                     <td class="px-6 py-4 font-bold text-gray-800">${p.nombre}</td>
@@ -265,10 +270,10 @@
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 Historia Clínica
                             </a>
-                            <button onclick="window.location.href='detalle-consentimiento.html?id=${p.id}&tipo=${p.tipo}'" class="text-[#003366] hover:bg-blue-50 p-1.5 rounded transition-colors" title="Ver Detalle">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                            </button>
-                            <button onclick="archivePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-amber-600 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Archivar Expediente (Ley 1090)">
+                            <a href="detalle-consentimiento.html?id=${p.id}" class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center transition-colors">
+                                📄 Consentimiento
+                            </a>
+                            <button onclick="archivePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-amber-600 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Archivar Expediente (Soft Delete Ley 1090)">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                             </button>
                         </div>
@@ -279,7 +284,7 @@
         }
 
         async function archivePatient(id, nombre) {
-            if (confirm(`¿Estás seguro de que deseas archivar a ${nombre}?\n\nEl expediente desaparecerá de tu vista principal, pero se conservará en la base de datos para cumplir con la custodia legal (Ley 1090).`)) {
+            if (confirm(`¿Estás seguro de que deseas archivar a ${nombre}?\n\nEl expediente desaparecerá de tu vista principal, pero se conservará seguro en la base de datos para cumplir con la custodia legal (Ley 1090).`)) {
                 try {
                     const response = await fetch(`/api/consentimientos?action=archive`, { 
                         method: 'POST',
