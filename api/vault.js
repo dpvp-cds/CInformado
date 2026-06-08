@@ -1,4 +1,5 @@
 import { db } from '../lib/firebaseAdmin.js';
+import { verifyAuth } from '../lib/auth.js';
 
 export default async function handler(request, response) {
     try {
@@ -6,6 +7,11 @@ export default async function handler(request, response) {
         // MÉTODO GET: GENERAR Y DESCARGAR BACKUP
         // ==========================================
         if (request.method === 'GET') {
+            // 🛡️ CONTROL DE SEGURIDAD JWT PARA DESCARGAR BACKUPS
+            if (!verifyAuth(request)) {
+                return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida para realizar backup.' });
+            }
+
             const backupData = {
                 fechaBackup: new Date().toISOString(),
                 metadata: {
@@ -20,7 +26,6 @@ export default async function handler(request, response) {
                 }
             };
 
-            // Leer todas las colecciones al mismo tiempo
             const [consentsSnap, parejasSnap, historiasSnap] = await Promise.all([
                 db.collection('consents').get(),
                 db.collection('consents_parejas').get(),
@@ -31,7 +36,6 @@ export default async function handler(request, response) {
             parejasSnap.forEach(doc => { backupData.colecciones.consents_parejas[doc.id] = doc.data(); backupData.metadata.totalConsentimientosParejas++; });
             historiasSnap.forEach(doc => { backupData.colecciones.historias_clinicas[doc.id] = doc.data(); backupData.metadata.totalHistoriasClinicas++; });
 
-            // Configurar la descarga del archivo en el navegador
             const dateStr = new Date().toISOString().split('T')[0];
             const fileName = `Backup_CaminosDelSer_${dateStr}.json`;
 
@@ -45,9 +49,13 @@ export default async function handler(request, response) {
         // MÉTODO POST: RESTAURAR BASE DE DATOS
         // ==========================================
         else if (request.method === 'POST') {
+            // 🛡️ CONTROL DE SEGURIDAD ADICIONAL (Para restaurar exigimos JWT + PIN)
+            if (!verifyAuth(request)) {
+                return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida para restaurar.' });
+            }
+
             const { backupData, pinSeguridad } = request.body;
 
-            // 🛡️ PROTECCIÓN EXTREMA (A prueba de espacios fantasmas y leyendo Vercel)
             const masterPin = (process.env.MASTER_PIN || 'JAC-RESCATE-2026').trim();
             const inputPin = (pinSeguridad || '').trim();
 
@@ -62,7 +70,6 @@ export default async function handler(request, response) {
             const colecciones = ['consents', 'consents_parejas', 'historias_clinicas'];
             let docsRestaurados = 0;
 
-            // Bucle de restauración: reescribe la base de datos
             for (const col of colecciones) {
                 const registros = backupData.colecciones[col];
                 if (registros) {
@@ -76,7 +83,6 @@ export default async function handler(request, response) {
             return response.status(200).json({ message: 'Base de datos restaurada con éxito.', total: docsRestaurados });
         } 
         
-        // Método no soportado
         else {
             return response.status(405).json({ message: 'Método no permitido.' });
         }
