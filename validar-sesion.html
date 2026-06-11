@@ -60,6 +60,7 @@
                 
                 <canvas id="firma-canvas" width="300" height="200" class="cursor-crosshair"></canvas>
                 
+                <!-- 🛡️ NUEVO BLOQUE: Botones duales de Borrar e Importar -->
                 <div class="flex justify-between items-center mt-3 px-1">
                     <button type="button" id="limpiarFirma" class="text-xs font-bold text-red-500 hover:underline">Borrar Dibujo</button>
                     
@@ -118,7 +119,7 @@
                 document.getElementById('validarForm').classList.remove('hidden');
                 
                 initCanvas();
-                setupImageImport();
+                setupImageImport(); // 🛡️ Inicializa el importador de imágenes
 
             } catch (err) {
                 showError();
@@ -165,10 +166,11 @@
             document.getElementById('limpiarFirma').onclick = () => {
                 const rect = canvas.parentElement.getBoundingClientRect();
                 ctx.clearRect(0, 0, rect.width, 200);
-                document.getElementById('importarFirma').value = "";
+                document.getElementById('importarFirma').value = ""; // Limpiar el input file también
             };
         }
 
+        // 🛡️ LÓGICA PARA IMPORTAR IMAGEN AL CANVAS
         function setupImageImport() {
             const fileInput = document.getElementById('importarFirma');
             fileInput.addEventListener('change', function(e) {
@@ -180,8 +182,11 @@
                     const img = new Image();
                     img.onload = function() {
                         const rect = canvas.parentElement.getBoundingClientRect();
+                        
+                        // Limpiamos el canvas antes de dibujar la nueva imagen
                         ctx.clearRect(0, 0, rect.width, 200);
                         
+                        // Calculamos la proporción para escalar la imagen al centro del canvas sin deformarla
                         const hRatio = rect.width / img.width;
                         const vRatio = 200 / img.height;
                         const ratio  = Math.min(hRatio, vRatio);
@@ -189,6 +194,7 @@
                         const centerShift_x = (rect.width - img.width * ratio) / 2;
                         const centerShift_y = (200 - img.height * ratio) / 2;
                         
+                        // Dibujamos la imagen
                         ctx.drawImage(img, 0, 0, img.width, img.height,
                                       centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
                     }
