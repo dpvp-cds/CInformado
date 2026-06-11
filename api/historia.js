@@ -156,7 +156,7 @@ export default async function handler(request, response) {
             return response.status(200).json(doc.data());
         }
 
-        //        if (request.method === 'POST') {
+        if (request.method === 'POST') {
             const data = sanitizePayload(request.body);
 
             // Acción Pública: Guardar firma, generar PDF y enviar correos cheveres
@@ -274,7 +274,7 @@ export default async function handler(request, response) {
                 return response.status(200).json({ message: 'Firma guardada correctamente.' });
             }
 
-            //            switch (action) {
+            switch (action) {
                 case 'saveHistoria':
                     if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
                     const historiaData = {
