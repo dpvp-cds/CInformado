@@ -50,8 +50,9 @@
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Fecha de la Sesión</p>
                 <p id="valFecha" class="font-semibold text-gray-800 mb-3">---</p>
 
-                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Cierre (¿Qué te llevas?)</p>
-                <p id="valCierre" class="text-sm text-gray-700 italic">"---"</p>
+                <!-- Cambio implementado: Tarea Consignada en lugar de Cierre -->
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Tarea Consignada</p>
+                <p id="valTarea" class="text-sm text-gray-700 italic">"---"</p>
             </div>
 
             <div>
@@ -59,7 +60,6 @@
                 
                 <canvas id="firma-canvas" width="300" height="200" class="cursor-crosshair"></canvas>
                 
-                <!-- 🛡️ NUEVO BLOQUE: Botones duales de Borrar e Importar -->
                 <div class="flex justify-between items-center mt-3 px-1">
                     <button type="button" id="limpiarFirma" class="text-xs font-bold text-red-500 hover:underline">Borrar Dibujo</button>
                     
@@ -110,13 +110,15 @@
                 document.getElementById('valNombre').textContent = data.nombre;
                 const dateParts = data.fecha.split('-');
                 document.getElementById('valFecha').textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                document.getElementById('valCierre').textContent = `"${data.cierre}"`;
+                
+                // Cambio implementado: Rellenar el contenedor con la tarea de la API
+                document.getElementById('valTarea').textContent = `"${data.tarea}"`;
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('validarForm').classList.remove('hidden');
                 
                 initCanvas();
-                setupImageImport(); // 🛡️ Inicializa el importador de imágenes
+                setupImageImport();
 
             } catch (err) {
                 showError();
@@ -163,11 +165,10 @@
             document.getElementById('limpiarFirma').onclick = () => {
                 const rect = canvas.parentElement.getBoundingClientRect();
                 ctx.clearRect(0, 0, rect.width, 200);
-                document.getElementById('importarFirma').value = ""; // Limpiar el input file también
+                document.getElementById('importarFirma').value = "";
             };
         }
 
-        // 🛡️ LÓGICA PARA IMPORTAR IMAGEN AL CANVAS
         function setupImageImport() {
             const fileInput = document.getElementById('importarFirma');
             fileInput.addEventListener('change', function(e) {
@@ -179,11 +180,8 @@
                     const img = new Image();
                     img.onload = function() {
                         const rect = canvas.parentElement.getBoundingClientRect();
-                        
-                        // Limpiamos el canvas antes de dibujar la nueva imagen
                         ctx.clearRect(0, 0, rect.width, 200);
                         
-                        // Calculamos la proporción para escalar la imagen al centro del canvas sin deformarla
                         const hRatio = rect.width / img.width;
                         const vRatio = 200 / img.height;
                         const ratio  = Math.min(hRatio, vRatio);
@@ -191,7 +189,6 @@
                         const centerShift_x = (rect.width - img.width * ratio) / 2;
                         const centerShift_y = (200 - img.height * ratio) / 2;
                         
-                        // Dibujamos la imagen
                         ctx.drawImage(img, 0, 0, img.width, img.height,
                                       centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
                     }
