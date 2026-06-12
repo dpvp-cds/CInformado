@@ -45,20 +45,20 @@
                 
                 <div class="flex flex-col md:flex-row items-center justify-between gap-10">
                     
-                    <!-- Columna Izquierda: Textos y Botones -->
-                    <div class="md:w-3/5 text-center md:text-left order-2 md:order-1">
+                    <!-- Columna Izquierda: Textos y Botones (Alineación central dentro de su columna) -->
+                    <div class="md:w-3/5 text-center order-2 md:order-1 flex flex-col items-center">
                         <h1 class="text-3xl md:text-5xl font-bold mb-4 gradient-text leading-tight">
                             Que el cielo sea el límite,<br><span class="text-[#003366]">no tu mente.</span>
                         </h1>
                         
-                        <p class="text-base text-gray-600 mb-8 max-w-xl leading-relaxed mx-auto md:mx-0">
+                        <p class="text-base text-gray-600 mb-8 max-w-xl leading-relaxed mx-auto">
                             Descubre cómo la orientación en <strong>propósito y proyecto de vida</strong> ha ayudado a otros a encontrar su brújula. Inspírate con sus testimonios y anímate a dar el primer paso hacia una existencia plena.
                         </p>
                         
-                        <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-6">
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 w-full">
                             
                             <!-- Botón de WhatsApp Optimizado y Etiqueta -->
-                            <div class="flex flex-col items-center md:items-start">
+                            <div class="flex flex-col items-center">
                                 <a href="https://wa.me/573233796547?text=Hola%20Jorge.%20Estaba%20leyendo%20los%20testimonios%20y%20me%20gustar%C3%ADa%20agendar%20una%20sesi%C3%B3n." 
                                    target="_blank" 
                                    class="btn-whatsapp flex items-center px-7 py-3 rounded-full font-bold text-base transition-all group">
@@ -77,7 +77,7 @@
                                     <span id="avgRating" class="text-xl font-bold text-amber-600">0.0</span>
                                 </div>
                                 <div class="text-left">
-                                    <div id="summaryStars" class="flex space-x-0.5 mb-0.5 text-amber-400">
+                                    <div id="summaryStars" class="flex justify-center space-x-0.5 mb-0.5 text-amber-400">
                                         <!-- Estrellas dinámicas -->
                                     </div>
                                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Basado en <strong id="totalReviews" class="text-gray-700">0</strong> procesos</p>
@@ -89,7 +89,8 @@
                     <!-- Columna Derecha: Perfil (Foto y Credenciales) -->
                     <div class="md:w-2/5 flex flex-col items-center order-1 md:order-2">
                         <div class="profile-img-container relative w-32 h-32 md:w-40 md:h-40 mb-4">
-                            <img src="consultorio.png" alt="Consultorio Caminos del Ser" class="rounded-full object-cover w-full h-full border-4 border-white shadow-lg relative z-10 bg-white" onerror="this.src='https://placehold.co/400x400/003366/ffffff?text=Consultorio'">
+                            <!-- Imagen actualizada a .jpeg -->
+                            <img src="consultorio.jpeg" alt="Consultorio Caminos del Ser" class="rounded-full object-cover w-full h-full border-4 border-white shadow-lg relative z-10 bg-white" onerror="this.src='https://placehold.co/400x400/003366/ffffff?text=Consultorio'">
                         </div>
                         <div class="text-center bg-white/60 px-4 py-3 rounded-2xl border border-white/40 shadow-sm backdrop-blur-sm">
                             <h2 class="text-lg font-bold text-[#003366] leading-tight">Psic. Jorge Arango Castaño</h2>
