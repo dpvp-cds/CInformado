@@ -1,407 +1,354 @@
-import { db } from '../lib/firebaseAdmin.js';
-import { verifyAuth } from '../lib/auth.js';
-import { sanitizePayload } from '../lib/sanitize.js';
-import { Resend } from 'resend';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { Buffer } from 'buffer';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Gestión - CInformado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F7F2; color: #4A4A4A; }
+        .card { background-color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .hidden { display: none !important; }
+        
+        /* Tooltip personalizado Tailwind */
+        .group:hover .group-hover\:visible { visibility: visible; }
+        .group:hover .group-hover\:opacity-100 { opacity: 1; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
 
-// =======================================================
-// MOTOR DE PAGINACIÓN Y DISEÑO PARA PDFs
-// =======================================================
-function setupPdfBuilder(pdfDoc, font, boldFont) {
-    let page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
-    const margin = 50;
-    const maxWidth = width - 2 * margin;
-    let y = height - margin;
-    const brandColor = rgb(0, 0.2, 0.4); 
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <a href="portal-consentimientos.html" class="flex-shrink-0">
+                <img src="logoprincipal.png" alt="Caminos del Ser Logo" class="h-10 w-auto">
+            </a>
+            
+            <div class="flex flex-wrap justify-center items-center gap-3">
+                <a href="portal-citas.html" class="flex items-center text-indigo-600 font-bold hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200 shadow-sm text-sm">
+                    🗓️ Agenda
+                </a>
+                <a href="portal-pagos.html" class="flex items-center text-green-700 font-bold hover:text-green-900 transition-colors bg-green-50 px-4 py-2 rounded-full border border-green-200 shadow-sm text-sm">
+                    <span class="text-lg mr-1">$</span> Pagos
+                </a>
+                <a href="manual-usuario.html" class="flex items-center text-purple-700 font-bold hover:text-purple-900 transition-colors bg-purple-50 px-4 py-2 rounded-full border border-purple-200 shadow-sm text-sm" title="Ver y descargar Manual de Usuario">
+                    📖 Manual
+                </a>
+                <span class="border-l h-6 border-gray-300 hidden md:block"></span>
+                <button id="logoutButton" class="text-sm font-bold text-red-600 hover:text-red-800 transition-colors px-2">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
 
-    const checkPageBreak = (neededSpace) => {
-        if (y < margin + neededSpace) {
-            page = pdfDoc.addPage();
-            y = height - margin;
-            drawHeader();
-        }
-    };
+    <main class="flex-grow container mx-auto px-6 py-8 max-w-7xl relative">
+        
+        <div id="backupInfoBanner" class="mb-8 bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center text-[#003366]">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-sm font-semibold">Próxima actualización legal (Backup): <strong>Viernes a las 16:00 hrs</strong></span>
+            </div>
+            <button onclick="window.open('/api/vault', '_blank')" class="text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-4 py-1.5 rounded-full font-bold transition-colors">
+                Descargar ahora
+            </button>
+        </div>
 
-    const drawHeader = () => {
-        page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 10, color: brandColor });
-        page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: width - margin, y: y - 5 }, thickness: 1, color: brandColor });
-        y -= 30;
-    };
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-[#003366]">Expedientes de Pacientes</h1>
+                <p class="text-sm text-gray-500 mt-1">Gestión de historias clínicas y consentimientos informados.</p>
+            </div>
+            
+            <div class="flex items-center bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+                <label for="sortFilter" class="text-sm font-bold text-gray-700 mr-3 ml-2 whitespace-nowrap">Ordenar por:</label>
+                <select id="sortFilter" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg focus:ring-[#003366] focus:border-[#003366] px-3 py-2 outline-none cursor-pointer">
+                    <option value="alpha" selected>🔤 Orden Alfabético</option>
+                    <option value="date_desc">📅 Más Recientes</option>
+                    <option value="date_asc">📅 Más Antiguos</option>
+                    <option value="tipo">👥 Agrupar por Tipo</option>
+                </select>
+            </div>
+        </div>
 
-    const drawTitle = (text) => {
-        checkPageBreak(30);
-        page.drawText(text, { x: margin, y, font: boldFont, size: 16, color: brandColor });
-        y -= 25;
-    };
+        <div id="loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366] mb-4"></div>
+            <p class="text-lg text-[#003366] font-semibold">Cargando base de datos segura...</p>
+        </div>
 
-    const drawSubTitle = (text) => {
-        checkPageBreak(25);
-        y -= 10;
-        page.drawText(text, { x: margin, y, font: boldFont, size: 12, color: brandColor });
-        y -= 15;
-    };
+        <div id="tableContainer" class="card hidden p-0 overflow-hidden">
+            <div class="table-container">
+                <table class="w-full text-sm text-left text-gray-600 whitespace-nowrap">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-bold">Tipo</th>
+                            <th scope="col" class="px-6 py-4 font-bold">Nombre del Paciente(s)</th>
+                            <th scope="col" class="px-6 py-4 font-bold">Fecha de Registro</th>
+                            <th scope="col" class="px-6 py-4 font-bold text-center">Acciones y Gestión</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                        <!-- Renderizado dinámico -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    const drawTextWrap = (text, size = 10, isBold = false) => {
-        const fontToUse = isBold ? boldFont : font;
-        const words = text.split(' ');
-        let line = '';
-        for (let word of words) {
-            const testLine = line + word + ' ';
-            const testWidth = fontToUse.widthOfTextAtSize(testLine, size);
-            if (testWidth > maxWidth && line !== '') {
-                checkPageBreak(size + 5);
-                page.drawText(line, { x: margin, y, font: fontToUse, size, color: rgb(0.2, 0.2, 0.2) });
-                y -= (size + 5);
-                line = word + ' ';
+        <div id="emptyState" class="hidden text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300 mt-4 shadow-sm">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <p class="text-xl font-bold text-[#003366] mb-2">Tu base de datos está limpia.</p>
+            <p class="text-sm text-gray-500">Los consentimientos e historias clínicas que se firmen aparecerán aquí.</p>
+        </div>
+    </main>
+
+    <div id="backupModal" class="fixed inset-0 bg-[#003366] bg-opacity-95 hidden z-[100] flex justify-center items-center px-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col relative p-8 text-center transform scale-100">
+            <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <svg class="w-10 h-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-red-700 mb-3">¡Copia de Seguridad Requerida!</h2>
+            <p class="text-gray-600 mb-8 text-sm font-medium">Por cumplimiento de la Ley 1090, es tu deber realizar y custodiar el backup semanal. No puedes continuar usando el sistema hasta confirmar la descarga.</p>
+            
+            <div class="space-y-4">
+                <button onclick="window.open('/api/vault', '_blank')" class="w-full bg-white border-2 border-[#003366] text-[#003366] hover:bg-blue-50 py-3 rounded-xl font-bold text-[15px] transition-colors flex items-center justify-center shadow-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Paso 1: Descargar Backup (.json)
+                </button>
+                <button onclick="confirmarBackupSemanal()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[15px] transition-colors shadow-lg shadow-red-600/30">
+                    Paso 2: Ya lo guardé
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allPatients = []; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('consultorAuth') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                sessionStorage.removeItem('consultorAuth');
+                window.location.href = 'login.html';
+            });
+
+            document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
+
+            fetchPatients();
+            
+            evaluarRecordatorioBackup();
+            setInterval(evaluarRecordatorioBackup, 60000);
+        });
+
+        function evaluarRecordatorioBackup() {
+            const now = new Date();
+            const currentDay = now.getDay(); 
+            
+            let daysSinceFriday = currentDay - 5;
+            if (daysSinceFriday < 0) {
+                daysSinceFriday += 7; 
+            }
+            
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() - daysSinceFriday);
+            targetDate.setHours(16, 0, 0, 0); 
+
+            if (currentDay === 5 && now.getHours() < 16) {
+                targetDate.setDate(targetDate.getDate() - 7);
+            }
+
+            const targetTimestamp = targetDate.getTime();
+            const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
+            
+            const modal = document.getElementById('backupModal');
+
+            if (lastConfirmedTimestamp < targetTimestamp) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; 
             } else {
-                line = testLine;
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto'; 
             }
         }
-        if (line.trim() !== '') {
-            checkPageBreak(size + 5);
-            page.drawText(line, { x: margin, y, font: fontToUse, size, color: rgb(0.2, 0.2, 0.2) });
-            y -= (size + 10);
-        }
-    };
 
-    const drawClause = (title, text) => {
-        checkPageBreak(30);
-        page.drawText(title, { x: margin, y, font: boldFont, size: 10 });
-        y -= 12;
-        drawTextWrap(text, 10, false);
-    };
-
-    const drawDetail = (label, value) => {
-        if (!value) return;
-        checkPageBreak(15);
-        page.drawText(`${label}:`, { x: margin, y, font: boldFont, size: 10, color: brandColor });
-        
-        const valueX = margin + 140;
-        const valueMaxWidth = maxWidth - 140;
-        const words = String(value).split(' ');
-        let line = '';
-        for(let word of words) {
-            const testLine = line + word + ' ';
-            const textWidth = font.widthOfTextAtSize(testLine, 10);
-            if(textWidth > valueMaxWidth && line !== '') {
-                page.drawText(line, { x: valueX, y, font, size: 10 });
-                y -= 12;
-                checkPageBreak(15);
-                line = word + ' ';
-            } else {
-                line = testLine;
+        function confirmarBackupSemanal() {
+            if(confirm('¿Confirmas bajo tu responsabilidad profesional que has descargado el archivo Backup (.json) más reciente y lo has custodiado en un entorno seguro?')) {
+                localStorage.setItem('cinformado_last_backup', Date.now().toString());
+                document.getElementById('backupModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
             }
         }
-        page.drawText(line, { x: valueX, y, font, size: 10 });
-        y -= 18;
-    };
 
-    const drawSignature = async (base64Image, name, subtitle) => {
-        checkPageBreak(100);
-        y -= 60; 
-        try {
-            const imageBytes = Buffer.from(base64Image.split(',')[1], 'base64');
-            const pngImage = await pdfDoc.embedPng(imageBytes);
-            page.drawImage(pngImage, { x: margin, y, width: 120, height: 60 });
-        } catch (e) { console.error("Error incrustando firma", e); }
-        
-        page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 180, y: y - 5 }, thickness: 1, color: brandColor });
-        page.drawText(name, { x: margin, y: y - 18, font: boldFont, size: 10 });
-        page.drawText(subtitle, { x: margin, y: y - 30, font: font, size: 9, color: rgb(0.4, 0.4, 0.4) });
-        y -= 45;
-    };
-
-    const drawDualSignatures = async (b64_1, name1, b64_2, name2) => {
-        checkPageBreak(100);
-        y -= 60; 
-        try {
-            const img1Bytes = Buffer.from(b64_1.split(',')[1], 'base64');
-            const png1 = await pdfDoc.embedPng(img1Bytes);
-            page.drawImage(png1, { x: margin, y, width: 120, height: 60 });
-            
-            const img2Bytes = Buffer.from(b64_2.split(',')[1], 'base64');
-            const png2 = await pdfDoc.embedPng(img2Bytes);
-            page.drawImage(png2, { x: margin + 250, y, width: 120, height: 60 });
-        } catch (e) { console.error("Error incrustando firmas", e); }
-        
-        page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 180, y: y - 5 }, thickness: 1, color: brandColor });
-        page.drawLine({ start: { x: margin + 250, y: y - 5 }, end: { x: margin + 430, y: y - 5 }, thickness: 1, color: brandColor });
-        
-        page.drawText(name1, { x: margin, y: y - 18, font: boldFont, size: 10 });
-        page.drawText('Paciente 1', { x: margin, y: y - 30, font: font, size: 9, color: rgb(0.4, 0.4, 0.4) });
-        
-        page.drawText(name2, { x: margin + 250, y: y - 18, font: boldFont, size: 10 });
-        page.drawText('Paciente 2', { x: margin + 250, y: y - 30, font: font, size: 9, color: rgb(0.4, 0.4, 0.4) });
-        y -= 45;
-    };
-
-    drawHeader();
-    return { drawTitle, drawSubTitle, drawTextWrap, drawClause, drawDetail, drawSignature, drawDualSignatures };
-}
-
-async function crearPDFConsentimiento(datos) {
-    const { demograficos, firmaDigital } = datos;
-    const pdfDoc = await PDFDocument.create();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
-    const doc = setupPdfBuilder(pdfDoc, font, boldFont);
-    doc.drawTitle('Consentimiento Informado Digital');
-    
-    const esMenor = parseInt(demograficos.edad, 10) < 18;
-    const modalidad = datos.consentimiento?.modalidad || 'presencial';
-    
-    const intro = esMenor ? `Yo, ${demograficos.nombreAcudiente}, con documento ${demograficos.documentoAcudiente}, como ${demograficos.tipoAcudiente} de ${demograficos.nombre} (doc ${demograficos.documentoIdentidad}), declaro que:` : `Yo, ${demograficos.nombre}, con documento ${demograficos.documentoIdentidad}, declaro que:`;
-    doc.drawTextWrap(intro, 10, true);
-
-    doc.drawClause('2.1 Confidencialidad:', 'Entiendo, acepto y soy consciente del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con el (la) paciente, la cual será inviolable, salvo que su integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.');
-    doc.drawClause('2.2 Propósito de la Intervención:', 'El propósito es realizar una evaluación y/o intervención psicológica, la cual se llevará a cabo utilizando técnicas y enfoques validados por la psicología como ciencia.');
-    doc.drawClause('2.3 Naturaleza del Proceso:', 'Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.');
-    doc.drawClause('2.4 Proceso de evaluación:', esMenor ? 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.' : 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.');
-    doc.drawClause('2.5 Costos económicos:', esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.');
-    doc.drawClause('2.6 Tratamiento de Datos:', 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.');
-    doc.drawClause('2.7 Declaración y Modalidad de la Sesión:', esMenor ? `Declaro y doy fe de que yo, ${demograficos.nombreAcudiente}, actuando como acudiente, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.` : `Declaro y doy fe de que yo, ${demograficos.nombre}, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.`);
-
-    doc.drawSubTitle('Información Demográfica del Paciente');
-    doc.drawDetail('Nombre Completo', demograficos.nombre);
-    doc.drawDetail('Documento', `${demograficos.documentoIdentidad} (${demograficos.tipoDocumento})`);
-    doc.drawDetail('Nacimiento / Edad', `${demograficos.fechaNacimiento} (${demograficos.edad} años)`);
-    doc.drawDetail('Ubicación', `${demograficos.ciudad || ''}, ${demograficos.departamento || ''}, ${demograficos.pais}`);
-    doc.drawDetail('Dirección', demograficos.direccion);
-    doc.drawDetail('Contacto (Tel/Email)', `${demograficos.telefonoContacto} | ${demograficos.email}`);
-    doc.drawDetail('Servicio de Salud / EPS', demograficos.eps);
-    doc.drawDetail('Contacto de Emergencia', `${demograficos.contactoEmergenciaNombre} (Tel: ${demograficos.contactoEmergenciaTelefono})`);
-    
-    if(esMenor) {
-        doc.drawSubTitle('Información del Acudiente Legal');
-        doc.drawDetail('Nombre Acudiente', demograficos.nombreAcudiente);
-        doc.drawDetail('Documento Acudiente', demograficos.documentoAcudiente);
-        doc.drawDetail('Relación o Parentesco', demograficos.tipoAcudiente);
-    }
-    
-    doc.drawSubTitle('Firma de Aceptación');
-    await doc.drawSignature(firmaDigital, esMenor ? demograficos.nombreAcudiente : demograficos.nombre, 'Firma Electrónica Autorizada');
-    
-    return await pdfDoc.save();
-}
-
-async function crearPDFParejas(datos) {
-    const { paciente1, paciente2, firmas } = datos;
-    const pdfDoc = await PDFDocument.create();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
-    const doc = setupPdfBuilder(pdfDoc, font, boldFont);
-    doc.drawTitle('Consentimiento - Terapia de Pareja');
-    
-    const intro = `Nosotros, ${paciente1.nombre} (Doc: ${paciente1.documentoIdentidad}) y ${paciente2.nombre} (Doc: ${paciente2.documentoIdentidad}), declaramos voluntariamente que:`;
-    doc.drawTextWrap(intro, 10, true);
-    
-    doc.drawClause('3.1 Confidencialidad y Secreto Compartido:', 'Entendemos, aceptamos y somos conscientes del trabajo profesional que realizará el psicólogo designado, y que este guardará una confidencialidad absoluta con nosotros, la cual será inviolable, salvo que nuestra integridad física se vea amenazada, y salvo los requerimientos de ley que así mismo pidan levantar la reserva profesional.');
-    doc.drawClause('3.2 Propósito de la Intervención:', 'El propósito es realizar una evaluación e intervención psicológica orientada a mejorar la dinámica relacional, utilizando técnicas validadas.');
-    doc.drawClause('3.3 Naturaleza del Proceso:', 'Se nos ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa es fundamental para el éxito del mismo.');
-    doc.drawClause('3.4 Proceso de Evaluación:', 'Autorizamos que nos sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.');
-    doc.drawClause('3.5 Costos Económicos:', 'Nos comprometemos de manera solidaria a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna.');
-    doc.drawClause('3.6 Tratamiento de Datos:', 'Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser".');
-    
-    const modalidad = datos.consentimiento?.modalidad || 'presencial';
-    const decPareja = `Declaramos y damos fe de que nosotros, ${paciente1.nombre} y ${paciente2.nombre}, hemos leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se nos ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a nuestra entera satisfacción.`;
-    doc.drawClause('3.7 Declaración y Modalidad de la Sesión:', decPareja);
-
-    doc.drawSubTitle('Información: Paciente 1');
-    doc.drawDetail('Nombre', paciente1.nombre);
-    doc.drawDetail('Documento', `${paciente1.documentoIdentidad} (${paciente1.tipoDocumento})`);
-    doc.drawDetail('Edad / Nacimiento', `${paciente1.edad} años (${paciente1.fechaNacimiento})`);
-    doc.drawDetail('Ubicación y Dir.', `${paciente1.ciudad || ''}, ${paciente1.departamento || ''}, ${paciente1.pais} | ${paciente1.direccion}`);
-    doc.drawDetail('Contacto (Tel/Email)', `${paciente1.telefonoContacto} | ${paciente1.email}`);
-    doc.drawDetail('EPS', paciente1.eps);
-    doc.drawDetail('Contacto Emergencia', `${paciente1.contactoEmergenciaNombre || 'No Registrado'} (Tel: ${paciente1.contactoEmergenciaTelefono || 'N/A'})`);
-    
-    doc.drawSubTitle('Información: Paciente 2');
-    doc.drawDetail('Nombre', paciente2.nombre);
-    doc.drawDetail('Documento', `${paciente2.documentoIdentidad} (${paciente2.tipoDocumento})`);
-    doc.drawDetail('Edad / Nacimiento', `${paciente2.edad} años (${paciente2.fechaNacimiento})`);
-    doc.drawDetail('Ubicación y Dir.', `${paciente2.ciudad || ''}, ${paciente2.departamento || ''}, ${paciente2.pais} | ${paciente2.direccion}`);
-    doc.drawDetail('Contacto (Tel/Email)', `${paciente2.telefonoContacto} | ${paciente2.email}`);
-    doc.drawDetail('EPS', paciente2.eps);
-    doc.drawDetail('Contacto Emergencia', `${paciente2.contactoEmergenciaNombre || 'No Registrado'} (Tel: ${paciente2.contactoEmergenciaTelefono || 'N/A'})`);
-
-    doc.drawSubTitle('Firmas de Aceptación Conjunta');
-    await doc.drawDualSignatures(firmas.firma1, paciente1.nombre, firmas.firma2, paciente2.nombre);
-    
-    return await pdfDoc.save();
-}
-
-export default async function handler(request, response) {
-    // DESACTIVAR EL CACHÉ ABSOLUTAMENTE PARA EVITAR FUGAS DE DATOS EN VERCEL
-    response.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
-    
-    const action = request.query.action;
-
-    const isPublicAction = (request.method === 'POST' && (action === 'saveIndividual' || action === 'savePareja'));
-
-    if (!isPublicAction) {
-        if (!verifyAuth(request)) {
-            return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida, inexistente o expirada.' });
-        }
-    }
-
-    try {
-        if (request.method === 'GET') {
-            if (action === 'getAll') {
-                const results = [];
-                const snapshotIndividuales = await db.collection('consents').get(); 
-                snapshotIndividuales.forEach(doc => {
-                    const data = doc.data();
-                    const d = data.demograficos || data || {};
-                    const isOldCouple = data.tipo === 'pareja' || d.nombreCompleto1 !== undefined || d.nombre1 !== undefined;
-                    
-                    let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
-
-                    // 🚀 NUEVO: Extraemos el estado del testimonio para enviarlo al Frontend
-                    const estadoTestimonio = data.estadoTestimonio || null;
-
-                    if (isOldCouple) {
-                        const n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
-                        const n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
-                        results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: d.email1 || d.email || 'Sin Email', tipo: 'pareja', fecha: docFecha, estadoTestimonio });
-                    } else {
-                        results.push({ id: doc.id, nombre: d.nombreCompleto || d.nombre || 'Sin Nombre', email: d.email || 'Sin Email', tipo: 'individual', fecha: docFecha, estadoTestimonio });
-                    }
+        const formatDate = (isoString) => {
+            if (!isoString) return 'Fecha desconocida';
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleString('es-CO', { 
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', hour12: true 
                 });
+            } catch (e) { return isoString; }
+        };
 
-                const snapshotParejas = await db.collection('consents_parejas').get();
-                snapshotParejas.forEach(doc => {
-                    const data = doc.data();
-                    let n1, n2, email;
-                    
-                    if (data.paciente1 && typeof data.paciente1 === 'object') {
-                        n1 = data.paciente1.nombreCompleto1 || data.paciente1.nombre || 'P1';
-                        n2 = data.paciente2?.nombreCompleto2 || data.paciente2?.nombre || 'P2';
-                        email = data.paciente1.email1 || data.paciente1.email || 'Sin Email';
-                    } else {
-                        const d = data.demograficos || data || {};
-                        n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
-                        n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
-                        email = d.email1 || d.email || 'Sin Email';
-                    }
-
-                    let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
-                    
-                    // 🚀 NUEVO: Extraemos el estado del testimonio
-                    const estadoTestimonio = data.estadoTestimonio || null;
-
-                    results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: email, tipo: 'pareja', fecha: docFecha, estadoTestimonio });
-                });
-
-                results.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                return response.status(200).json(results);
-            }
-            
-            if (action === 'getIndividual') {
-                const doc = await db.collection('consents').doc(request.query.id).get();
-                if (!doc.exists) return response.status(404).json({ message: 'No encontrado' });
-                return response.status(200).json({ id: doc.id, ...doc.data() });
-            }
-            
-            if (action === 'getPareja') {
-                const doc = await db.collection('consents_parejas').doc(request.query.id).get();
-                if (!doc.exists) return response.status(404).json({ message: 'No encontrado' });
-                return response.status(200).json({ id: doc.id, ...doc.data() });
-            }
-        }
-
-        if (request.method === 'POST') {
-            const data = sanitizePayload(request.body);
-            
-            const resendApiKey = process.env.RESEND2_API_KEY;
-            const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
-            if (action === 'updateDemographics') {
-                const { id, isPareja, datos } = data;
-                if (!id || !datos) return response.status(400).json({ message: 'Faltan datos.' });
+        async function fetchPatients() {
+            try {
+                const response = await fetch('/api/consentimientos?action=getAll');
+                if (!response.ok) throw new Error('Error de red.');
                 
-                if (isPareja) {
-                    await db.collection('consents_parejas').doc(id).set({ paciente1: datos.paciente1, paciente2: datos.paciente2 }, { merge: true });
+                allPatients = await response.json();
+                
+                document.getElementById('loading').classList.add('hidden');
+                
+                if (allPatients.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
                 } else {
-                    await db.collection('consents').doc(id).set({ demograficos: datos.demograficos }, { merge: true });
+                    document.getElementById('tableContainer').classList.remove('hidden');
+                    applySortAndRender();
                 }
-                return response.status(200).json({ message: 'Datos actualizados exitosamente.' });
-            }
-
-            if (action === 'saveIndividual') {
-                if (!data.demograficos || !data.firmaDigital) return response.status(400).json({ message: 'Faltan datos críticos.' });
-                
-                const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado' };
-                const docRef = await db.collection('consents').add(dataToSave);
-                
-                if (resend) {
-                    const pdfBuffer = await crearPDFConsentimiento(dataToSave);
-                    const mailToPaciente = {
-                        from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
-                        to: dataToSave.demograficos.email,
-                        subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
-                        html: `<p>Estimado/a ${dataToSave.demograficos.nombre},</p><p>Recibes una copia de tu consentimiento informado para la atención psicológica.</p><p>Adjunto, encontrarás el PDF con tu firma y la totalidad de las cláusulas legales aceptadas.</p>`,
-                        attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
-                    };
-                    const mailToTerapeuta = {
-                        from: 'Notificación Consentimiento Informado <caminosdelser@emcotic.com>',
-                        to: 'caminosdelser@emcotic.com', 
-                        subject: `Nuevo Consentimiento Firmado: ${dataToSave.demograficos.nombre}`,
-                        html: `<p>Has recibido un consentimiento firmado de <strong>${dataToSave.demograficos.nombre}</strong>.</p><p>Revisa el PDF adjunto para ver los datos completos y la firma.</p>`,
-                        attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
-                    };
-                    await Promise.all([ resend.emails.send(mailToPaciente), resend.emails.send(mailToTerapeuta) ]);
-                }
-                return response.status(200).json({ message: 'Procesado exitosamente', id: docRef.id });
-            }
-
-            if (action === 'savePareja') {
-                if (!data.paciente1 || !data.firmas) return response.status(400).json({ message: 'Faltan datos críticos.' });
-                
-                const dataToSave = { ...data, fecha: new Date().toISOString(), estado: 'Firmado Pareja' };
-                const docRef = await db.collection('consents_parejas').add(dataToSave);
-                
-                if (resend) {
-                    const pdfBuffer = await crearPDFParejas(dataToSave);
-                    const attachments = [{ filename: `Consentimiento-Pareja-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }];
-                    const correos = [
-                        { to: dataToSave.paciente1.email, subject: 'Copia de Consentimiento de Pareja' },
-                        { to: dataToSave.paciente2.email, subject: 'Copia de Consentimiento de Pareja' },
-                        { to: 'caminosdelser@emcotic.com', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } 
-                    ];
-
-                    const emailPromises = correos.map(correo => resend.emails.send({
-                        from: 'Notificación Consentimiento <caminosdelser@emcotic.com>',
-                        to: correo.to,
-                        subject: correo.subject,
-                        html: `<p>Adjunto encontrarás el PDF íntegro del consentimiento informado de terapia de pareja, incluyendo todas sus cláusulas y las firmas electrónicas.</p>`,
-                        attachments: attachments
-                    }));
-                    await Promise.all(emailPromises);
-                }
-                return response.status(200).json({ message: 'Procesado exitosamente', id: docRef.id });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerHTML = '<span class="text-red-600 font-bold">Error cargando los datos.</span>';
             }
         }
 
-        // 🛡️ LÓGICA DE BORRADO DEFINITIVO (Hard Delete Restaurado)
-        if (request.method === 'DELETE' && action === 'delete') {
-            const { id } = request.query;
-            if (!id) return response.status(400).json({ message: 'Falta el ID del expediente.' });
+        function applySortAndRender() {
+            const sortValue = document.getElementById('sortFilter').value;
+            let sortedPatients = [...allPatients]; 
 
-            await db.collection('consents').doc(id).delete();
-            await db.collection('consents_parejas').doc(id).delete();
-            await db.collection('historias_clinicas').doc(id).delete();
+            if (sortValue === 'alpha') {
+                sortedPatients.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            } else if (sortValue === 'date_desc') {
+                sortedPatients.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            } else if (sortValue === 'date_asc') {
+                sortedPatients.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            } else if (sortValue === 'tipo') {
+                sortedPatients.sort((a, b) => {
+                    if (a.tipo === b.tipo) { return a.nombre.localeCompare(b.nombre); }
+                    return a.tipo.localeCompare(b.tipo);
+                });
+            }
 
-            return response.status(200).json({ message: 'Expediente eliminado completamente de la base de datos.' });
+            renderTable(sortedPatients);
         }
 
-        return response.status(405).json({ message: 'Método o acción no soportada.' });
+        function renderTable(patientsArray) {
+            const tbody = document.getElementById('patientsTableBody');
+            tbody.innerHTML = '';
 
-    } catch (error) {
-        console.error("Error en el controlador maestro de consentimientos:", error);
-        return response.status(500).json({ message: 'Error interno del servidor.', detail: error.message });
-    }
-}
+            patientsArray.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-blue-50/50 transition-colors';
+                
+                const tipoBadge = p.tipo === 'pareja' 
+                    ? '<span class="bg-fuchsia-100 text-fuchsia-800 text-xs font-bold px-2.5 py-1 rounded border border-fuchsia-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Pareja</span>' 
+                    : '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded border border-blue-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Individual</span>';
+
+                // LÓGICA DE BADGE DE TESTIMONIO (El indicador visual solicitado)
+                let testimonioBadge = '';
+                if (p.estadoTestimonio === 'solicitado') {
+                    testimonioBadge = `
+                        <div class="group relative flex items-center mt-1">
+                            <span class="flex items-center text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full cursor-help w-max">
+                                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5 animate-pulse"></span> Testimonio Solicitado
+                            </span>
+                            <span class="group-hover:opacity-100 transition-opacity bg-gray-800 px-2 py-1 text-[10px] text-gray-100 rounded absolute left-0 bottom-full mb-1 opacity-0 z-10 whitespace-nowrap pointer-events-none">
+                                Correo enviado. Pendiente de respuesta del paciente.
+                            </span>
+                        </div>`;
+                } else if (p.estadoTestimonio === 'completado') {
+                    testimonioBadge = `
+                        <div class="group relative flex items-center mt-1">
+                            <span class="flex items-center text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full cursor-help w-max">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Testimonio Recibido
+                            </span>
+                            <span class="group-hover:opacity-100 transition-opacity bg-gray-800 px-2 py-1 text-[10px] text-gray-100 rounded absolute left-0 bottom-full mb-1 opacity-0 z-10 whitespace-nowrap pointer-events-none">
+                                Reseña enviada. Revisa el panel de aprobación.
+                            </span>
+                        </div>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4">${tipoBadge}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-gray-800">${p.nombre}</span>
+                        ${testimonioBadge}
+                    </td>
+                    <td class="px-6 py-4 text-gray-500 text-xs">${formatDate(p.fecha)}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <a href="historia-clinica.html?id=${p.id}" class="bg-[#003366] text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-[#002244] shadow-sm flex items-center transition-colors">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Historia Clínica
+                            </a>
+                            <a href="detalle-consentimiento.html?id=${p.id}" class="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-bold hover:bg-gray-50 shadow-sm flex items-center transition-colors">
+                                📄 Consentimiento
+                            </a>
+                            <button onclick="requestReview('${p.id}', '${p.nombre.replace(/'/g, "\\'")}', '${p.email || ''}')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded transition-colors" title="Solicitar Testimonio / Reseña a este paciente">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                            </button>
+                            <button onclick="deletePatient('${p.id}', '${p.nombre.replace(/'/g, "\\'")}')" class="text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors" title="Eliminar Expediente Permanentemente">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function requestReview(id, nombre, email) {
+            if (!email || email === 'Sin Email') {
+                alert(`No se puede solicitar reseña porque ${nombre} no tiene un correo electrónico registrado.`);
+                return;
+            }
+
+            if (confirm(`¿Estás seguro que deseas enviar una solicitud de reseña/testimonio al correo de ${nombre}?\n\nEsta acción enviará un enlace automático a: ${email}`)) {
+                try {
+                    const response = await fetch('/api/reviews?action=sendRequest', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, nombre, email })
+                    });
+
+                    if (response.ok) {
+                        alert(`¡Solicitud enviada con éxito a ${nombre}! El paciente podrá calificar tu servicio y dejar un comentario.`);
+                        // Actualizar estado localmente para feedback inmediato sin recargar toda la página
+                        const index = allPatients.findIndex(p => p.id === id);
+                        if(index !== -1) {
+                            allPatients[index].estadoTestimonio = 'solicitado';
+                            applySortAndRender(); // Re-renderizar la tabla para mostrar el badge
+                        }
+                    } else {
+                        const error = await response.json();
+                        alert(`Error: ${error.message}`);
+                    }
+                } catch (e) {
+                    alert('Error de conexión al intentar enviar la solicitud de reseña.');
+                }
+            }
+        }
+
+        async function deletePatient(id, nombre) {
+            if (confirm(`¿Estás completamente seguro de que deseas ELIMINAR PERMANENTEMENTE a ${nombre}?\n\nEsta acción destruirá el consentimiento y toda la historia clínica de la base de datos y NO se puede deshacer.`)) {
+                try {
+                    const response = await fetch(`/api/consentimientos?action=delete&id=${id}`, { 
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert('Expediente eliminado permanentemente de la base de datos.');
+                        window.location.reload();
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error al eliminar: ${errorData.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar:', error);
+                    alert('Hubo un error de conexión al intentar eliminar el expediente.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
