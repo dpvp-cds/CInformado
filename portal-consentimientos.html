@@ -36,9 +36,11 @@
                     📖 Manual
                 </a>
                 
-                <!-- BOTÓN RESTAURADO: Acceso al Panel de Reseñas -->
-                <a href="panel-resenas.html" class="flex items-center text-amber-700 font-bold hover:text-amber-900 transition-colors bg-amber-50 px-4 py-2 rounded-full border border-amber-200 shadow-sm text-sm" title="Aprobar y gestionar testimonios">
+                <!-- BOTÓN RESTAURADO: Acceso al Panel de Reseñas con Badge Notificador -->
+                <a href="panel-resenas.html" class="relative flex items-center text-amber-700 font-bold hover:text-amber-900 transition-colors bg-amber-50 px-4 py-2 rounded-full border border-amber-200 shadow-sm text-sm" title="Aprobar y gestionar testimonios">
                     ⭐ Reseñas
+                    <!-- Etiqueta (Badge) de Notificación Inteligente -->
+                    <span id="pendingReviewsBadge" class="hidden ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-pulse border border-red-600">0</span>
                 </a>
 
                 <span class="border-l h-6 border-gray-300 hidden md:block"></span>
@@ -141,12 +143,36 @@
 
             document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
 
+            // Cargas concurrentes para mayor velocidad (Pacientes y Conteo de Reseñas)
             fetchPatients();
+            checkPendingReviews(); 
             
             evaluarRecordatorioBackup();
             setInterval(evaluarRecordatorioBackup, 60000);
         });
 
+        // --- NUEVA LÓGICA DE NOTIFICACIONES ---
+        async function checkPendingReviews() {
+            try {
+                const response = await fetch('/api/reviews?action=getAllAdmin');
+                if (response.ok) {
+                    const reviews = await response.json();
+                    const pendingCount = reviews.filter(r => r.estado === 'Pendiente').length;
+                    const badge = document.getElementById('pendingReviewsBadge');
+                    
+                    if (pendingCount > 0) {
+                        badge.textContent = pendingCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error consultando reseñas pendientes:", error);
+            }
+        }
+
+        // --- LÓGICA DE BACKUP ---
         function evaluarRecordatorioBackup() {
             const now = new Date();
             const currentDay = now.getDay(); 
