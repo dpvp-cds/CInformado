@@ -8,7 +8,7 @@ export default async function handler(request, response) {
 
     try {
         // ==========================================
-        // 1. GET: OBTENER RESEÑAS PÚBLICAS (Para el Muro) - INTACTO
+        // 1. GET: OBTENER RESEÑAS PÚBLICAS (Para el Muro)
         // ==========================================
         if (request.method === 'GET' && action === 'getPublicReviews') {
             const snapshot = await db.collection('valoraciones').where('estado', '==', 'Aprobado').get();
@@ -28,10 +28,9 @@ export default async function handler(request, response) {
         }
 
         // ==========================================
-        // 2. GET: OBTENER TODAS LAS RESEÑAS (NUEVO: Para tu panel administrativo)
+        // 2. GET: OBTENER TODAS LAS RESEÑAS (Para panel administrativo)
         // ==========================================
         if (request.method === 'GET' && action === 'getAllAdmin') {
-            // Protección de ruta: Solo tú (el consultor) puedes ver esto
             if (!verifyAuth(request)) {
                 return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida.' });
             }
@@ -45,13 +44,12 @@ export default async function handler(request, response) {
                 });
             });
             
-            // Ordenar de más reciente a más antiguo
             allReviews.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             return response.status(200).json(allReviews);
         }
 
         // ==========================================
-        // 3. POST: ACTUALIZAR ESTADO (NUEVO: Aprobar u Ocultar)
+        // 3. POST: ACTUALIZAR ESTADO (Aprobar u Ocultar)
         // ==========================================
         if (request.method === 'POST' && action === 'updateStatus') {
             if (!verifyAuth(request)) {
@@ -66,7 +64,7 @@ export default async function handler(request, response) {
         }
 
         // ==========================================
-        // 4. DELETE: ELIMINAR RESEÑA (NUEVO)
+        // 4. DELETE: ELIMINAR RESEÑA
         // ==========================================
         if (request.method === 'DELETE' && action === 'deleteReview') {
             if (!verifyAuth(request)) {
@@ -80,7 +78,7 @@ export default async function handler(request, response) {
         }
 
         // ==========================================
-        // 5. POST: ENVIAR SOLICITUD DE RESEÑA AL PACIENTE - INTACTO
+        // 5. POST: ENVIAR SOLICITUD DE RESEÑA AL PACIENTE
         // ==========================================
         if (request.method === 'POST' && action === 'sendRequest') {
             if (!verifyAuth(request)) {
@@ -140,11 +138,22 @@ export default async function handler(request, response) {
                 html: htmlCorreo
             });
 
+            // 🚀 NUEVO: MARCAR EL ESTADO COMO 'SOLICITADO' EN EL PERFIL DEL PACIENTE
+            const docIndiv = await db.collection('consents').doc(id).get();
+            if (docIndiv.exists) {
+                await db.collection('consents').doc(id).update({ estadoTestimonio: 'solicitado' });
+            } else {
+                const docPareja = await db.collection('consents_parejas').doc(id).get();
+                if (docPareja.exists) {
+                    await db.collection('consents_parejas').doc(id).update({ estadoTestimonio: 'solicitado' });
+                }
+            }
+
             return response.status(200).json({ message: 'Correo de solicitud de reseña enviado con éxito.' });
         }
 
         // ==========================================
-        // 6. POST: RECIBIR Y GUARDAR LA RESEÑA - INTACTO
+        // 6. POST: RECIBIR Y GUARDAR LA RESEÑA
         // ==========================================
         if (request.method === 'POST' && action === 'submitReview') {
             const data = sanitizePayload(request.body);
@@ -164,6 +173,19 @@ export default async function handler(request, response) {
             };
 
             await db.collection('valoraciones').add(valoracionData);
+
+            // 🚀 NUEVO: MARCAR EL ESTADO COMO 'COMPLETADO' (Solo si no es un paciente antiguo de WhatsApp)
+            if (pacienteId && !pacienteId.startsWith('paciente_legacy_')) {
+                const docIndiv = await db.collection('consents').doc(pacienteId).get();
+                if (docIndiv.exists) {
+                    await db.collection('consents').doc(pacienteId).update({ estadoTestimonio: 'completado' });
+                } else {
+                    const docPareja = await db.collection('consents_parejas').doc(pacienteId).get();
+                    if (docPareja.exists) {
+                        await db.collection('consents_parejas').doc(pacienteId).update({ estadoTestimonio: 'completado' });
+                    }
+                }
+            }
 
             return response.status(200).json({ message: 'Testimonio recibido y guardado en moderación.' });
         }
