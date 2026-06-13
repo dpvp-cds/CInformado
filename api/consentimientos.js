@@ -260,12 +260,15 @@ export default async function handler(request, response) {
                     
                     let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
 
+                    // 🚀 NUEVO: Extraemos el estado del testimonio para enviarlo al Frontend
+                    const estadoTestimonio = data.estadoTestimonio || null;
+
                     if (isOldCouple) {
                         const n1 = d.nombreCompleto1 || d.nombre1 || d.paciente1 || 'P1';
                         const n2 = d.nombreCompleto2 || d.nombre2 || d.paciente2 || 'P2';
-                        results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: d.email1 || d.email || 'Sin Email', tipo: 'pareja', fecha: docFecha });
+                        results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: d.email1 || d.email || 'Sin Email', tipo: 'pareja', fecha: docFecha, estadoTestimonio });
                     } else {
-                        results.push({ id: doc.id, nombre: d.nombreCompleto || d.nombre || 'Sin Nombre', email: d.email || 'Sin Email', tipo: 'individual', fecha: docFecha });
+                        results.push({ id: doc.id, nombre: d.nombreCompleto || d.nombre || 'Sin Nombre', email: d.email || 'Sin Email', tipo: 'individual', fecha: docFecha, estadoTestimonio });
                     }
                 });
 
@@ -286,7 +289,11 @@ export default async function handler(request, response) {
                     }
 
                     let docFecha = data.fecha || data.fechaDiligenciamiento || (data.consentimiento && data.consentimiento.fechaAceptacion) || '2024-01-01T00:00:00.000Z';
-                    results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: email, tipo: 'pareja', fecha: docFecha });
+                    
+                    // 🚀 NUEVO: Extraemos el estado del testimonio
+                    const estadoTestimonio = data.estadoTestimonio || null;
+
+                    results.push({ id: doc.id, nombre: `${n1} y ${n2}`, email: email, tipo: 'pareja', fecha: docFecha, estadoTestimonio });
                 });
 
                 results.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
