@@ -169,7 +169,7 @@ export default async function handler(request, response) {
                 let extraUrlStr = '';
 
                 if (isPresencial) {
-                    const dir = direccionConsultorio || 'Consultorio Caminos del Ser';
+                    const dir = direccionConsultorio || 'Consultorio Psic. Jorge Arango Castaño';
                     locationStr = dir;
                     meetDescription = `Tu sesión se llevará a cabo de forma PRESENCIAL en la siguiente dirección:\\n${dir}`;
                     if (meetUrl) meetDescription += `\\n\\n(Enlace alternativo virtual por si hay contratiempos: ${meetUrl})`;
@@ -180,7 +180,7 @@ export default async function handler(request, response) {
                         ${meetUrl ? `<p style="margin: 0; font-size: 12px; color: #666;"><strong>Enlace alternativo (Virtual):</strong> <a href="${meetUrl}" target="_blank" style="color: #003366;">${meetUrl}</a></p>` : ''}
                     `;
                 } else {
-                    locationStr = meetUrl ? 'Videollamada (Google Meet)' : 'Consultorio Caminos del Ser';
+                    locationStr = meetUrl ? 'Videollamada (Google Meet)' : 'Consultorio Psic. Jorge Arango Castaño';
                     meetDescription = meetUrl ? `Para ingresar a la videollamada, haz clic en el siguiente enlace de Google Meet:\\n${meetUrl}` : 'La sesión será presencial o el terapeuta te enviará el enlace pronto.';
                     
                     emailLocationHtml = `
@@ -208,9 +208,9 @@ export default async function handler(request, response) {
                     `DTSTAMP:${icsDates.stamp}`,
                     `DTSTART:${icsDates.start}`,
                     `DTEND:${icsDates.end}`,
-                    'ORGANIZER;CN="Jorge Arango Castaño":mailto:psic@jorgearangoc.comm',
+                    'ORGANIZER;CN="Jorge Arango Castaño":mailto:psic@jorgearangoc.com',
                     `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN="${safeName}":mailto:${emailPaciente}`,
-                    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:psic@jorgearangoc.comm',
+                    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE;CN="Jorge Arango Castaño":mailto:psic@jorgearangoc.com',
                     `SUMMARY:Sesión de Psicología - ${safeName}`,
                     `DESCRIPTION:${safeDescription}`,
                     `LOCATION:${safeLocation}`
@@ -238,7 +238,7 @@ export default async function handler(request, response) {
                 const primerNombre = nombrePaciente.split(' ')[0];
 
                 await resend.emails.send({
-                    from: 'Citas Caminos del Ser <psic@jorgearangoc.comm>',
+                    from: 'Citas Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                     to: emailPaciente,
                     subject: `📅 Confirmación de Sesión - ${fechaBonita}`,
                     html: `
@@ -270,8 +270,8 @@ export default async function handler(request, response) {
                 });
 
                 await resend.emails.send({
-                    from: 'Sistema de Citas <psic@jorgearangoc.comm>',
-                    to: 'psic@jorgearangoc.comm',
+                    from: 'Sistema de Citas <psic@jorgearangoc.com>',
+                    to: 'psic@jorgearangoc.com',
                     subject: `NUEVA CITA AGENDADA: ${primerNombre}`,
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333;">
@@ -321,9 +321,9 @@ export default async function handler(request, response) {
                 const primerNombre = nombrePaciente.split(' ')[0];
 
                 await resend.emails.send({
-                    from: 'Citas Caminos del Ser <psic@jorgearangoc.comm>',
+                    from: 'Citas Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                     to: emailPaciente,
-                    subject: `❌ Cita Cancelada - Caminos del Ser`,
+                    subject: `❌ Cita Cancelada - Psic. Jorge Arango Castaño`,
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
                             <div style="background-color: #e11d48; padding: 20px; text-align: center;">
@@ -344,8 +344,8 @@ export default async function handler(request, response) {
                 });
                 
                 await resend.emails.send({
-                    from: 'Citas Caminos del Ser <psic@jorgearangoc.comm>',
-                    to: 'psic@jorgearangoc.comm', 
+                    from: 'Citas Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
+                    to: 'psic@jorgearangoc.com', 
                     subject: `❌ CITA CANCELADA: ${primerNombre}`,
                     html: `<p>Se ha cancelado correctamente la cita de <strong>${nombrePaciente}</strong> programada para el ${fechaStr}.</p>`
                 });
