@@ -255,7 +255,7 @@ export default async function handler(request, response) {
 
                         // Disparar envíos
                         await resend.emails.send({
-                            from: 'Caminos del Ser <caminosdelser@emcotic.com>',
+                            from: 'Caminos del Ser <psic@jorgearangoc.comm>',
                             to: emailPaciente,
                             subject: `✅ Certificado de Sesión Realizada - ${fechaSesionF}`,
                             html: htmlPaciente,
@@ -263,8 +263,8 @@ export default async function handler(request, response) {
                         });
 
                         await resend.emails.send({
-                            from: 'Sistema CInformado <caminosdelser@emcotic.com>',
-                            to: 'caminosdelser@emcotic.com',
+                            from: 'Sistema CInformado <psic@jorgearangoc.comm>',
+                            to: 'psic@jorgearangoc.comm',
                             subject: `✅ Validación de Sesión: ${nombreCompleto || 'Paciente'}`,
                             html: htmlTerapeuta,
                             attachments: [{ filename: `Validacion-${nombreCompleto.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
