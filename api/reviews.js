@@ -112,7 +112,7 @@ export default async function handler(request, response) {
                         <h3 style="color: #003366; font-size: 20px;">¡Hola, ${primerNombre}!</h3>
                         <p style="font-size: 16px; line-height: 1.6; color: #4A4A4A;">
                             Esperamos que te encuentres muy bien.<br><br>
-                            El crecimiento y la mejora continua son fundamentales en <strong>Caminos del Ser</strong>. Por ello, te invitamos a compartir un breve testimonio sobre tu experiencia en nuestras sesiones.
+                            El crecimiento y la mejora continua son fundamentales en <strong>Psic. Jorge Arango Castaño</strong>. Por ello, te invitamos a compartir un breve testimonio sobre tu experiencia en nuestras sesiones.
                         </p>
                         <p style="font-size: 16px; line-height: 1.6; color: #4A4A4A;">
                             Tus palabras no solo nos ayudan a mejorar, sino que pueden ser la luz que otra persona necesita para dar el paso hacia su propio bienestar emocional.
@@ -132,9 +132,9 @@ export default async function handler(request, response) {
             `;
 
             await resend.emails.send({
-                from: 'Caminos del Ser <caminosdelser@emcotic.com>',
+                from: 'Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                 to: email,
-                subject: `⭐ ¿Cómo fue tu experiencia en Caminos del Ser?`,
+                subject: `⭐ ¿Cómo fue tu experiencia en Psic. Jorge Arango Castaño?`,
                 html: htmlCorreo
             });
 
