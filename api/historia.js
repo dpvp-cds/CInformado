@@ -21,7 +21,7 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
     const maxWidth = width - 2 * margin;
 
     // Membrete
-    page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 12, color: brandColor });
+    page.drawText('Psic. Jorge Arango Castaño - Gestión Existencial', { x: margin, y, font: boldFont, size: 12, color: brandColor });
     page.drawLine({ start: { x: margin, y: y - 10 }, end: { x: width - margin, y: y - 10 }, thickness: 1, color: brandColor });
     y -= 40;
 
@@ -231,7 +231,7 @@ export default async function handler(request, response) {
                                     <div style="background-color: #f4f6f8; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
                                         <p style="margin: 0;">Adjunto a este correo encontrarás el <strong>Certificado de Validación en PDF</strong> que incluye la tarea asignada y el sello de tu firma electrónica.</p>
                                     </div>
-                                    <p style="font-size: 12px; color: #666; margin-top: 30px;">Gracias por confiar en Caminos del Ser - Gestión Existencial.</p>
+                                    <p style="font-size: 12px; color: #666; margin-top: 30px;">Gracias por confiar en Psic. Jorge Arango Castaño - Gestión Existencial.</p>
                                 </div>
                             </div>
                         `;
@@ -255,7 +255,7 @@ export default async function handler(request, response) {
 
                         // Disparar envíos
                         await resend.emails.send({
-                            from: 'Caminos del Ser <psic@jorgearangoc.comm>',
+                            from: 'Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                             to: emailPaciente,
                             subject: `✅ Certificado de Sesión Realizada - ${fechaSesionF}`,
                             html: htmlPaciente,
@@ -263,8 +263,8 @@ export default async function handler(request, response) {
                         });
 
                         await resend.emails.send({
-                            from: 'Sistema CInformado <psic@jorgearangoc.comm>',
-                            to: 'psic@jorgearangoc.comm',
+                            from: 'Sistema CInformado <psic@jorgearangoc.com>',
+                            to: 'psic@jorgearangoc.com',
                             subject: `✅ Validación de Sesión: ${nombreCompleto || 'Paciente'}`,
                             html: htmlTerapeuta,
                             attachments: [{ filename: `Validacion-${nombreCompleto.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
