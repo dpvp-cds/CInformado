@@ -25,7 +25,7 @@ function setupPdfBuilder(pdfDoc, font, boldFont) {
     };
 
     const drawHeader = () => {
-        page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 10, color: brandColor });
+        page.drawText('Psic. Jorge Arango Castaño - Gestión Existencial', { x: margin, y, font: boldFont, size: 10, color: brandColor });
         page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: width - margin, y: y - 5 }, thickness: 1, color: brandColor });
         y -= 30;
     };
@@ -161,7 +161,7 @@ async function crearPDFConsentimiento(datos) {
     doc.drawClause('2.3 Naturaleza del Proceso:', 'Se me ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que mi participación activa es fundamental para el éxito del mismo.');
     doc.drawClause('2.4 Proceso de evaluación:', esMenor ? 'Autorizo que le sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta del (la) paciente menor de edad en consulta.' : 'Autorizo que sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.');
     doc.drawClause('2.5 Costos económicos:', esMenor ? 'Me comprometo como acudiente del (la) paciente menor de edad, a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibirá, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.' : 'Me comprometo a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiré, habiendo recibido la información de forma clara y oportuna y habiendo tenido la oportunidad de aceptar o rechazar dichas atenciones psicológicas y los costos asociados.');
-    doc.drawClause('2.6 Tratamiento de Datos:', 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser", la cual he podido consultar.');
+    doc.drawClause('2.6 Tratamiento de Datos:', 'Autorizo el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Psic. Jorge Arango Castaño", la cual he podido consultar.');
     doc.drawClause('2.7 Declaración y Modalidad de la Sesión:', esMenor ? `Declaro y doy fe de que yo, ${demograficos.nombreAcudiente}, actuando como acudiente, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.` : `Declaro y doy fe de que yo, ${demograficos.nombre}, he leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se me ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a mi entera satisfacción.`);
 
     doc.drawSubTitle('Información Demográfica del Paciente');
@@ -204,7 +204,7 @@ async function crearPDFParejas(datos) {
     doc.drawClause('3.3 Naturaleza del Proceso:', 'Se nos ha informado que el proceso puede incluir entrevistas, pruebas psicométricas y tareas inter-sesión, y que nuestra participación activa es fundamental para el éxito del mismo.');
     doc.drawClause('3.4 Proceso de Evaluación:', 'Autorizamos que nos sean practicadas pruebas psicométricas y demás herramientas diagnósticas que el psicólogo designado así considere necesario, a fin de establecer cabal y puntualmente un diagnóstico asertivo sobre el motivo de consulta.');
     doc.drawClause('3.5 Costos Económicos:', 'Nos comprometemos de manera solidaria a cubrir todos los gastos económicos en que se incurra con motivo de la atención que recibiremos, habiendo recibido la información de forma clara y oportuna.');
-    doc.drawClause('3.6 Tratamiento de Datos:', 'Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Caminos del Ser".');
+    doc.drawClause('3.6 Tratamiento de Datos:', 'Autorizamos el tratamiento de nuestros datos personales de acuerdo con la Ley 1581 de 2012 y la política de tratamiento de datos de "Psic. Jorge Arango Castaño".');
     
     const modalidad = datos.consentimiento?.modalidad || 'presencial';
     const decPareja = `Declaramos y damos fe de que nosotros, ${paciente1.nombre} y ${paciente2.nombre}, hemos leído y comprendido este documento durante una sesión ${modalidad} con el Psicólogo Jorge Arango Castaño, donde se nos ha garantizado un espacio para hacer preguntas, las cuales han sido respondidas a nuestra entera satisfacción.`;
@@ -340,15 +340,15 @@ export default async function handler(request, response) {
                 if (resend) {
                     const pdfBuffer = await crearPDFConsentimiento(dataToSave);
                     const mailToPaciente = {
-                        from: 'Notificación Consentimiento Informado <psic@jorgearangoc.comm>',
+                        from: 'Notificación Consentimiento Informado <psic@jorgearangoc.com>',
                         to: dataToSave.demograficos.email,
-                        subject: `Copia de tu Consentimiento Informado - Caminos del Ser`,
+                        subject: `Copia de tu Consentimiento Informado - Psic. Jorge Arango Castaño`,
                         html: `<p>Estimado/a ${dataToSave.demograficos.nombre},</p><p>Recibes una copia de tu consentimiento informado para la atención psicológica.</p><p>Adjunto, encontrarás el PDF con tu firma y la totalidad de las cláusulas legales aceptadas.</p>`,
                         attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
                     };
                     const mailToTerapeuta = {
-                        from: 'Notificación Consentimiento Informado <psic@jorgearangoc.comm>',
-                        to: 'psic@jorgearangoc.comm', 
+                        from: 'Notificación Consentimiento Informado <psic@jorgearangoc.com>',
+                        to: 'psic@jorgearangoc.com', 
                         subject: `Nuevo Consentimiento Firmado: ${dataToSave.demograficos.nombre}`,
                         html: `<p>Has recibido un consentimiento firmado de <strong>${dataToSave.demograficos.nombre}</strong>.</p><p>Revisa el PDF adjunto para ver los datos completos y la firma.</p>`,
                         attachments: [{ filename: `Consentimiento-${docRef.id}.pdf`, content: Buffer.from(pdfBuffer) }]
@@ -370,11 +370,11 @@ export default async function handler(request, response) {
                     const correos = [
                         { to: dataToSave.paciente1.email, subject: 'Copia de Consentimiento de Pareja' },
                         { to: dataToSave.paciente2.email, subject: 'Copia de Consentimiento de Pareja' },
-                        { to: 'psic@jorgearangoc.comm', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } 
+                        { to: 'psic@jorgearangoc.com', subject: `Nuevo Consentimiento Pareja: ${dataToSave.paciente1.nombre} y ${dataToSave.paciente2.nombre}` } 
                     ];
 
                     const emailPromises = correos.map(correo => resend.emails.send({
-                        from: 'Notificación Consentimiento <psic@jorgearangoc.comm>',
+                        from: 'Notificación Consentimiento <psic@jorgearangoc.com>',
                         to: correo.to,
                         subject: correo.subject,
                         html: `<p>Adjunto encontrarás el PDF íntegro del consentimiento informado de terapia de pareja, incluyendo todas sus cláusulas y las firmas electrónicas.</p>`,
