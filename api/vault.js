@@ -3,15 +3,37 @@ import { verifyAuth } from '../lib/auth.js';
 
 export default async function handler(request, response) {
     try {
+        // 🛡️ CONTROL DE SEGURIDAD GENERAL
+        if (!verifyAuth(request)) {
+            return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida para operaciones de bóveda.' });
+        }
+
+        const { action } = request.query;
+
+        // ==========================================
+        // NUEVO: LÓGICA DE SINCRONIZACIÓN DE FECHAS
+        // ==========================================
+        if (request.method === 'GET' && action === 'getBackupDate') {
+            const doc = await db.collection('configuracion').doc('sistema').get();
+            let timestamp = 0;
+            if (doc.exists) {
+                timestamp = doc.data().ultimoBackup || 0;
+            }
+            return response.status(200).json({ ultimoBackup: timestamp });
+        }
+
+        if (request.method === 'POST' && action === 'saveBackupDate') {
+            const { timestamp } = request.body;
+            await db.collection('configuracion').doc('sistema').set({
+                ultimoBackup: timestamp
+            }, { merge: true });
+            return response.status(200).json({ message: 'Fecha guardada en la nube.' });
+        }
+
         // ==========================================
         // MÉTODO GET: GENERAR Y DESCARGAR BACKUP
         // ==========================================
-        if (request.method === 'GET') {
-            // 🛡️ CONTROL DE SEGURIDAD JWT PARA DESCARGAR BACKUPS
-            if (!verifyAuth(request)) {
-                return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida para realizar backup.' });
-            }
-
+        if (request.method === 'GET' && !action) {
             const backupData = {
                 fechaBackup: new Date().toISOString(),
                 metadata: {
@@ -48,12 +70,7 @@ export default async function handler(request, response) {
         // ==========================================
         // MÉTODO POST: RESTAURAR BASE DE DATOS
         // ==========================================
-        else if (request.method === 'POST') {
-            // 🛡️ CONTROL DE SEGURIDAD ADICIONAL (Para restaurar exigimos JWT + PIN)
-            if (!verifyAuth(request)) {
-                return response.status(401).json({ message: 'Acceso Denegado. Sesión inválida para restaurar.' });
-            }
-
+        else if (request.method === 'POST' && !action) {
             const { backupData, pinSeguridad } = request.body;
 
             const masterPin = (process.env.MASTER_PIN || 'JAC-RESCATE-2026').trim();
