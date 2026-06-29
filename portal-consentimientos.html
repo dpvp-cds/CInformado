@@ -59,7 +59,7 @@
                     Último backup guardado: <span id="lastBackupDisplay" class="font-bold text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-200 shadow-sm ml-1">Buscando...</span>
                 </div>
             </div>
-            <button onclick="window.open('/api/vault', '_blank')" class="w-full sm:w-auto text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-6 py-2 rounded-full font-bold transition-colors shadow-sm">
+            <button onclick="descargarBackupManual()" class="w-full sm:w-auto text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-6 py-2 rounded-full font-bold transition-colors shadow-sm">
                 Descargar ahora
             </button>
         </div>
@@ -145,16 +145,21 @@
 
             document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
 
-            // Cargas concurrentes para mayor velocidad (Pacientes y Conteo de Reseñas)
             fetchPatients();
             checkPendingReviews(); 
-            mostrarUltimoBackup(); // Llama a la nueva función al cargar la página
+            mostrarUltimoBackup(); 
             
             evaluarRecordatorioBackup();
             setInterval(evaluarRecordatorioBackup, 60000);
         });
 
-        // NUEVA FUNCIÓN: Muestra la fecha del último backup guardado localmente
+        // FUNCIÓN ACTUALIZADA: Descarga y registra el tiempo exacto en un solo clic
+        function descargarBackupManual() {
+            window.open('/api/vault', '_blank');
+            localStorage.setItem('cinformado_last_backup', Date.now().toString());
+            mostrarUltimoBackup();
+        }
+
         function mostrarUltimoBackup() {
             const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
             const displayElement = document.getElementById('lastBackupDisplay');
@@ -173,7 +178,6 @@
             }
         }
 
-        // --- NUEVA LÓGICA DE NOTIFICACIONES ---
         async function checkPendingReviews() {
             try {
                 const response = await fetch('/api/reviews?action=getAllAdmin');
@@ -194,7 +198,6 @@
             }
         }
 
-        // --- LÓGICA DE BACKUP ---
         function evaluarRecordatorioBackup() {
             const now = new Date();
             const currentDay = now.getDay(); 
@@ -231,7 +234,7 @@
                 localStorage.setItem('cinformado_last_backup', Date.now().toString());
                 document.getElementById('backupModal').classList.add('hidden');
                 document.body.style.overflow = 'auto';
-                mostrarUltimoBackup(); // Refresca la fecha visualmente al instante
+                mostrarUltimoBackup();
             }
         }
 
@@ -299,7 +302,6 @@
                     ? '<span class="bg-fuchsia-100 text-fuchsia-800 text-xs font-bold px-2.5 py-1 rounded border border-fuchsia-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Pareja</span>' 
                     : '<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded border border-blue-200 flex items-center w-max"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Individual</span>';
 
-                // LÓGICA DE BADGE DE TESTIMONIO
                 let testimonioBadge = '';
                 if (p.estadoTestimonio === 'solicitado') {
                     testimonioBadge = `
@@ -368,11 +370,10 @@
 
                     if (response.ok) {
                         alert(`¡Solicitud enviada con éxito a ${nombre}! El paciente podrá calificar tu servicio y dejar un comentario.`);
-                        // Actualizar estado localmente para feedback inmediato sin recargar toda la página
                         const index = allPatients.findIndex(p => p.id === id);
                         if(index !== -1) {
                             allPatients[index].estadoTestimonio = 'solicitado';
-                            applySortAndRender(); // Re-renderizar la tabla para mostrar el badge
+                            applySortAndRender(); 
                         }
                     } else {
                         const error = await response.json();
