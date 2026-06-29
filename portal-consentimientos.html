@@ -56,7 +56,7 @@
                     <span class="text-sm font-semibold">Próxima actualización legal (Backup): <strong>Viernes a las 16:00 hrs</strong></span>
                 </div>
                 <div class="text-xs mt-1.5 sm:ml-7 text-gray-500 font-medium">
-                    Último backup guardado: <span id="lastBackupDisplay" class="font-bold text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-200 shadow-sm ml-1">Buscando...</span>
+                    Último backup guardado: <span id="lastBackupDisplay" class="font-bold text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-200 shadow-sm ml-1">Sincronizando nube...</span>
                 </div>
             </div>
             <button onclick="descargarBackupManual()" class="w-full sm:w-auto text-xs bg-white border border-[#003366] text-[#003366] hover:bg-blue-50 px-6 py-2 rounded-full font-bold transition-colors shadow-sm">
@@ -98,7 +98,8 @@
                         </tr>
                     </thead>
                     <tbody id="patientsTableBody">
-                        </tbody>
+                        <!-- Renderizado dinámico -->
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -132,6 +133,7 @@
 
     <script>
         let allPatients = []; 
+        let globalLastBackupTimestamp = 0; // Variable global para sincronización
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('consultorAuth') !== 'true') {
@@ -145,56 +147,76 @@
 
             document.getElementById('sortFilter').addEventListener('change', applySortAndRender);
 
+            // Cargas concurrentes
             fetchPatients();
             checkPendingReviews(); 
-            mostrarUltimoBackup(); 
-            
-            evaluarRecordatorioBackup();
-            setInterval(evaluarRecordatorioBackup, 60000);
+            fetchBackupDateCloud(); // 1. Buscamos primero la fecha en Firebase a través de vault.js
         });
 
-        // FUNCIÓN ACTUALIZADA: Descarga y registra el tiempo exacto en un solo clic
-        function descargarBackupManual() {
-            window.open('/api/vault', '_blank');
-            localStorage.setItem('cinformado_last_backup', Date.now().toString());
-            mostrarUltimoBackup();
+        // ==========================================
+        // NUEVA LÓGICA DE SINCRONIZACIÓN CLOUD VIA VAULT
+        // ==========================================
+        async function fetchBackupDateCloud() {
+            try {
+                const response = await fetch('/api/vault?action=getBackupDate');
+                if (response.ok) {
+                    const data = await response.json();
+                    globalLastBackupTimestamp = data.ultimoBackup || 0;
+                }
+            } catch (error) {
+                console.error("Error conectando con la bóveda para el backup:", error);
+                // Fallback de emergencia a la memoria local si falla el internet
+                globalLastBackupTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
+            }
+            
+            mostrarUltimoBackupVisual();
+            evaluarRecordatorioBackup(); 
+            setInterval(evaluarRecordatorioBackup, 60000);
         }
 
-        function mostrarUltimoBackup() {
-            const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
+        async function saveBackupDateToCloud() {
+            const now = Date.now();
+            globalLastBackupTimestamp = now;
+            mostrarUltimoBackupVisual(); // Optimistic UI
+            localStorage.setItem('cinformado_last_backup', now.toString()); // Respaldo local
+
+            try {
+                await fetch('/api/vault?action=saveBackupDate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ timestamp: now })
+                });
+            } catch (e) {
+                console.error("Error guardando fecha en la bóveda", e);
+            }
+        }
+
+        function mostrarUltimoBackupVisual() {
             const displayElement = document.getElementById('lastBackupDisplay');
-            
-            if (lastConfirmedTimestamp > 0) {
-                const date = new Date(lastConfirmedTimestamp);
+            if (globalLastBackupTimestamp > 0) {
+                const date = new Date(globalLastBackupTimestamp);
                 const fechaFormateada = date.toLocaleString('es-CO', { 
                     year: 'numeric', month: 'short', day: 'numeric', 
                     hour: '2-digit', minute: '2-digit', hour12: true 
                 });
-                displayElement.textContent = fechaFormateada;
-                displayElement.className = "font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200 shadow-sm ml-1";
+                displayElement.innerHTML = `${fechaFormateada} <span class="text-[9px] text-green-600 ml-1">☁️ Sincronizado</span>`;
+                displayElement.className = "font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200 shadow-sm ml-1 flex items-center inline-flex";
             } else {
-                displayElement.textContent = 'Nunca (o en otro dispositivo)';
+                displayElement.textContent = 'Aún no hay registros en la nube';
                 displayElement.className = "font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200 shadow-sm ml-1";
             }
         }
 
-        async function checkPendingReviews() {
-            try {
-                const response = await fetch('/api/reviews?action=getAllAdmin');
-                if (response.ok) {
-                    const reviews = await response.json();
-                    const pendingCount = reviews.filter(r => r.estado === 'Pendiente').length;
-                    const badge = document.getElementById('pendingReviewsBadge');
-                    
-                    if (pendingCount > 0) {
-                        badge.textContent = pendingCount;
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                }
-            } catch (error) {
-                console.error("Error consultando reseñas pendientes:", error);
+        function descargarBackupManual() {
+            window.open('/api/vault', '_blank');
+            saveBackupDateToCloud();
+        }
+
+        function confirmarBackupSemanal() {
+            if(confirm('¿Confirmas bajo tu responsabilidad profesional que has descargado el archivo Backup (.json) más reciente y lo has custodiado en un entorno seguro?')) {
+                document.getElementById('backupModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+                saveBackupDateToCloud();
             }
         }
 
@@ -216,11 +238,10 @@
             }
 
             const targetTimestamp = targetDate.getTime();
-            const lastConfirmedTimestamp = parseInt(localStorage.getItem('cinformado_last_backup') || '0', 10);
-            
             const modal = document.getElementById('backupModal');
 
-            if (lastConfirmedTimestamp < targetTimestamp) {
+            // Evaluamos contra la variable global conectada a la nube
+            if (globalLastBackupTimestamp < targetTimestamp) {
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; 
             } else {
@@ -229,12 +250,24 @@
             }
         }
 
-        function confirmarBackupSemanal() {
-            if(confirm('¿Confirmas bajo tu responsabilidad profesional que has descargado el archivo Backup (.json) más reciente y lo has custodiado en un entorno seguro?')) {
-                localStorage.setItem('cinformado_last_backup', Date.now().toString());
-                document.getElementById('backupModal').classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                mostrarUltimoBackup();
+        // --- LÓGICA DE NOTIFICACIONES ---
+        async function checkPendingReviews() {
+            try {
+                const response = await fetch('/api/reviews?action=getAllAdmin');
+                if (response.ok) {
+                    const reviews = await response.json();
+                    const pendingCount = reviews.filter(r => r.estado === 'Pendiente').length;
+                    const badge = document.getElementById('pendingReviewsBadge');
+                    
+                    if (pendingCount > 0) {
+                        badge.textContent = pendingCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error("Error consultando reseñas pendientes:", error);
             }
         }
 
