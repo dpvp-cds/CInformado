@@ -454,6 +454,8 @@
                         <h3 id="lbl_tit_p1" class="font-bold text-gray-800 border-b pb-2 mb-3">Datos del Paciente</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label><input type="text" id="edit_p1_nombre" class="input-styled text-sm bg-white"></div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Documento</label><input type="text" id="edit_p1_tipodoc" class="input-styled text-sm bg-white" placeholder="CC, TI, CE, etc."></div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1">Número de Documento</label><input type="text" id="edit_p1_doc" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Fecha de Nacimiento</label><input type="date" id="edit_p1_fechanac" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label><input type="email" id="edit_p1_email" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Teléfono</label><input type="text" id="edit_p1_tel" class="input-styled text-sm bg-white"></div>
@@ -474,6 +476,8 @@
                         <h3 class="font-bold text-gray-800 border-b pb-2 mb-3">Datos del Paciente 2</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label><input type="text" id="edit_p2_nombre" class="input-styled text-sm bg-white"></div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Documento</label><input type="text" id="edit_p2_tipodoc" class="input-styled text-sm bg-white" placeholder="CC, TI, CE, etc."></div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1">Número de Documento</label><input type="text" id="edit_p2_doc" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Fecha de Nacimiento</label><input type="date" id="edit_p2_fechanac" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label><input type="email" id="edit_p2_email" class="input-styled text-sm bg-white"></div>
                             <div><label class="block text-xs font-semibold text-gray-600 mb-1">Teléfono</label><input type="text" id="edit_p2_tel" class="input-styled text-sm bg-white"></div>
@@ -649,6 +653,31 @@
         let globalIsParejaForEdit = false;
         let firmaSesionCeroGlobal = null;
         let fechaFirmaSesionCeroGlobal = null;
+
+        // NUEVAS FUNCIONES: Decodificador de seguridad para mostrar comillas y símbolos correctamente
+        function decodeEntities(text) {
+            if (typeof text !== 'string') return text;
+            return text.replace(/&amp;/g, "&")
+                       .replace(/&lt;/g, "<")
+                       .replace(/&gt;/g, ">")
+                       .replace(/&quot;/g, '"')
+                       .replace(/&#39;/g, "'")
+                       .replace(/&#x27;/g, "'")
+                       .replace(/&#x2F;/g, "/");
+        }
+
+        function deepDecodeEntities(data) {
+            if (typeof data === 'string') return decodeEntities(data);
+            if (Array.isArray(data)) return data.map(deepDecodeEntities);
+            if (typeof data === 'object' && data !== null) {
+                const decoded = {};
+                for (const key in data) {
+                    decoded[key] = deepDecodeEntities(data[key]);
+                }
+                return decoded;
+            }
+            return data;
+        }
 
         function calcularEdadActual(fechaNacStr, edadGuardada) {
             if (!fechaNacStr) return edadGuardada || "N/A";
@@ -926,6 +955,7 @@
                 
                 if (resDemo.ok) {
                     data = await resDemo.json();
+                    data = deepDecodeEntities(data); // Decodifica símbolos de seguridad
                     globalPatientDataForEdit = data; 
                     if (data.tipo === 'pareja' || data.paciente1 || (data.demograficos && (data.demograficos.nombreCompleto1 || data.demograficos.nombre1))) {
                         isPareja = true;
@@ -934,6 +964,7 @@
                     resDemo = await fetch(`/api/consentimientos?action=getPareja&id=${id}`);
                     if (!resDemo.ok) throw new Error('No se encontró el paciente.');
                     data = await resDemo.json();
+                    data = deepDecodeEntities(data); // Decodifica símbolos de seguridad
                     globalPatientDataForEdit = data; 
                     isPareja = true;
                 }
@@ -1009,7 +1040,8 @@
                 try {
                     let resHist = await fetch(`/api/historia?action=get&id=${id}`);
                     if (resHist.ok) {
-                        const histData = await resHist.json();
+                        let histData = await resHist.json();
+                        histData = deepDecodeEntities(histData); // Decodifica comillas y símbolos de todo el historial
                         if (!histData.isNew) {
                             if (histData.fechaSesionCero) document.getElementById('fechaSesionCero').value = histData.fechaSesionCero;
                             if (histData.valorSesionCero) document.getElementById('valorSesionCero').value = histData.valorSesionCero;
@@ -1519,6 +1551,8 @@
                 
                 document.getElementById('lbl_tit_p1').textContent = "Datos del Paciente 1";
                 document.getElementById('edit_p1_nombre').value = p1.nombreCompleto1 || p1.nombre || '';
+                document.getElementById('edit_p1_tipodoc').value = p1.tipoDocumento1 || p1.tipoDocumento || '';
+                document.getElementById('edit_p1_doc').value = p1.documentoIdentidad1 || p1.documentoIdentidad || '';
                 document.getElementById('edit_p1_fechanac').value = p1.fechaNacimiento1 || p1.fechaNacimiento || '';
                 document.getElementById('edit_p1_tel').value = p1.telefonoContacto1 || p1.telefonoContacto || '';
                 document.getElementById('edit_p1_email').value = p1.email1 || p1.email || '';
@@ -1531,6 +1565,8 @@
                 document.getElementById('edit_emergencia_p1_container').classList.remove('hidden');
                 
                 document.getElementById('edit_p2_nombre').value = p2.nombreCompleto2 || p2.nombre || '';
+                document.getElementById('edit_p2_tipodoc').value = p2.tipoDocumento2 || p2.tipoDocumento || '';
+                document.getElementById('edit_p2_doc').value = p2.documentoIdentidad2 || p2.documentoIdentidad || '';
                 document.getElementById('edit_p2_fechanac').value = p2.fechaNacimiento2 || p2.fechaNacimiento || '';
                 document.getElementById('edit_p2_tel').value = p2.telefonoContacto2 || p2.telefonoContacto || '';
                 document.getElementById('edit_p2_email').value = p2.email2 || p2.email || '';
@@ -1544,6 +1580,8 @@
                 let d = data.demograficos || {};
                 document.getElementById('lbl_tit_p1').textContent = "Datos del Paciente";
                 document.getElementById('edit_p1_nombre').value = d.nombreCompleto || d.nombre || '';
+                document.getElementById('edit_p1_tipodoc').value = d.tipoDocumento || '';
+                document.getElementById('edit_p1_doc').value = d.documentoIdentidad || '';
                 document.getElementById('edit_p1_fechanac').value = d.fechaNacimiento || '';
                 document.getElementById('edit_p1_tel').value = d.telefonoContacto || '';
                 document.getElementById('edit_p1_email').value = d.email || '';
@@ -1571,11 +1609,11 @@
             
             if (globalIsParejaForEdit) {
                 payload.datos = {
-                    paciente1: { nombre: document.getElementById('edit_p1_nombre').value, nombreCompleto1: document.getElementById('edit_p1_nombre').value, fechaNacimiento: document.getElementById('edit_p1_fechanac').value, fechaNacimiento1: document.getElementById('edit_p1_fechanac').value, telefonoContacto: document.getElementById('edit_p1_tel').value, telefonoContacto1: document.getElementById('edit_p1_tel').value, email: document.getElementById('edit_p1_email').value, email1: document.getElementById('edit_p1_email').value, eps: document.getElementById('edit_p1_eps').value, eps1: document.getElementById('edit_p1_eps').value, direccion: document.getElementById('edit_p1_dir').value, direccion1: document.getElementById('edit_p1_dir').value, contactoEmergenciaNombre: document.getElementById('edit_p1_em_nombre').value, contactoEmergenciaNombre1: document.getElementById('edit_p1_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_p1_em_tel').value, contactoEmergenciaTelefono1: document.getElementById('edit_p1_em_tel').value },
-                    paciente2: { nombre: document.getElementById('edit_p2_nombre').value, nombreCompleto2: document.getElementById('edit_p2_nombre').value, fechaNacimiento: document.getElementById('edit_p2_fechanac').value, fechaNacimiento2: document.getElementById('edit_p2_fechanac').value, telefonoContacto: document.getElementById('edit_p2_tel').value, telefonoContacto2: document.getElementById('edit_p2_tel').value, email: document.getElementById('edit_p2_email').value, email2: document.getElementById('edit_p2_email').value, eps: document.getElementById('edit_p2_eps').value, eps2: document.getElementById('edit_p2_eps').value, direccion: document.getElementById('edit_p2_dir').value, direccion2: document.getElementById('edit_p2_dir').value, contactoEmergenciaNombre: document.getElementById('edit_p2_em_nombre').value, contactoEmergenciaNombre2: document.getElementById('edit_p2_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_p2_em_tel').value, contactoEmergenciaTelefono2: document.getElementById('edit_p2_em_tel').value }
+                    paciente1: { nombre: document.getElementById('edit_p1_nombre').value, nombreCompleto1: document.getElementById('edit_p1_nombre').value, tipoDocumento: document.getElementById('edit_p1_tipodoc').value, tipoDocumento1: document.getElementById('edit_p1_tipodoc').value, documentoIdentidad: document.getElementById('edit_p1_doc').value, documentoIdentidad1: document.getElementById('edit_p1_doc').value, fechaNacimiento: document.getElementById('edit_p1_fechanac').value, fechaNacimiento1: document.getElementById('edit_p1_fechanac').value, telefonoContacto: document.getElementById('edit_p1_tel').value, telefonoContacto1: document.getElementById('edit_p1_tel').value, email: document.getElementById('edit_p1_email').value, email1: document.getElementById('edit_p1_email').value, eps: document.getElementById('edit_p1_eps').value, eps1: document.getElementById('edit_p1_eps').value, direccion: document.getElementById('edit_p1_dir').value, direccion1: document.getElementById('edit_p1_dir').value, contactoEmergenciaNombre: document.getElementById('edit_p1_em_nombre').value, contactoEmergenciaNombre1: document.getElementById('edit_p1_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_p1_em_tel').value, contactoEmergenciaTelefono1: document.getElementById('edit_p1_em_tel').value },
+                    paciente2: { nombre: document.getElementById('edit_p2_nombre').value, nombreCompleto2: document.getElementById('edit_p2_nombre').value, tipoDocumento: document.getElementById('edit_p2_tipodoc').value, tipoDocumento2: document.getElementById('edit_p2_tipodoc').value, documentoIdentidad: document.getElementById('edit_p2_doc').value, documentoIdentidad2: document.getElementById('edit_p2_doc').value, fechaNacimiento: document.getElementById('edit_p2_fechanac').value, fechaNacimiento2: document.getElementById('edit_p2_fechanac').value, telefonoContacto: document.getElementById('edit_p2_tel').value, telefonoContacto2: document.getElementById('edit_p2_tel').value, email: document.getElementById('edit_p2_email').value, email2: document.getElementById('edit_p2_email').value, eps: document.getElementById('edit_p2_eps').value, eps2: document.getElementById('edit_p2_eps').value, direccion: document.getElementById('edit_p2_dir').value, direccion2: document.getElementById('edit_p2_dir').value, contactoEmergenciaNombre: document.getElementById('edit_p2_em_nombre').value, contactoEmergenciaNombre2: document.getElementById('edit_p2_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_p2_em_tel').value, contactoEmergenciaTelefono2: document.getElementById('edit_p2_em_tel').value }
                 };
             } else {
-                payload.datos = { demograficos: { nombre: document.getElementById('edit_p1_nombre').value, nombreCompleto: document.getElementById('edit_p1_nombre').value, fechaNacimiento: document.getElementById('edit_p1_fechanac').value, telefonoContacto: document.getElementById('edit_p1_tel').value, email: document.getElementById('edit_p1_email').value, eps: document.getElementById('edit_p1_eps').value, direccion: document.getElementById('edit_p1_dir').value, contactoEmergenciaNombre: document.getElementById('edit_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_em_tel').value } };
+                payload.datos = { demograficos: { nombre: document.getElementById('edit_p1_nombre').value, nombreCompleto: document.getElementById('edit_p1_nombre').value, tipoDocumento: document.getElementById('edit_p1_tipodoc').value, documentoIdentidad: document.getElementById('edit_p1_doc').value, fechaNacimiento: document.getElementById('edit_p1_fechanac').value, telefonoContacto: document.getElementById('edit_p1_tel').value, email: document.getElementById('edit_p1_email').value, eps: document.getElementById('edit_p1_eps').value, direccion: document.getElementById('edit_p1_dir').value, contactoEmergenciaNombre: document.getElementById('edit_em_nombre').value, contactoEmergenciaTelefono: document.getElementById('edit_em_tel').value } };
             }
             
             try {
