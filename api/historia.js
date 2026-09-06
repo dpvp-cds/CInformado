@@ -5,7 +5,40 @@ import { Resend } from 'resend';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Buffer } from 'buffer';
 
-async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgent) {
+// Descarga logoprincipal.png desde el propio sitio (misma raíz donde el
+// frontend lo referencia como <img src="logoprincipal.png">) para poder
+// incrustarlo en los PDFs. Si algo falla, devuelve null y el PDF se genera
+// sin logo (nunca rompe el envío).
+async function obtenerLogoBytes(request) {
+    try {
+        const proto = request.headers['x-forwarded-proto'] || 'https';
+        const host = request.headers['x-forwarded-host'] || request.headers.host;
+        const url = process.env.LOGO_URL || `${proto}://${host}/logoprincipal.png`;
+        const res = await fetch(url);
+        if (!res.ok) { console.error('[logo] No se pudo descargar el logo. Status', res.status, url); return null; }
+        const ab = await res.arrayBuffer();
+        return new Uint8Array(ab);
+    } catch (e) {
+        console.error('[logo] Error descargando el logo:', e.message);
+        return null;
+    }
+}
+
+// Dibuja el logo arriba a la derecha, respetando su proporción. No rompe si falla.
+async function dibujarLogo(pdfDoc, page, logoBytes, alturaObjetivo, margin) {
+    if (!logoBytes) return;
+    try {
+        const { width, height } = page.getSize();
+        const logo = await pdfDoc.embedPng(logoBytes);
+        const escala = alturaObjetivo / logo.height;
+        const w = logo.width * escala;
+        page.drawImage(logo, { x: width - margin - w, y: height - 18 - alturaObjetivo, width: w, height: alturaObjetivo });
+    } catch (e) {
+        console.error('[logo] No se pudo incrustar el logo en el PDF:', e.message);
+    }
+}
+
+async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgent, logoBytes) {
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
@@ -17,7 +50,9 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
     const brandColor = rgb(0, 0.2, 0.4);
     const maxWidth = width - 2 * margin;
 
-    page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 12, color: brandColor });
+    await dibujarLogo(pdfDoc, page, logoBytes, 45, margin);
+
+    page.drawText('Psic. Jorge Arango Castaño', { x: margin, y, font: boldFont, size: 12, color: brandColor });
     page.drawLine({ start: { x: margin, y: y - 10 }, end: { x: width - margin, y: y - 10 }, thickness: 1, color: brandColor });
     y -= 40;
 
@@ -80,7 +115,7 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
     return await pdfDoc.save();
 }
 
-async function crearPDFReciboCaja(nombre, fecha, valor) {
+async function crearPDFReciboCaja(nombre, fecha, valor, logoBytes) {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([600, 400]);
     const { width, height } = page.getSize();
@@ -91,7 +126,9 @@ async function crearPDFReciboCaja(nombre, fecha, valor) {
     const margin = 50;
     const brandColor = rgb(0, 0.2, 0.4);
 
-    page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 16, color: brandColor });
+    await dibujarLogo(pdfDoc, page, logoBytes, 38, margin);
+
+    page.drawText('Psic. Jorge Arango Castaño', { x: margin, y, font: boldFont, size: 16, color: brandColor });
     y -= 20;
     page.drawText('Jorge Arango Castaño - Psicólogo TP: 119700', { x: margin, y, font: font, size: 10, color: rgb(0.4, 0.4, 0.4) });
     y -= 15;
@@ -246,7 +283,8 @@ export default async function handler(request, response) {
                         const nombreSeguro = nombreCompleto || 'Paciente';
                         const fechaSesionF = new Date(`${fechaSesionMail}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
                         const userAgentString = request.headers['user-agent'] || 'Desconocido';
-                        const pdfBuffer = await crearPDFValidacionSesion(nombreSeguro, fechaSesionF, tareaSesionMail, data.firmaDigital, userAgentString);
+                        const logoBytes = await obtenerLogoBytes(request);
+                        const pdfBuffer = await crearPDFValidacionSesion(nombreSeguro, fechaSesionF, tareaSesionMail, data.firmaDigital, userAgentString, logoBytes);
 
                         const htmlPaciente = `
                             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
@@ -258,12 +296,13 @@ export default async function handler(request, response) {
                                     <p>Hola <strong>${nombreSeguro}</strong>,</p>
                                     <p>Este correo confirma que tu firma ha sido anexada a tu historia clínica para la sesión del <strong>${fechaSesionF}</strong>.</p>
                                     <p>Adjunto encontrarás el certificado PDF con la tarea consignada.</p>
+                                    <p style="font-size: 12px; color: #666; margin-top: 30px;">Psic. Jorge Arango Castaño</p>
                                 </div>
                             </div>
                         `;
 
                         const { error: errFirmaPaciente } = await resend.emails.send({
-                            from: 'Caminos del Ser <psic@jorgearangoc.com>',
+                            from: 'Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                             to: emailPaciente,
                             subject: `✅ Certificado de Sesión Realizada - ${fechaSesionF}`,
                             html: htmlPaciente,
@@ -287,14 +326,13 @@ export default async function handler(request, response) {
             // ============================================================
             // ACCIÓN DEDICADA PARA EL RECIBO DE PAGO
             // Homologada al flujo de la firma: se dispara explícitamente,
-            // arma el PDF y envía con await. Idempotente vía el mapa
-            // "recibosEnviados" (guardado con merge). Con 'forzar: true'
-            // (botón Reenviar recibo) se salta el candado.
+            // arma el PDF (con logo) y envía con await. Idempotente vía el
+            // mapa "recibosEnviados" (merge). Con 'forzar: true' (botón
+            // Reenviar recibo) se salta el candado.
             //
-            // IMPORTANTE: el SDK de Resend NO lanza excepción cuando la API
-            // rechaza el envío (dominio no verificado, modo prueba, etc.);
-            // devuelve { data, error }. Por eso revisamos 'error' y solo
-            // reportamos éxito si de verdad salió.
+            // El SDK de Resend NO lanza excepción cuando la API rechaza el
+            // envío; devuelve { data, error }. Por eso revisamos 'error' y
+            // solo reportamos éxito si de verdad salió.
             // ============================================================
             if (action === 'enviarReciboPago') {
                 if (!data.pacienteId || !data.evoId) return response.status(400).json({ message: 'Faltan datos para el recibo.' });
@@ -356,7 +394,8 @@ export default async function handler(request, response) {
                 const nombreSeguro = nombreCompleto || 'Paciente';
                 const fechaFormat = new Date(`${fechaRecibo}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
                 const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-                const pdfBuffer = await crearPDFReciboCaja(nombreSeguro, fechaFormat, valorRecibo);
+                const logoBytes = await obtenerLogoBytes(request);
+                const pdfBuffer = await crearPDFReciboCaja(nombreSeguro, fechaFormat, valorRecibo, logoBytes);
 
                 const htmlCorreo = `
                     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
@@ -371,28 +410,26 @@ export default async function handler(request, response) {
                                 <p style="margin: 0; font-size: 16px;"><strong>Valor Pagado:</strong> ${formatter.format(Number(valorRecibo))}</p>
                             </div>
                             <p>Adjunto a este correo encontrarás el documento PDF que sirve como soporte de este recaudo para tus registros financieros o reembolsos con entidades de salud complementaria si aplica.</p>
-                            <p style="font-size: 12px; color: #666; margin-top: 30px;">Caminos del Ser - Psic. Jorge Arango Castaño</p>
+                            <p style="font-size: 12px; color: #666; margin-top: 30px;">Psic. Jorge Arango Castaño</p>
                         </div>
                     </div>
                 `;
 
                 const { data: envioData, error: envioError } = await resend.emails.send({
-                    from: 'Caminos del Ser - Finanzas <psic@jorgearangoc.com>',
+                    from: 'Psic. Jorge Arango Castaño - Finanzas <psic@jorgearangoc.com>',
                     to: emailPaciente,
                     bcc: 'psic@jorgearangoc.com',
                     subject: `Comprobante de Pago - Sesión ${fechaFormat}`,
                     html: htmlCorreo,
-                    attachments: [{ filename: `Recibo-CaminosDelSer-${fechaRecibo}.pdf`, content: Buffer.from(pdfBuffer) }]
+                    attachments: [{ filename: `Recibo-${fechaRecibo}.pdf`, content: Buffer.from(pdfBuffer) }]
                 });
 
-                // Resend rechazó el envío: NO marcamos como enviado y devolvemos el motivo real.
                 if (envioError) {
                     console.error('[enviarReciboPago] Resend RECHAZÓ el envío:', JSON.stringify(envioError));
                     const detalle = envioError.message || envioError.name || 'Error desconocido de Resend';
                     return response.status(502).json({ message: `El correo NO se envió. Resend respondió: ${detalle}` });
                 }
 
-                // Solo si de verdad salió, marcamos como enviado.
                 await docRef.set({
                     recibosEnviados: { [data.evoId]: new Date().toISOString() }
                 }, { merge: true });
