@@ -130,7 +130,7 @@ async function crearPDFReciboCaja(nombre, fecha, valor, logoBytes) {
 
     page.drawText('Psic. Jorge Arango Castaño', { x: margin, y, font: boldFont, size: 16, color: brandColor });
     y -= 20;
-    page.drawText('Jorge Arango Castaño - Psicólogo TP: 119700', { x: margin, y, font: font, size: 10, color: rgb(0.4, 0.4, 0.4) });
+    page.drawText('TP: 119700', { x: margin, y, font: font, size: 10, color: rgb(0.4, 0.4, 0.4) });
     y -= 15;
     page.drawLine({ start: { x: margin, y }, end: { x: width - margin, y }, thickness: 1, color: brandColor });
 
@@ -154,8 +154,11 @@ async function crearPDFReciboCaja(nombre, fecha, valor, logoBytes) {
     const valorFormateado = formatter.format(Number(valor));
 
     page.drawRectangle({ x: width - margin - 200, y: y - 10, width: 200, height: 40, color: rgb(0.95, 0.97, 1) });
-    page.drawText('VALOR PAGADO:', { x: width - margin - 190, y: y + 5, font: boldFont, size: 12, color: brandColor });
-    page.drawText(valorFormateado, { x: width - margin - 190 + 100, y: y + 5, font: boldFont, size: 14, color: rgb(0.1, 0.6, 0.3) });
+    const etiquetaValorX = width - margin - 190;
+    const etiquetaValorY = y + 5;
+    page.drawText('VALOR PAGADO:', { x: etiquetaValorX, y: etiquetaValorY, font: boldFont, size: 12, color: brandColor });
+    const anchoEtiquetaValor = boldFont.widthOfTextAtSize('VALOR PAGADO:', 12);
+    page.drawText(valorFormateado, { x: etiquetaValorX + anchoEtiquetaValor + 12, y: etiquetaValorY, font: boldFont, size: 14, color: rgb(0.1, 0.6, 0.3) });
 
     y -= 60;
     page.drawText('Este documento es un comprobante de pago emitido electrónicamente.', { x: margin, y, font: font, size: 9, color: rgb(0.5, 0.5, 0.5) });
