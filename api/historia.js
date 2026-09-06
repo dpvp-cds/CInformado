@@ -11,10 +11,10 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
     const { width, height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
+
     let y = height - 50;
     const margin = 50;
-    const brandColor = rgb(0, 0.2, 0.4); 
+    const brandColor = rgb(0, 0.2, 0.4);
     const maxWidth = width - 2 * margin;
 
     page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 12, color: brandColor });
@@ -60,13 +60,13 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
 
     page.drawText('Firma del Paciente:', { x: margin, y, font: boldFont, size: 12 });
     y -= 90;
-    
+
     try {
         const pngImageBytes = Buffer.from(firmaB64.split(',')[1], 'base64');
         const pngImage = await pdfDoc.embedPng(pngImageBytes);
         page.drawImage(pngImage, { x: margin, y, width: 150, height: 75 });
     } catch (e) { console.error("Error incrustando firma en PDF", e); }
-    
+
     page.drawLine({ start: { x: margin, y: y - 5 }, end: { x: margin + 200, y: y - 5 }, thickness: 1 });
     y -= 30;
 
@@ -82,47 +82,47 @@ async function crearPDFValidacionSesion(nombre, fecha, tarea, firmaB64, userAgen
 
 async function crearPDFReciboCaja(nombre, fecha, valor) {
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 400]); 
+    const page = pdfDoc.addPage([600, 400]);
     const { width, height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
+
     let y = height - 50;
     const margin = 50;
-    const brandColor = rgb(0, 0.2, 0.4); 
+    const brandColor = rgb(0, 0.2, 0.4);
 
     page.drawText('Caminos del Ser - Gestión Existencial', { x: margin, y, font: boldFont, size: 16, color: brandColor });
     y -= 20;
     page.drawText('Jorge Arango Castaño - Psicólogo TP: 119700', { x: margin, y, font: font, size: 10, color: rgb(0.4, 0.4, 0.4) });
     y -= 15;
     page.drawLine({ start: { x: margin, y }, end: { x: width - margin, y }, thickness: 1, color: brandColor });
-    
+
     y -= 40;
     page.drawText('RECIBO DE PAGO', { x: width / 2 - 70, y, font: boldFont, size: 18, color: brandColor });
-    
+
     y -= 50;
     page.drawText('Fecha del Servicio:', { x: margin, y, font: boldFont, size: 12 });
     page.drawText(fecha, { x: 200, y, font: font, size: 12 });
-    
+
     y -= 30;
     page.drawText('Paciente:', { x: margin, y, font: boldFont, size: 12 });
     page.drawText(nombre, { x: 200, y, font: font, size: 12 });
-    
+
     y -= 30;
     page.drawText('Concepto:', { x: margin, y, font: boldFont, size: 12 });
     page.drawText('Servicios Profesionales en Psicología', { x: 200, y, font: font, size: 12 });
-    
+
     y -= 40;
     const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
     const valorFormateado = formatter.format(Number(valor));
-    
+
     page.drawRectangle({ x: width - margin - 200, y: y - 10, width: 200, height: 40, color: rgb(0.95, 0.97, 1) });
     page.drawText('VALOR PAGADO:', { x: width - margin - 190, y: y + 5, font: boldFont, size: 12, color: brandColor });
     page.drawText(valorFormateado, { x: width - margin - 190 + 100, y: y + 5, font: boldFont, size: 14, color: rgb(0.1, 0.6, 0.3) });
 
     y -= 60;
     page.drawText('Este documento es un comprobante de pago emitido electrónicamente.', { x: margin, y, font: font, size: 9, color: rgb(0.5, 0.5, 0.5) });
-    page.drawText('No constituye factura electrónica de venta.', { x: margin, y - 12, font: font, size: 9, color: rgb(0.5, 0.5, 0.5) });
+    page.drawText('No constituye factura electrónica de venta.', { x: margin, y: y - 12, font: font, size: 9, color: rgb(0.5, 0.5, 0.5) });
 
     return await pdfDoc.save();
 }
@@ -141,10 +141,10 @@ export default async function handler(request, response) {
         if (request.method === 'GET') {
             if (action === 'getPublicEvo') {
                 if (!id || !evoId) return response.status(400).json({ message: 'Faltan parámetros.' });
-                
+
                 const docHist = await db.collection('historias_clinicas').doc(id).get();
                 if (!docHist.exists) return response.status(404).json({ message: 'Historia no encontrada.' });
-                
+
                 const dataHist = docHist.data();
                 let fechaEvo, tareaEvo, yaFirmadoEvo;
 
@@ -193,7 +193,7 @@ export default async function handler(request, response) {
 
             if (action === 'saveEvoSignature') {
                 if (!data.pacienteId || !data.evoId || !data.firmaDigital) return response.status(400).json({ message: 'Faltan datos de firma.' });
-                
+
                 const docRef = db.collection('historias_clinicas').doc(data.pacienteId);
                 const doc = await docRef.get();
                 if (!doc.exists) return response.status(404).json({ message: 'Historia no encontrada.' });
@@ -229,7 +229,7 @@ export default async function handler(request, response) {
                     const resend = new Resend(resendApiKey);
                     let emailPaciente = "";
                     let nombreCompleto = "";
-                    
+
                     const docIndiv = await db.collection('consents').doc(data.pacienteId).get();
                     if (docIndiv.exists) {
                         emailPaciente = docIndiv.data().demograficos?.email;
@@ -243,9 +243,10 @@ export default async function handler(request, response) {
                     }
 
                     if (emailPaciente) {
+                        const nombreSeguro = nombreCompleto || 'Paciente';
                         const fechaSesionF = new Date(`${fechaSesionMail}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
                         const userAgentString = request.headers['user-agent'] || 'Desconocido';
-                        const pdfBuffer = await crearPDFValidacionSesion(nombreCompleto, fechaSesionF, tareaSesionMail, data.firmaDigital, userAgentString);
+                        const pdfBuffer = await crearPDFValidacionSesion(nombreSeguro, fechaSesionF, tareaSesionMail, data.firmaDigital, userAgentString);
 
                         const htmlPaciente = `
                             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
@@ -254,7 +255,7 @@ export default async function handler(request, response) {
                                 </div>
                                 <div style="padding: 30px;">
                                     <h3 style="color: #003366;">¡Sesión validada exitosamente!</h3>
-                                    <p>Hola <strong>${nombreCompleto}</strong>,</p>
+                                    <p>Hola <strong>${nombreSeguro}</strong>,</p>
                                     <p>Este correo confirma que tu firma ha sido anexada a tu historia clínica para la sesión del <strong>${fechaSesionF}</strong>.</p>
                                     <p>Adjunto encontrarás el certificado PDF con la tarea consignada.</p>
                                 </div>
@@ -272,9 +273,9 @@ export default async function handler(request, response) {
                         await resend.emails.send({
                             from: 'Sistema CInformado <caminosdelser@emcotic.com>',
                             to: 'caminosdelser@emcotic.com',
-                            subject: `✅ Validación de Sesión: ${nombreCompleto || 'Paciente'}`,
+                            subject: `✅ Validación de Sesión: ${nombreSeguro}`,
                             html: `<p>El paciente ha validado la sesión. Puedes revisar el certificado en tu bandeja.</p>`,
-                            attachments: [{ filename: `Validacion-${nombreCompleto.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
+                            attachments: [{ filename: `Validacion-${nombreSeguro.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
                         });
                     }
                 }
@@ -301,7 +302,7 @@ export default async function handler(request, response) {
                 case 'saveEvolucion':
                     if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
 
-                    let recibosAEnviar = []; 
+                    let recibosAEnviar = [];
 
                     const docActual = await db.collection('historias_clinicas').doc(data.pacienteId).get();
                     let evosAnteriores = [];
@@ -323,10 +324,10 @@ export default async function handler(request, response) {
                         });
                     }
 
-                    await db.collection('historias_clinicas').doc(data.pacienteId).set({ 
-                        evoluciones: data.evoluciones || [], 
-                        strikes: data.strikes || 0, 
-                        ultimaActualizacionEvo: new Date().toISOString() 
+                    await db.collection('historias_clinicas').doc(data.pacienteId).set({
+                        evoluciones: data.evoluciones || [],
+                        strikes: data.strikes || 0,
+                        ultimaActualizacionEvo: new Date().toISOString()
                     }, { merge: true });
 
                     if (recibosAEnviar.length > 0) {
@@ -335,7 +336,7 @@ export default async function handler(request, response) {
                             const resend = new Resend(resendApiKey);
                             let emailPaciente = "";
                             let nombreCompleto = "";
-                            
+
                             const docIndiv = await db.collection('consents').doc(data.pacienteId).get();
                             if (docIndiv.exists) {
                                 emailPaciente = docIndiv.data().demograficos?.email;
@@ -349,12 +350,13 @@ export default async function handler(request, response) {
                             }
 
                             if (emailPaciente) {
+                                const nombreSeguro = nombreCompleto || 'Paciente';
                                 Promise.all(recibosAEnviar.map(async (recibo) => {
                                     const fechaFormat = new Date(`${recibo.fecha}T12:00:00`).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-                                    const pdfBuffer = await crearPDFReciboCaja(nombreCompleto, fechaFormat, recibo.valor);
-                                    
+                                    const pdfBuffer = await crearPDFReciboCaja(nombreSeguro, fechaFormat, recibo.valor);
+
                                     const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-                                    
+
                                     const htmlCorreo = `
                                         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 10px; overflow: hidden;">
                                             <div style="background-color: #003366; padding: 20px; text-align: center;">
@@ -362,7 +364,7 @@ export default async function handler(request, response) {
                                             </div>
                                             <div style="padding: 30px;">
                                                 <h3 style="color: #003366;">Confirmación de Recaudo</h3>
-                                                <p>Hola <strong>${nombreCompleto}</strong>,</p>
+                                                <p>Hola <strong>${nombreSeguro}</strong>,</p>
                                                 <p>Hemos registrado exitosamente el pago por los servicios profesionales de psicología correspondientes a la sesión del <strong>${fechaFormat}</strong>.</p>
                                                 <div style="background-color: #f4f6f8; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
                                                     <p style="margin: 0; font-size: 16px;"><strong>Valor Pagado:</strong> ${formatter.format(Number(recibo.valor))}</p>
@@ -376,7 +378,7 @@ export default async function handler(request, response) {
                                     return resend.emails.send({
                                         from: 'Caminos del Ser - Finanzas <caminosdelser@emcotic.com>',
                                         to: emailPaciente,
-                                        bcc: 'caminosdelser@emcotic.com', 
+                                        bcc: 'caminosdelser@emcotic.com',
                                         subject: `Comprobante de Pago - Sesión ${fechaFormat}`,
                                         html: htmlCorreo,
                                         attachments: [{ filename: `Recibo-CaminosDelSer-${recibo.fecha}.pdf`, content: Buffer.from(pdfBuffer) }]
