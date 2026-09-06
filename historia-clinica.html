@@ -1276,7 +1276,7 @@
             };
             try {
                 const response = await fetch(`/api/historia?action=saveHistoria&id=${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(historiaData) });
-                if(response.ok) { localStorage.removeItem(draftCeroKey); document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); }
+                if(response.ok) { localStorage.removeItem(draftCeroKey); if (historiaData.pagadoSesionCero && Number(historiaData.valorSesionCero) > 0) { enviarReciboPago(id, 'sesionCero'); } document.getElementById('form-success').classList.remove('hidden'); btn.textContent = 'Actualizar Sesión Cero'; btn.disabled = false; setTimeout(() => document.getElementById('form-success').classList.add('hidden'), 3000); }
             } catch(e) { alert("Hubo un error al conectar."); btn.disabled = false; btn.textContent = 'Intentar de nuevo'; }
         }
 
