@@ -262,21 +262,23 @@ export default async function handler(request, response) {
                             </div>
                         `;
 
-                        await resend.emails.send({
-                            from: 'Caminos del Ser <caminosdelser@emcotic.com>',
+                        const { error: errFirmaPaciente } = await resend.emails.send({
+                            from: 'Caminos del Ser <psic@jorgearangoc.com>',
                             to: emailPaciente,
                             subject: `✅ Certificado de Sesión Realizada - ${fechaSesionF}`,
                             html: htmlPaciente,
                             attachments: [{ filename: `Validacion-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
                         });
+                        if (errFirmaPaciente) console.error('[saveEvoSignature] Resend rechazó el correo al paciente:', errFirmaPaciente);
 
-                        await resend.emails.send({
-                            from: 'Sistema CInformado <caminosdelser@emcotic.com>',
-                            to: 'caminosdelser@emcotic.com',
+                        const { error: errFirmaPsico } = await resend.emails.send({
+                            from: 'Sistema CInformado <psic@jorgearangoc.com>',
+                            to: 'psic@jorgearangoc.com',
                             subject: `✅ Validación de Sesión: ${nombreSeguro}`,
                             html: `<p>El paciente ha validado la sesión. Puedes revisar el certificado en tu bandeja.</p>`,
                             attachments: [{ filename: `Validacion-${nombreSeguro.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
                         });
+                        if (errFirmaPsico) console.error('[saveEvoSignature] Resend rechazó la copia al psicólogo:', errFirmaPsico);
                     }
                 }
                 return response.status(200).json({ message: 'Firma guardada correctamente.' });
@@ -284,11 +286,15 @@ export default async function handler(request, response) {
 
             // ============================================================
             // ACCIÓN DEDICADA PARA EL RECIBO DE PAGO
-            // Homologada al flujo de la firma (saveEvoSignature):
-            // se dispara explícitamente, arma el PDF y envía con await.
-            // Idempotente: marca la sesión en el mapa "recibosEnviados"
-            // (guardado con merge, así el regrabado del arreglo de
-            // evoluciones no lo borra) para no duplicar recibos.
+            // Homologada al flujo de la firma: se dispara explícitamente,
+            // arma el PDF y envía con await. Idempotente vía el mapa
+            // "recibosEnviados" (guardado con merge). Con 'forzar: true'
+            // (botón Reenviar recibo) se salta el candado.
+            //
+            // IMPORTANTE: el SDK de Resend NO lanza excepción cuando la API
+            // rechaza el envío (dominio no verificado, modo prueba, etc.);
+            // devuelve { data, error }. Por eso revisamos 'error' y solo
+            // reportamos éxito si de verdad salió.
             // ============================================================
             if (action === 'enviarReciboPago') {
                 if (!data.pacienteId || !data.evoId) return response.status(400).json({ message: 'Faltan datos para el recibo.' });
@@ -316,7 +322,6 @@ export default async function handler(request, response) {
                 }
 
                 const recibosEnviados = dataHist.recibosEnviados || {};
-                // Con 'forzar: true' (botón Reenviar recibo) se salta el candado anti-duplicados.
                 if (recibosEnviados[data.evoId] && data.forzar !== true) {
                     return response.status(200).json({ message: 'El recibo de esta sesión ya fue enviado. Usa "Reenviar recibo" para forzar el reenvío.' });
                 }
@@ -324,7 +329,7 @@ export default async function handler(request, response) {
                 const resendApiKey = process.env.RESEND2_API_KEY;
                 if (!resendApiKey) {
                     console.error('[enviarReciboPago] Falta RESEND2_API_KEY: no se puede enviar el recibo.');
-                    return response.status(500).json({ message: 'Servicio de correo no configurado.' });
+                    return response.status(500).json({ message: 'Servicio de correo no configurado (falta RESEND2_API_KEY en este proyecto).' });
                 }
 
                 const resend = new Resend(resendApiKey);
@@ -371,20 +376,28 @@ export default async function handler(request, response) {
                     </div>
                 `;
 
-                await resend.emails.send({
-                    from: 'Caminos del Ser - Finanzas <caminosdelser@emcotic.com>',
+                const { data: envioData, error: envioError } = await resend.emails.send({
+                    from: 'Caminos del Ser - Finanzas <psic@jorgearangoc.com>',
                     to: emailPaciente,
-                    bcc: 'caminosdelser@emcotic.com',
+                    bcc: 'psic@jorgearangoc.com',
                     subject: `Comprobante de Pago - Sesión ${fechaFormat}`,
                     html: htmlCorreo,
                     attachments: [{ filename: `Recibo-CaminosDelSer-${fechaRecibo}.pdf`, content: Buffer.from(pdfBuffer) }]
                 });
 
+                // Resend rechazó el envío: NO marcamos como enviado y devolvemos el motivo real.
+                if (envioError) {
+                    console.error('[enviarReciboPago] Resend RECHAZÓ el envío:', JSON.stringify(envioError));
+                    const detalle = envioError.message || envioError.name || 'Error desconocido de Resend';
+                    return response.status(502).json({ message: `El correo NO se envió. Resend respondió: ${detalle}` });
+                }
+
+                // Solo si de verdad salió, marcamos como enviado.
                 await docRef.set({
                     recibosEnviados: { [data.evoId]: new Date().toISOString() }
                 }, { merge: true });
 
-                console.log(`[enviarReciboPago] Recibo enviado a ${emailPaciente} (sesión ${fechaRecibo}, valor ${valorRecibo}).`);
+                console.log(`[enviarReciboPago] Recibo enviado a ${emailPaciente} (sesión ${fechaRecibo}, valor ${valorRecibo}). id Resend: ${envioData?.id || 'N/D'}`);
                 return response.status(200).json({ message: 'Recibo enviado correctamente.' });
             }
 
@@ -406,9 +419,8 @@ export default async function handler(request, response) {
                     return response.status(200).json({ message: 'Plan de trabajo guardado.' });
 
                 case 'saveEvolucion':
-                    // Ahora saveEvolucion SOLO guarda. El recibo se envía por la
-                    // acción dedicada 'enviarReciboPago', que el frontend dispara
-                    // en el momento de marcar la sesión como pagada.
+                    // saveEvolucion SOLO guarda. El recibo se envía por la acción
+                    // dedicada 'enviarReciboPago', que el frontend dispara al marcar pagado.
                     if (!data.pacienteId) return response.status(400).json({ message: 'Falta ID.' });
                     await db.collection('historias_clinicas').doc(data.pacienteId).set({
                         evoluciones: data.evoluciones || [],
