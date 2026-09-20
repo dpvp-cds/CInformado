@@ -457,7 +457,8 @@ export default async function handler(request, response) {
                     textoEstado = `finalizado el ${formatearFechaLarga(fechaFinBruta)}`;
                 }
 
-                const resendApiKey = process.env.RESEND_EMCOTIC_API_KEY;
+                // CORRECCIÓN: Volvemos a usar la variable de entorno que ya tienes configurada en Vercel
+                const resendApiKey = process.env.RESEND2_API_KEY;
                 if (!resendApiKey) return response.status(500).json({ message: 'Servicio de correo no configurado.' });
                 
                 const logoBytes = await obtenerLogoBytes(request);
@@ -481,9 +482,10 @@ export default async function handler(request, response) {
 
                 const resend = new Resend(resendApiKey);
                 const { error: envioError } = await resend.emails.send({
-                    from: 'Psic. Jorge Arango Castaño <cinformado@emcotic.com>',
+                    // CORRECCIÓN: Ajustamos el remitente al dominio de producción
+                    from: 'Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                     to: datosPaciente.email,
-                    bcc: 'cinformado@emcotic.com',
+                    bcc: 'psic@jorgearangoc.com',
                     subject: `📄 Constancia de Asistencia a Psicología - ${datosPaciente.nombre}`,
                     html: htmlCorreo,
                     attachments: [{ filename: `Constancia_Asistencia_${datosPaciente.nombre.replace(/\s+/g, '_')}.pdf`, content: Buffer.from(pdfBuffer) }]
@@ -530,7 +532,8 @@ export default async function handler(request, response) {
                     tareaSesionMail = evoluciones[evoIndex].tarea || evoluciones[evoIndex].cierre || 'No se consignó tarea.';
                 }
 
-                const resendApiKey = process.env.RESEND_EMCOTIC_API_KEY;
+                // CORRECCIÓN: Volvemos a usar la variable de entorno que ya tienes configurada en Vercel
+                const resendApiKey = process.env.RESEND2_API_KEY;
                 if (resendApiKey) {
                     const resend = new Resend(resendApiKey);
                     let emailPaciente = "";
@@ -571,7 +574,8 @@ export default async function handler(request, response) {
                         `;
 
                         const { error: errFirmaPaciente } = await resend.emails.send({
-                            from: 'Psic. Jorge Arango Castaño <cinformado@emcotic.com>',
+                            // CORRECCIÓN: Ajustamos el remitente al dominio de producción
+                            from: 'Psic. Jorge Arango Castaño <psic@jorgearangoc.com>',
                             to: emailPaciente,
                             subject: `✅ Certificado de Sesión Realizada - ${fechaSesionF}`,
                             html: htmlPaciente,
@@ -580,8 +584,9 @@ export default async function handler(request, response) {
                         if (errFirmaPaciente) console.error('[saveEvoSignature] Resend rechazó el correo al paciente:', errFirmaPaciente);
 
                         const { error: errFirmaPsico } = await resend.emails.send({
-                            from: 'Sistema CInformado <cinformado@emcotic.com>',
-                            to: 'cinformado@emcotic.com',
+                            // CORRECCIÓN: Ajustamos el remitente al dominio de producción
+                            from: 'Sistema CInformado <psic@jorgearangoc.com>',
+                            to: 'psic@jorgearangoc.com',
                             subject: `✅ Validación de Sesión: ${nombreSeguro}`,
                             html: `<p>El paciente ha validado la sesión. Puedes revisar el certificado en tu bandeja.</p>`,
                             attachments: [{ filename: `Validacion-${nombreSeguro.replace(/\s+/g, '')}-${fechaSesionMail}.pdf`, content: Buffer.from(pdfBuffer) }]
@@ -622,9 +627,10 @@ export default async function handler(request, response) {
                     return response.status(200).json({ message: 'El recibo de esta sesión ya fue enviado. Usa "Reenviar recibo" para forzar el reenvío.' });
                 }
 
-                const resendApiKey = process.env.RESEND_EMCOTIC_API_KEY;
+                // CORRECCIÓN: Volvemos a usar la variable de entorno que ya tienes configurada en Vercel
+                const resendApiKey = process.env.RESEND2_API_KEY;
                 if (!resendApiKey) {
-                    console.error('[enviarReciboPago] Falta RESEND_EMCOTIC_API_KEY: no se puede enviar el recibo.');
+                    console.error('[enviarReciboPago] Falta RESEND2_API_KEY: no se puede enviar el recibo.');
                     return response.status(500).json({ message: 'Servicio de correo no configurado.' });
                 }
 
@@ -674,9 +680,10 @@ export default async function handler(request, response) {
                 `;
 
                 const { data: envioData, error: envioError } = await resend.emails.send({
-                    from: 'Psic. Jorge Arango Castaño - Finanzas <cinformado@emcotic.com>',
+                    // CORRECCIÓN: Ajustamos el remitente al dominio de producción
+                    from: 'Psic. Jorge Arango Castaño - Finanzas <psic@jorgearangoc.com>',
                     to: emailPaciente,
-                    bcc: 'cinformado@emcotic.com',
+                    bcc: 'psic@jorgearangoc.com',
                     subject: `Comprobante de Pago - Sesión ${fechaFormat}`,
                     html: htmlCorreo,
                     attachments: [{ filename: `Recibo-${fechaRecibo}.pdf`, content: Buffer.from(pdfBuffer) }]
